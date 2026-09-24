@@ -1,0 +1,94 @@
+/* NorSaga application skin. Provider attribution and map controls stay visible. */
+:root {
+  --bg-dark: #070e20;
+  --glass-bg: rgba(13, 25, 52, 0.94);
+  --glass-border: rgba(137, 199, 218, 0.22);
+  --glass-border-hover: rgba(137, 199, 218, 0.44);
+  --accent: #3cb9e6;
+  --accent-dim: rgba(60, 185, 230, 0.14);
+  --accent-glow: rgba(60, 185, 230, 0.22);
+  --text-primary: #f1f5fa;
+  --text-secondary: #b8cbe0;
+  --text-dim: #90a9c4;
+  --menu-bg: #101e3c;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'Inter', system-ui, sans-serif;
+  --panel-radius: 10px;
+  --btn-radius: 6px;
+  --left-stack-x: 36px;
+  --left-stack-top: 355px;
+  --norsaga-primary: #1f2f6e;
+  --norsaga-secondary: #528ec2;
+  --norsaga-maritime: #27628e;
+  --norsaga-light: #89c7da;
+}
+.norsaga { font-variant-numeric: tabular-nums; }
+.norsaga button, .norsaga input, .norsaga select { font-family: var(--font-sans); }
+.norsaga #title-bar { top: 28px; left: 36px; }
+.norsaga #title-bar h1 { font-size: 36px; letter-spacing: 0.035em; text-shadow: none; }
+.norsaga-wordmark, .norsaga #loading-screen h2 { font-family: 'Goldman', 'Inter', sans-serif; font-weight: 400; }
+.norsaga #title-bar .subtitle { color: var(--norsaga-light); font-size: 10px; letter-spacing: 0.24em; margin-top: 6px; }
+.norsaga .title-glow { opacity: 0.25; }
+.norsaga #first-run-launcher { display: none !important; }
+.norsaga #loading-screen { background: #070e20; }
+.norsaga #loading-screen h2 { color: #f1f5fa; font-size: clamp(28px, 6vw, 46px); letter-spacing: 0.06em; }
+.norsaga-loader-line { width: 64px; height: 3px; margin: 0 auto 24px; background: #3cb9e6; }
+.norsaga-operations { position: fixed; top: 118px; left: 36px; width: 286px; z-index: 110; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 10px; padding: 14px; backdrop-filter: blur(16px); }
+.norsaga-toolbar-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.norsaga-toolbar-head .norsaga-eyebrow { flex: 1; }
+.norsaga-eyebrow { color: #89c7da; font-size: 9px; font-weight: 600; letter-spacing: 0.1em; }
+.norsaga-operations button, .norsaga-dialog button { cursor: pointer; color: #f1f5fa; background: #1f2f6e; border: 1px solid rgba(137, 199, 218, 0.32); border-radius: 6px; padding: 8px 10px; font-size: 11px; min-height: 34px; }
+.norsaga-operations button:hover, .norsaga-dialog button:hover { background: #27628e; border-color: #3cb9e6; }
+.norsaga-operations button:disabled, .norsaga-dialog button:disabled { cursor: wait; opacity: 0.55; }
+.norsaga-region-label { display: block; font-size: 10px; color: #b8cbe0; margin-bottom: 6px; }
+.norsaga-region-select { display: block; width: 100%; min-height: 38px; padding: 8px; color: #f1f5fa; background: #101e3c; border: 1px solid var(--glass-border); border-radius: 6px; font-size: 12px; }
+.norsaga-layers { position: relative; margin-top: 10px; font-size: 12px; }
+.norsaga-layers summary, .norsaga-advanced summary { cursor: pointer; padding: 6px 0; color: #b8cbe0; }
+.norsaga-layer-list { position: absolute; left: -15px; right: -15px; top: calc(100% + 10px); padding: 14px; background: #101e3c; border: 1px solid var(--glass-border); border-radius: 8px; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4); }
+.norsaga-layer { display: flex; align-items: center; gap: 12px; min-height: 54px; cursor: pointer; }
+.norsaga-layer input, .norsaga-suppress input { width: 18px; height: 18px; flex: 0 0 18px; accent-color: #3cb9e6; }
+.norsaga-layer strong { display: block; font-size: 12px; font-weight: 500; }
+.norsaga-layer small { display: block; font-size: 10px; color: #b8cbe0; margin-top: 3px; }
+.norsaga-status { font-size: 11px; line-height: 1.5; color: #b8cbe0; margin-top: 10px; }
+.norsaga-status:empty { display: none; }
+.norsaga-dialog { box-sizing: border-box; width: min(660px, calc(100vw - 32px)); max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); margin: auto; padding: 28px; overflow-y: auto; color: #f1f5fa; background: #0d1934; border: 1px solid rgba(137, 199, 218, 0.35); border-radius: 14px; font-family: var(--font-sans); box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5); }
+.norsaga-dialog::backdrop { background: rgba(4, 10, 23, 0.7); backdrop-filter: blur(5px); }
+.norsaga-dialog-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 20px; }
+.norsaga-dialog .norsaga-text-button { background: transparent; }
+.norsaga-dialog h2 { font-family: var(--font-sans); font-weight: 500; font-size: clamp(22px, 4vw, 30px); letter-spacing: -0.025em; line-height: 1.2; margin: 0 0 10px; }
+.norsaga-intro { color: #b8cbe0; font-size: 14px; line-height: 1.5; margin-bottom: 24px; }
+.norsaga-missions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.norsaga-dialog .norsaga-mission { min-height: 130px; padding: 18px; background: #112347; text-align: left; border-radius: 8px; }
+.norsaga-dialog .norsaga-mission:hover { background: #1f2f6e; }
+.norsaga-mission strong { display: block; color: #f1f5fa; font-size: 16px; font-weight: 500; margin-bottom: 10px; }
+.norsaga-mission span { display: block; color: #b8cbe0; font-size: 12px; line-height: 1.6; }
+.norsaga-advanced { margin-top: 20px; font-size: 12px; }
+.norsaga-advanced-choices { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.norsaga-suppress { display: flex; align-items: center; gap: 10px; margin: 24px 0 14px; font-size: 12px; color: #b8cbe0; }
+.norsaga-fineprint { font-size: 11px; line-height: 1.6; color: #90a9c4; margin-top: 10px; }
+.norsaga-about p { font-size: 14px; line-height: 1.7; color: #b8cbe0; margin: 16px 0; }
+.norsaga-about-links { display: flex; gap: 16px; flex-wrap: wrap; margin: 20px 0; }
+.norsaga-about a { color: #89c7da; font-size: 13px; text-underline-offset: 3px; }
+.norsaga-operations :focus-visible, .norsaga-dialog :focus-visible { outline: 2px solid #89c7da; outline-offset: 3px; }
+.norsaga.cockpit-mode .norsaga-operations, .norsaga.scene-playback-mode .norsaga-operations, .norsaga.recording-mode .norsaga-operations, .norsaga.ui-clean-view .norsaga-operations { display: none; }
+@media (max-width: 760px) {
+  .norsaga #title-bar { top: 16px; left: 16px; }
+  .norsaga #title-bar h1 { font-size: 26px; }
+  .norsaga #title-bar .subtitle { font-size: 8px; }
+  .norsaga-operations { top: 94px; left: 16px; width: 248px; padding: 10px; }
+  .norsaga-toolbar-head { margin-bottom: 8px; }
+  .norsaga-dialog { padding: 20px; }
+  .norsaga { --left-stack-top: 336px; }
+}
+@media (max-width: 540px) {
+  .norsaga-missions { grid-template-columns: 1fr; }
+  .norsaga-dialog .norsaga-mission { min-height: 100px; padding: 14px; }
+  .norsaga-dialog-header .norsaga-eyebrow { max-width: 210px; line-height: 1.7; }
+}
+@media (max-height: 540px) {
+  .norsaga-operations { top: 80px; }
+  .norsaga-operations .norsaga-status { max-height: 48px; overflow: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .norsaga-operations *, .norsaga-dialog * { transition: none !important; animation: none !important; }
+}

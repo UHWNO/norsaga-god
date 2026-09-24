@@ -1,3 +1,4 @@
+import './norsaga/theme.css';
 import { createStandaloneApplication } from './standalone/application.js';
 import { describeError } from './standalone/errors.js';
 
@@ -8,10 +9,12 @@ const application = createStandaloneApplication({
 });
 
 application.start().catch((error) => {
-  console.error("God's Eye View initialization failed:", error);
+  console.error('NorSaga initialization failed:', error);
   const loaderStatus = document.querySelector('#loading-screen .loader-status');
-  loaderStatus.textContent = `Error: ${describeError(error)}`;
-  loaderStatus.style.color = '#ff4444';
+  if (loaderStatus) {
+    loaderStatus.textContent = `Error: ${describeError(error)}`;
+    loaderStatus.style.color = '#ff9090';
+  }
 });
 
 export { application };
