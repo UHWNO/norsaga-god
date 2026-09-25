@@ -51,7 +51,7 @@ export function initNorSagaExperience({
   const select = make('select', 'norsaga-region-select');
   select.id = 'norsaga-region';
   selectLabel.htmlFor = select.id;
-  select.append(new Option('Choose an operating area', ''));
+  select.append(new Option('Choose operating area', ''));
   for (const region of REGIONS)
     select.append(new Option(region.label, region.id));
   toolbar.append(selectLabel, select);
