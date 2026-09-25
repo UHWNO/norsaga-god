@@ -33,9 +33,10 @@
 .norsaga .title-glow { opacity: 0.25; }
 .norsaga #first-run-launcher { display: none !important; }
 .norsaga #loading-screen { background: #070e20; }
-.norsaga-operations { position: fixed; top: var(--norsaga-workspace-top); left: var(--norsaga-control-left); width: 286px; z-index: 110; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 10px; padding: 14px 14px 6px; backdrop-filter: blur(16px); }
-.norsaga-toolbar-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
-.norsaga-toolbar-head .norsaga-eyebrow { flex: 1; }
+.norsaga-operations { position: fixed; top: var(--norsaga-workspace-top); left: var(--norsaga-control-left); width: 210px; z-index: 110; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 10px; padding: 14px 14px 6px; backdrop-filter: blur(16px); }
+.norsaga-toolbar-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 6px 8px; margin-bottom: 12px; }
+.norsaga-toolbar-head .norsaga-eyebrow { grid-row: 1 / span 2; align-self: center; }
+.norsaga-toolbar-head button { grid-column: 2; min-width: 58px; }
 .norsaga-eyebrow { color: #89c7da; font-size: 9px; font-weight: 600; letter-spacing: 0.1em; }
 .norsaga-operations button, .norsaga-dialog button { cursor: pointer; color: #f1f5fa; background: #1f2f6e; border: 1px solid rgba(137, 199, 218, 0.32); border-radius: 6px; padding: 8px 10px; font-size: 11px; min-height: 34px; }
 .norsaga-operations button:hover, .norsaga-dialog button:hover { background: #27628e; border-color: #3cb9e6; }
@@ -80,7 +81,7 @@
 .norsaga #command-dock > #location-bar > .location-inner,
 .norsaga #command-dock > #control-panel > .panel-inner { border-radius: var(--panel-radius); }
 @media (min-height: 541px) {
-  .norsaga:not(.cockpit-mode):not(.scene-playback-mode) #left-panel-stack { top: calc(var(--norsaga-workspace-top) + 160px); }
+  .norsaga:not(.cockpit-mode):not(.scene-playback-mode) #left-panel-stack { top: calc(var(--norsaga-workspace-top) + 200px); }
 }
 @media (min-width: 1100px) and (min-height: 720px) {
   .norsaga #left-panel-stack > #data-panel:not(.collapsed),
@@ -145,7 +146,7 @@
   .norsaga { --norsaga-control-left: 64px; }
   .norsaga #title-bar { top: 16px; left: 28px; }
   .norsaga-title-logo { width: 248px; }
-  .norsaga-operations { width: 248px; padding: 10px; }
+  .norsaga-operations { width: 210px; padding: 10px; }
   .norsaga #left-panel-stack { right: auto; left: var(--norsaga-control-left); width: min(360px, calc(100vw - var(--norsaga-control-left) - 16px)); }
   .norsaga-toolbar-head { margin-bottom: 8px; }
   .norsaga-dialog { padding: 20px; }
