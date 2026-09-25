@@ -57,6 +57,8 @@ KEY_SETUP_EXTERNAL_KEYS=()
 [[ -n "${CESIUM_ION_TOKEN:-}" ]] && KEY_SETUP_EXTERNAL_KEYS+=(CESIUM_ION_TOKEN)
 [[ -n "${OPENAI_API_KEY:-}" ]] && KEY_SETUP_EXTERNAL_KEYS+=(OPENAI_API_KEY)
 [[ -n "${AISSTREAM_API_KEY:-}" ]] && KEY_SETUP_EXTERNAL_KEYS+=(AISSTREAM_API_KEY)
+[[ -n "${BARENTSWATCH_AIS_CLIENT_ID:-}" ]] && KEY_SETUP_EXTERNAL_KEYS+=(BARENTSWATCH_AIS_CLIENT_ID)
+[[ -n "${BARENTSWATCH_AIS_CLIENT_SECRET:-}" ]] && KEY_SETUP_EXTERNAL_KEYS+=(BARENTSWATCH_AIS_CLIENT_SECRET)
 [[ -n "${FIRMS_MAP_KEY:-}" ]] && KEY_SETUP_EXTERNAL_KEYS+=(FIRMS_MAP_KEY)
 [[ -n "${TOMTOM_API_KEY:-}" ]] && KEY_SETUP_EXTERNAL_KEYS+=(TOMTOM_API_KEY)
 [[ -n "${OPENSKY_CLIENT_ID:-}" ]] && KEY_SETUP_EXTERNAL_KEYS+=(OPENSKY_CLIENT_ID)
@@ -234,12 +236,16 @@ resolve_opensky_credentials
 #   security add-generic-password -U -s "openai-api" -a "api-key" -w
 OPENAI_API_KEY="${OPENAI_API_KEY:-$(read_dotenv_value "OPENAI_API_KEY")}"
 AISSTREAM_API_KEY="${AISSTREAM_API_KEY:-$(read_dotenv_value "AISSTREAM_API_KEY")}"
+BARENTSWATCH_AIS_CLIENT_ID="${BARENTSWATCH_AIS_CLIENT_ID:-$(read_dotenv_value "BARENTSWATCH_AIS_CLIENT_ID")}"
+BARENTSWATCH_AIS_CLIENT_SECRET="${BARENTSWATCH_AIS_CLIENT_SECRET:-$(read_dotenv_value "BARENTSWATCH_AIS_CLIENT_SECRET")}"
 CESIUM_ION_TOKEN="${CESIUM_ION_TOKEN:-$(read_dotenv_value "CESIUM_ION_TOKEN")}"
 LL2_API_TOKEN="${LL2_API_TOKEN:-$(read_dotenv_value "LL2_API_TOKEN")}"
 TOMTOM_API_KEY="${TOMTOM_API_KEY:-$(read_dotenv_value "TOMTOM_API_KEY")}"
 FIRMS_MAP_KEY="${FIRMS_MAP_KEY:-$(read_dotenv_value "FIRMS_MAP_KEY")}"
 OPENAI_API_KEY="${OPENAI_API_KEY:-$(read_keychain_secret "openai-api" "api-key")}"
 AISSTREAM_API_KEY="${AISSTREAM_API_KEY:-$(read_keychain_secret "aisstream-api" "api-key")}"
+BARENTSWATCH_AIS_CLIENT_ID="${BARENTSWATCH_AIS_CLIENT_ID:-$(read_keychain_secret "barentswatch-ais" "client-id")}"
+BARENTSWATCH_AIS_CLIENT_SECRET="${BARENTSWATCH_AIS_CLIENT_SECRET:-$(read_keychain_secret "barentswatch-ais" "client-secret")}"
 CESIUM_ION_TOKEN="${CESIUM_ION_TOKEN:-$(read_keychain_secret "cesium-ion" "token")}"
 TOMTOM_API_KEY="${TOMTOM_API_KEY:-$(read_keychain_secret "tomtom-api" "api-key")}"
 FIRMS_MAP_KEY="${FIRMS_MAP_KEY:-$(read_keychain_secret "firms-map" "map-key")}"
@@ -349,6 +355,11 @@ case "${OPENSKY_AUTH_MODE}" in
 esac
 [[ -n "${OPENAI_API_KEY}" ]] && echo "OpenAI key (voice + HUD summary): configured" || echo "OpenAI key (voice + HUD summary): not set — GEV MIC disabled"
 [[ -n "${AISSTREAM_API_KEY}" ]] && echo "AISStream key (live vessels): configured" || echo "AISStream key (live vessels): not set — ships layer empty"
+if [[ -n "${BARENTSWATCH_AIS_CLIENT_ID}" && -n "${BARENTSWATCH_AIS_CLIENT_SECRET}" ]]; then
+  echo "BarentsWatch AIS OAuth: configured"
+else
+  echo "BarentsWatch AIS OAuth: not set"
+fi
 if [[ -n "${GOOGLE_MAPS_API_KEY}" ]]; then
   echo "Startup map: Google Photorealistic 3D Tiles (direct)"
 elif [[ -n "${CESIUM_ION_TOKEN}" ]]; then
@@ -416,6 +427,8 @@ put_env_if_set OPENSKY_USERNAME "${OPENSKY_USERNAME}"
 put_env_if_set OPENSKY_PASSWORD "${OPENSKY_PASSWORD}"
 put_env_if_set OPENAI_API_KEY "${OPENAI_API_KEY}"
 put_env_if_set AISSTREAM_API_KEY "${AISSTREAM_API_KEY}"
+put_env_if_set BARENTSWATCH_AIS_CLIENT_ID "${BARENTSWATCH_AIS_CLIENT_ID}"
+put_env_if_set BARENTSWATCH_AIS_CLIENT_SECRET "${BARENTSWATCH_AIS_CLIENT_SECRET}"
 put_env_if_set CESIUM_ION_TOKEN "${CESIUM_ION_TOKEN}"
 put_env_if_set TOMTOM_API_KEY "${TOMTOM_API_KEY}"
 put_env_if_set FIRMS_MAP_KEY "${FIRMS_MAP_KEY}"

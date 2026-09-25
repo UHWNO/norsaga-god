@@ -60,6 +60,13 @@ export const DATA_CREDITS = [
       '<a href="https://aisstream.io" target="_blank" rel="noopener">AISStream.io</a>',
   },
   {
+    key: 'barentswatch-ais',
+    html:
+      'Norwegian live and historic AIS: ' +
+      '<a href="https://www.barentswatch.no" target="_blank" rel="noopener">BarentsWatch</a> / ' +
+      'Norwegian Coastal Administration (NLOD where no other notice is given)',
+  },
+  {
     key: 'celestrak',
     html:
       'Satellites (TLEs): CelesTrak ' +

@@ -19,6 +19,7 @@ redistribution or public customer deployment.
 | OpenStreetMap / infrastructure extracts | ODbL data obligations recorded | Assess attribution and derivative-database obligations |
 | Google Maps / Cesium ion | Separate account, product and plan terms | Confirm commercial eligibility, quotas, billing, allowed domains and visible attribution |
 | AISStream | Provider terms apply | Confirm redistribution, history storage, permitted use and service expectations |
+| BarentsWatch AIS | BarentsWatch API terms; NLOD where no other notice is given | Confirm commercial display, caching, 14-day history and originating-data-owner attribution requirements |
 | Weather, satellite imagery and forecast products | Per-source terms and coverage | Verify each enabled product, required credits and any service-plan restrictions |
 | Public CCTV, radio, orbital and aircraft enrichment sources | Separate source terms | Review individually; public accessibility is not a blanket redistribution license |
 | Bundled 3D models | Individual model licenses | Review `public/models/README.md` before distributing model files |

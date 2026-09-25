@@ -171,7 +171,7 @@ export function createAisStreamSource({
   origin = () => globalThis.location?.origin || 'http://localhost',
 } = {}) {
   return {
-    label: 'AISStream',
+    label: 'AISStream + BarentsWatch',
     async getSnapshot({ maxRows = 12000 } = {}, { signal } = {}) {
       const url = new URL(apiUrl, origin());
       url.searchParams.set('maxRows', String(maxRows));
@@ -193,7 +193,15 @@ export function createAisStreamSource({
         error.message = reasons[payload?.status] || error.message;
         throw error;
       }
-      return { ...vesselSnapshot(payload), status: response.status };
+      return {
+        ...vesselSnapshot(payload, {
+          source: payload?.source || 'AISStream + BarentsWatch',
+          coverage: payload?.providers?.barentswatch?.rowCount
+            ? 'global AISStream plus Norwegian BarentsWatch AIS'
+            : 'received AIS positions',
+        }),
+        status: response.status,
+      };
     },
     async getTrack(reference, { signal } = {}) {
       const { response, payload } = await readResponse(

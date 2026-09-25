@@ -66,6 +66,17 @@ export const KEY_SETUP_KEYS = Object.freeze([
     tier: 'free',
   }),
   Object.freeze({
+    id: 'barentswatch-ais',
+    title: 'BARENTSWATCH AIS',
+    unlocks: 'Norwegian, Svalbard and Jan Mayen vessel coverage',
+    getUrl: 'https://www.barentswatch.no/minside/devaccess/ais',
+    envVars: Object.freeze([
+      'BARENTSWATCH_AIS_CLIENT_ID',
+      'BARENTSWATCH_AIS_CLIENT_SECRET',
+    ]),
+    tier: 'free',
+  }),
+  Object.freeze({
     id: 'firms',
     title: 'NASA FIRMS',
     unlocks: 'Live active-fire detections',
