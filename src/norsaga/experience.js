@@ -172,20 +172,47 @@ export function initNorSagaExperience({
   about.setAttribute('aria-labelledby', 'norsaga-about-title');
   const aboutTitle = make('h2', '', 'About this workspace');
   aboutTitle.id = 'norsaga-about-title';
-  about.append(
-    aboutTitle,
+  const aboutLead = make('p');
+  aboutLead.append(
+    make('strong', '', 'NorSaga MDA Research Platform'),
+    doc.createTextNode(
+      ' is an internal research, training and development environment operated by ',
+    ),
+    make('strong', '', 'NorSaga Maritime Intelligence AS'),
+    doc.createTextNode('.'),
+  );
+  const aboutPurpose = make('p');
+  aboutPurpose.append(
+    doc.createTextNode(
+      'The platform is used to develop competence and capabilities in ',
+    ),
+    make('strong', '', 'Maritime Domain Awareness (MDA)'),
+    doc.createTextNode(
+      ', including vessel activity analysis, maritime situational awareness, risk assessment, traffic-pattern analysis and the evaluation of maritime data sources and technologies.',
+    ),
+  );
+  const aboutStatus = make('p');
+  aboutStatus.append(
+    doc.createTextNode('The platform is currently intended for '),
     make(
-      'p',
+      'strong',
       '',
-      'NorSaga Maritime Intelligence AS. Built on God’s Eye View by Bilawal Sidhu, using CesiumJS.',
+      'internal research, professional training, technology evaluation and capability development',
+    ),
+    doc.createTextNode(
+      '. It is not intended for operational decision-making or commercial redistribution of third-party data.',
     ),
   );
   about.append(
+    aboutTitle,
+    aboutLead,
+    aboutPurpose,
     make(
       'p',
       '',
-      'The source-code license and third-party data licenses are separate. This evaluation branch is not cleared for commercial deployment. Required map and data-provider credits remain available on the globe.',
+      'It provides a controlled environment for testing how AIS, vessel information, historical activity, risk indicators and other maritime data can be combined, analysed and visualised to support improved understanding of activity in the maritime domain.',
     ),
+    aboutStatus,
   );
   const links = make('div', 'norsaga-about-links');
   for (const [path, label] of [
