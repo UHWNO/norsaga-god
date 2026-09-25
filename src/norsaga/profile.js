@@ -19,16 +19,56 @@ export const REGIONS = Object.freeze(
 );
 
 export const MARITIME_LAYERS = Object.freeze([
-  Object.freeze({ id: 'ais-live-vessels', label: 'Vessels / AIS', note: 'Provider key required' }),
-  Object.freeze({ id: 'wind', label: 'Wind forecast', note: 'Forecast, not observed conditions' }),
-  Object.freeze({ id: 'weather-satellite', label: 'Weather imagery', note: 'Coverage varies by provider' }),
+  Object.freeze({
+    id: 'ais-live-vessels',
+    label: 'Vessels / AIS',
+    note: 'Provider key required',
+  }),
+  Object.freeze({
+    id: 'wind',
+    label: 'Wind forecast',
+    note: 'Forecast, not observed conditions',
+  }),
+  Object.freeze({
+    id: 'weather-satellite',
+    label: 'Weather imagery',
+    note: 'Coverage varies by provider',
+  }),
 ]);
-const maritime = Object.freeze(['ais-live-vessels', 'wind', 'weather-satellite']);
+const maritime = Object.freeze([
+  'ais-live-vessels',
+  'wind',
+  'weather-satellite',
+]);
 export const MISSIONS = Object.freeze([
-  Object.freeze({ id: 'global-maritime', label: 'Global maritime', region: 'global', layers: maritime, description: 'Vessels, wind forecasts and weather imagery.' }),
-  Object.freeze({ id: 'baltic', label: 'Baltic Sea', region: 'baltic', layers: maritime, description: 'Open the Baltic with vessel and weather layers.' }),
-  Object.freeze({ id: 'arctic', label: 'Arctic', region: 'arctic', layers: maritime, description: 'Vessels and weather. Sea-ice charts are not connected yet.' }),
-  Object.freeze({ id: 'overview', label: 'Global overview', region: 'global', layers: Object.freeze([]), description: 'Explore the globe. Keep your current layer selection.' }),
+  Object.freeze({
+    id: 'global-maritime',
+    label: 'Global maritime',
+    region: 'global',
+    layers: maritime,
+    description: 'Vessels, wind forecasts and weather imagery.',
+  }),
+  Object.freeze({
+    id: 'baltic',
+    label: 'Baltic Sea',
+    region: 'baltic',
+    layers: maritime,
+    description: 'Open the Baltic with vessel and weather layers.',
+  }),
+  Object.freeze({
+    id: 'arctic',
+    label: 'Arctic',
+    region: 'arctic',
+    layers: maritime,
+    description: 'Vessels and weather. Sea-ice charts are not connected yet.',
+  }),
+  Object.freeze({
+    id: 'overview',
+    label: 'Global overview',
+    region: 'global',
+    layers: Object.freeze([]),
+    description: 'Explore the globe. Keep your current layer selection.',
+  }),
 ]);
 
 export function getRegion(id) {
@@ -67,7 +107,10 @@ function requestLayer(id, setEnabled, signal, timeoutMs) {
 }
 
 /** A deliberate preset adds only its own layers; other user selections survive. */
-export async function runMission(id, { navigate, setEnabled, signal, timeoutMs = 10000 }) {
+export async function runMission(
+  id,
+  { navigate, setEnabled, signal, timeoutMs = 10000 },
+) {
   const mission = MISSIONS.find((entry) => entry.id === id);
   if (!mission) throw new RangeError(`Unknown NorSaga mission: ${id}`);
   if (typeof navigate !== 'function' || typeof setEnabled !== 'function')
@@ -79,7 +122,9 @@ export async function runMission(id, { navigate, setEnabled, signal, timeoutMs =
     return { ok: false, reason: 'navigation-blocked', layers: [] };
   signal?.throwIfAborted();
   const layers = await Promise.all(
-    mission.layers.map((layer) => requestLayer(layer, setEnabled, signal, timeoutMs)),
+    mission.layers.map((layer) =>
+      requestLayer(layer, setEnabled, signal, timeoutMs),
+    ),
   );
   signal?.throwIfAborted();
   return { ok: true, region: mission.region, layers };
