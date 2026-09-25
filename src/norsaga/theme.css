@@ -31,7 +31,7 @@
 .norsaga .title-glow { opacity: 0.25; }
 .norsaga #first-run-launcher { display: none !important; }
 .norsaga #loading-screen { background: #070e20; }
-.norsaga-operations { position: fixed; top: 118px; left: 36px; width: 286px; z-index: 110; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 10px; padding: 14px; backdrop-filter: blur(16px); }
+.norsaga-operations { position: fixed; top: 118px; left: 36px; width: 286px; z-index: 110; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 10px; padding: 14px 14px 6px; backdrop-filter: blur(16px); }
 .norsaga-toolbar-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
 .norsaga-toolbar-head .norsaga-eyebrow { flex: 1; }
 .norsaga-eyebrow { color: #89c7da; font-size: 9px; font-weight: 600; letter-spacing: 0.1em; }
@@ -41,7 +41,8 @@
 .norsaga-region-label { display: block; font-size: 10px; color: #b8cbe0; margin-bottom: 6px; }
 .norsaga-region-select { display: block; width: 100%; min-height: 38px; padding: 8px; color: #f1f5fa; background: #101e3c; border: 1px solid var(--glass-border); border-radius: 6px; font-size: 12px; }
 .norsaga-layers { position: relative; margin-top: 10px; font-size: 12px; }
-.norsaga-layers summary, .norsaga-advanced summary { cursor: pointer; padding: 6px 0; color: #b8cbe0; }
+.norsaga-layers summary { cursor: pointer; padding: 6px 0 2px; color: #b8cbe0; }
+.norsaga-advanced summary { cursor: pointer; padding: 6px 0; color: #b8cbe0; }
 .norsaga-layer-list { position: absolute; left: -15px; right: -15px; top: calc(100% + 10px); padding: 14px; background: #101e3c; border: 1px solid var(--glass-border); border-radius: 8px; box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4); }
 .norsaga-layer { display: flex; align-items: center; gap: 12px; min-height: 54px; cursor: pointer; }
 .norsaga-layer input, .norsaga-suppress input { width: 18px; height: 18px; flex: 0 0 18px; accent-color: #3cb9e6; }
@@ -49,6 +50,7 @@
 .norsaga-layer small { display: block; font-size: 10px; color: #b8cbe0; margin-top: 3px; }
 .norsaga-status { font-size: 11px; line-height: 1.5; color: #b8cbe0; margin-top: 10px; }
 .norsaga-status:empty { display: none; }
+.norsaga #intel-hud[data-variant='tactical'] .hud-summary-wrap { transform: translateY(60px); }
 .norsaga-dialog { box-sizing: border-box; width: min(660px, calc(100vw - 32px)); max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); margin: auto; padding: 28px; overflow-y: auto; color: #f1f5fa; background: #0d1934; border: 1px solid rgba(137, 199, 218, 0.35); border-radius: 14px; font-family: var(--font-sans); box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5); }
 .norsaga-dialog::backdrop { background: rgba(4, 10, 23, 0.7); backdrop-filter: blur(5px); }
 .norsaga-dialog-header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 20px; }
@@ -69,6 +71,15 @@
 .norsaga-about a { color: #89c7da; font-size: 13px; text-underline-offset: 3px; }
 .norsaga-operations :focus-visible, .norsaga-dialog :focus-visible { outline: 2px solid #89c7da; outline-offset: 3px; }
 .norsaga.cockpit-mode .norsaga-operations, .norsaga.scene-playback-mode .norsaga-operations, .norsaga.recording-mode .norsaga-operations, .norsaga.ui-clean-view .norsaga-operations { display: none; }
+.norsaga #command-dock { gap: 10px; }
+.norsaga #command-dock > #location-bar,
+.norsaga #command-dock > #control-panel,
+.norsaga #command-dock > #gev-voice-control,
+.norsaga #command-dock > #location-bar > .location-inner,
+.norsaga #command-dock > #control-panel > .panel-inner { border-radius: var(--panel-radius); }
+@media (min-height: 720px) {
+  .norsaga #left-panel-stack { top: max(var(--left-stack-safe-top, var(--left-stack-top)), 326px); }
+}
 @media (min-width: 1100px) and (min-height: 720px) {
   .norsaga #left-panel-stack > #data-panel:not(.collapsed),
   .norsaga #left-panel-stack > #scene-panel:not(.collapsed) {
