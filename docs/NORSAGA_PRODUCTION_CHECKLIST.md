@@ -36,6 +36,7 @@ static build with a secured, operational hosted intelligence service.
 
 ## Verification
 
+- [ ] Confirm the deployed revision matches the intended Git commit after each automated deployment.
 - [x] Run the complete existing test suite, package-boundary checks and production build.
 - [ ] Test actual AIS and weather feeds with approved staging credentials.
 - [ ] Test missing keys, offline mode, provider timeout, stale feed and reconnect behavior.
