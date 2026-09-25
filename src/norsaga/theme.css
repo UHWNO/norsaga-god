@@ -15,7 +15,9 @@
   --font-mono: 'Inter', system-ui, sans-serif;
   --panel-radius: 10px;
   --btn-radius: 6px;
-  --left-stack-x: 36px;
+  --norsaga-control-left: max(64px, 4vw);
+  --norsaga-workspace-top: clamp(150px, calc(50vh - 135px), 560px);
+  --left-stack-x: var(--norsaga-control-left);
   --left-stack-top: 355px;
   --norsaga-primary: #1f2f6e;
   --norsaga-secondary: #528ec2;
@@ -26,12 +28,12 @@
 .norsaga button, .norsaga input, .norsaga select { font-family: var(--font-sans); }
 .norsaga #title-bar { top: 20px; left: 36px; }
 .norsaga-brand-logo { display: block; height: auto; object-fit: contain; }
-.norsaga-title-logo { width: 264px; }
+.norsaga-title-logo { width: 330px; }
 .norsaga-loading-logo { width: min(560px, 82vw); margin: 0 auto 20px; }
 .norsaga .title-glow { opacity: 0.25; }
 .norsaga #first-run-launcher { display: none !important; }
 .norsaga #loading-screen { background: #070e20; }
-.norsaga-operations { position: fixed; top: 118px; left: 36px; width: 286px; z-index: 110; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 10px; padding: 14px 14px 6px; backdrop-filter: blur(16px); }
+.norsaga-operations { position: fixed; top: var(--norsaga-workspace-top); left: var(--norsaga-control-left); width: 286px; z-index: 110; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 10px; padding: 14px 14px 6px; backdrop-filter: blur(16px); }
 .norsaga-toolbar-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
 .norsaga-toolbar-head .norsaga-eyebrow { flex: 1; }
 .norsaga-eyebrow { color: #89c7da; font-size: 9px; font-weight: 600; letter-spacing: 0.1em; }
@@ -77,8 +79,8 @@
 .norsaga #command-dock > #gev-voice-control,
 .norsaga #command-dock > #location-bar > .location-inner,
 .norsaga #command-dock > #control-panel > .panel-inner { border-radius: var(--panel-radius); }
-@media (min-height: 720px) {
-  .norsaga #left-panel-stack { top: max(var(--left-stack-safe-top, var(--left-stack-top)), 326px); }
+@media (min-height: 541px) {
+  .norsaga:not(.cockpit-mode):not(.scene-playback-mode) #left-panel-stack { top: calc(var(--norsaga-workspace-top) + 160px); }
 }
 @media (min-width: 1100px) and (min-height: 720px) {
   .norsaga #left-panel-stack > #data-panel:not(.collapsed),
@@ -140,9 +142,11 @@
   }
 }
 @media (max-width: 760px) {
-  .norsaga #title-bar { top: 16px; left: 16px; }
-  .norsaga-title-logo { width: 198px; }
-  .norsaga-operations { top: 94px; left: 16px; width: 248px; padding: 10px; }
+  .norsaga { --norsaga-control-left: 64px; }
+  .norsaga #title-bar { top: 16px; left: 28px; }
+  .norsaga-title-logo { width: 248px; }
+  .norsaga-operations { width: 248px; padding: 10px; }
+  .norsaga #left-panel-stack { right: auto; left: var(--norsaga-control-left); width: min(360px, calc(100vw - var(--norsaga-control-left) - 16px)); }
   .norsaga-toolbar-head { margin-bottom: 8px; }
   .norsaga-dialog { padding: 20px; }
   .norsaga { --left-stack-top: 336px; }
