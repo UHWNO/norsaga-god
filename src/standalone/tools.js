@@ -5,7 +5,11 @@ import { startStandaloneChrome } from './startupChrome.js';
 export function createStandaloneTools(options) {
   return createApplicationTools({
     startChrome: (context) =>
-      startStandaloneChrome({ ...context, viewer: options.scene.viewer }),
+      startStandaloneChrome({
+        ...context,
+        viewer: options.scene.viewer,
+        enableLocalKeySetup: options.enableLocalKeySetup,
+      }),
     sceneDataPacks: {
       sources: {
         assets: createAssetDirectorySource({

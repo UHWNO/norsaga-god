@@ -34,6 +34,31 @@ middleware. Local credential-writing endpoints are deliberately excluded.
 `/healthz` reports readiness and the active Node version. Unknown API routes
 return JSON 404.
 
+## Staging access and edge controls
+
+The Plesk deployment is a protected staging service, not a public release.
+Plesk protects `/` with HTTP Basic authentication using the realm
+`NorSaga staging`. The staging username is `norsaga`; its generated password is
+stored in the deployer's macOS Keychain under the service
+`godseye.norsaga.com staging access`. Retrieve or rotate it through Keychain
+Access or Plesk rather than copying it into this repository, shell history or a
+deployment archive.
+
+The domain's Plesk **Apache & nginx Settings** add these response controls:
+
+- `X-Content-Type-Options: nosniff`
+- `X-Frame-Options: DENY`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `Content-Security-Policy: frame-ancestors 'none'`
+- `Strict-Transport-Security: max-age=31536000`
+
+Plesk's maximum request-body setting is 5 MB, with the same
+`client_max_body_size 5m` limit retained in the domain nginx directives. The
+provider middleware keeps its smaller route-specific body and response caps.
+After changing Plesk configuration, verify an unauthenticated request returns
+401, an authenticated `/healthz` request returns 200, the headers above are
+present, and a body-consuming API route refuses oversized input.
+
 Configure server credentials through Plesk environment variables. Browser map
 credentials (`GOOGLE_MAPS_API_KEY`, `CESIUM_ION_TOKEN`) are compiled into the
 browser bundle and must be domain-restricted. A successful build does not
