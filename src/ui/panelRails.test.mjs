@@ -332,6 +332,14 @@ test('right rail aligns to the current left rail and excludes hidden obstacles',
   assert.equal(f.stack.dataset.safeTop, '200.0');
 });
 
+test('right rail prefers an explicit top anchor over the left rail', () => {
+  const f = fixture('right');
+  f.options.leftStack.rect.top = 440;
+  f.options.topAnchor = element('workspace', { top: 180 });
+  f.run();
+  assert.equal(f.stack.dataset.safeTop, '180.0');
+});
+
 test('natural height includes visible content, margins and wrapper chrome, excluding hidden rows', () => {
   const panel = element('panel');
   const inner = element('inner', { top: 100 });

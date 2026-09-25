@@ -313,6 +313,10 @@ export class PanelLayoutController {
       onCollapse: (panel) => this._syncPanelCollapseButton(panel),
       onRetry: () => this._scheduleRightPanelLayout(),
       leftStack: this._leftPanelStack,
+      topAnchor:
+        this._rightPanelStack?.ownerDocument?.getElementById?.(
+          'norsaga-operations',
+        ) || this._leftPanelStack,
       displayPanel: this._ppToggles,
       readDisplayScrollTop: this.readDisplayScrollTop,
     });
