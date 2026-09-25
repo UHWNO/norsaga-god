@@ -24,14 +24,13 @@
 }
 .norsaga { font-variant-numeric: tabular-nums; }
 .norsaga button, .norsaga input, .norsaga select { font-family: var(--font-sans); }
-.norsaga #title-bar { top: 44px; left: 36px; }
+.norsaga #title-bar { top: 20px; left: 36px; }
 .norsaga-brand-logo { display: block; height: auto; object-fit: contain; }
-.norsaga-title-logo { width: 220px; }
+.norsaga-title-logo { width: 264px; }
 .norsaga-loading-logo { width: min(560px, 82vw); margin: 0 auto 20px; }
 .norsaga .title-glow { opacity: 0.25; }
 .norsaga #first-run-launcher { display: none !important; }
 .norsaga #loading-screen { background: #070e20; }
-.norsaga-loader-line { width: 64px; height: 3px; margin: 0 auto 24px; background: #3cb9e6; }
 .norsaga-operations { position: fixed; top: 118px; left: 36px; width: 286px; z-index: 110; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 10px; padding: 14px; backdrop-filter: blur(16px); }
 .norsaga-toolbar-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
 .norsaga-toolbar-head .norsaga-eyebrow { flex: 1; }
@@ -70,9 +69,68 @@
 .norsaga-about a { color: #89c7da; font-size: 13px; text-underline-offset: 3px; }
 .norsaga-operations :focus-visible, .norsaga-dialog :focus-visible { outline: 2px solid #89c7da; outline-offset: 3px; }
 .norsaga.cockpit-mode .norsaga-operations, .norsaga.scene-playback-mode .norsaga-operations, .norsaga.recording-mode .norsaga-operations, .norsaga.ui-clean-view .norsaga-operations { display: none; }
+@media (min-width: 1100px) and (min-height: 720px) {
+  .norsaga #left-panel-stack > #data-panel:not(.collapsed),
+  .norsaga #left-panel-stack > #scene-panel:not(.collapsed) {
+    --panel-expanded-width: min(1120px, calc(100vw - 72px));
+    flex: none;
+    width: var(--panel-expanded-width);
+    height: auto;
+    max-height: none;
+  }
+  .norsaga #data-panel:not(.collapsed) .data-panel-inner,
+  .norsaga #scene-panel:not(.collapsed) .scene-panel-inner {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+  .norsaga #data-panel:not(.collapsed) .data-toggle-list {
+    display: block;
+    max-height: none;
+    overflow: visible;
+    column-count: 4;
+    column-gap: 10px;
+    scrollbar-gutter: auto;
+  }
+  .norsaga #data-panel:not(.collapsed) .data-toggle-list > * {
+    break-inside: avoid;
+  }
+  .norsaga #data-panel:not(.collapsed) .data-layer-group-heading {
+    break-after: avoid;
+  }
+  .norsaga #scene-panel:not(.collapsed) .scene-panel-inner {
+    padding: 10px;
+  }
+  .norsaga #scene-panel:not(.collapsed) .panel-header {
+    margin-bottom: 8px;
+  }
+  .norsaga #scene-panel:not(.collapsed) .scene-controls {
+    margin-bottom: 4px;
+  }
+  .norsaga #scene-panel:not(.collapsed) .scene-shot-list {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 5px;
+    flex: none;
+    min-height: 0;
+    max-height: none;
+    margin-bottom: 4px;
+    overflow: visible;
+  }
+  .norsaga #scene-panel:not(.collapsed) .scene-shot-row {
+    padding: 4px 6px;
+  }
+  .norsaga #scene-panel:not(.collapsed) .scene-shot-btn {
+    padding: 2px 4px;
+  }
+  .norsaga #scene-panel:not(.collapsed) .scene-progress,
+  .norsaga #scene-panel:not(.collapsed) #scene-status {
+    margin-top: 4px;
+  }
+}
 @media (max-width: 760px) {
-  .norsaga #title-bar { top: 38px; left: 16px; }
-  .norsaga-title-logo { width: 165px; }
+  .norsaga #title-bar { top: 16px; left: 16px; }
+  .norsaga-title-logo { width: 198px; }
   .norsaga-operations { top: 94px; left: 16px; width: 248px; padding: 10px; }
   .norsaga-toolbar-head { margin-bottom: 8px; }
   .norsaga-dialog { padding: 20px; }
