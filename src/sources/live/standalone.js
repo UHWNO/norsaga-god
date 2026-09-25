@@ -216,5 +216,17 @@ export function createAisStreamSource({
         complete: false,
       };
     },
+    async getIntelligence(reference, { signal } = {}) {
+      const url = new URL(`${apiUrl}/intelligence`, origin());
+      url.searchParams.set('mmsi', String(reference || ''));
+      const { response, payload } = await readResponse(
+        fetchImpl,
+        url.toString(),
+        { signal, cache: 'no-store' },
+        'Global Fishing Watch',
+      );
+      if (!response.ok) throw httpError(response, 'Global Fishing Watch');
+      return payload;
+    },
   };
 }

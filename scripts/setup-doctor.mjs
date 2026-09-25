@@ -27,6 +27,11 @@ export const CREDENTIALS = Object.freeze([
     label: 'BarentsWatch AIS client secret',
     keychain: [['barentswatch-ais', 'client-secret']],
   },
+  {
+    name: 'GFW_API_ACCESS_TOKEN',
+    label: 'Global Fishing Watch',
+    keychain: [['global-fishing-watch', 'api-token']],
+  },
   { name: 'FIRMS_MAP_KEY', label: 'NASA FIRMS fires', keychain: [['firms-map', 'map-key']] },
   { name: 'TOMTOM_API_KEY', label: 'TomTom traffic', keychain: [['tomtom-api', 'api-key']] },
   {
@@ -197,6 +202,9 @@ export function buildCapabilitySummary(
               configured('BARENTSWATCH_AIS_CLIENT_SECRET')
             ? 'live BarentsWatch AIS feed'
             : 'off until AISStream or BarentsWatch credentials are added',
+    vesselResearch: configured('GFW_API_ACCESS_TOKEN')
+      ? 'Global Fishing Watch identity + modelled events available on selected vessels'
+      : 'off until a Global Fishing Watch token is added',
     fires: configured('FIRMS_MAP_KEY') ? 'live NASA FIRMS feed' : 'off until a FIRMS key is added',
     traffic: configured('TOMTOM_API_KEY') ? 'live TomTom flow' : 'built-in traffic simulation',
     missions: configured('LL2_API_TOKEN')
@@ -254,6 +262,7 @@ export function formatSetupReport(report, { readyMessage } = {}) {
     `Flights: ${report.capabilities.flights}`,
     `Voice:   ${report.capabilities.voice}`,
     `Vessels: ${report.capabilities.vessels}`,
+    `Research: ${report.capabilities.vesselResearch}`,
     `Fires:   ${report.capabilities.fires}`,
     `Traffic: ${report.capabilities.traffic}`,
     `Missions: ${report.capabilities.missions}`,

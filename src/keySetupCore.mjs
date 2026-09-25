@@ -14,6 +14,9 @@
 /** Longest accepted key/token value. Real provider keys are all far shorter. */
 export const KEY_SETUP_VALUE_LIMIT = 512;
 
+/** Long bearer tokens remain bounded without weakening ordinary API-key limits. */
+export const KEY_SETUP_LONG_VALUE_LIMIT = 4096;
+
 /** Most env vars accepted in one save. The registry defines ten. */
 export const KEY_SETUP_UPDATE_LIMIT = 16;
 
@@ -74,6 +77,15 @@ export const KEY_SETUP_KEYS = Object.freeze([
       'BARENTSWATCH_AIS_CLIENT_ID',
       'BARENTSWATCH_AIS_CLIENT_SECRET',
     ]),
+    tier: 'free',
+  }),
+  Object.freeze({
+    id: 'global-fishing-watch',
+    title: 'GLOBAL FISHING WATCH',
+    unlocks: 'Selected-vessel identity and modelled activity events',
+    getUrl: 'https://globalfishingwatch.org/our-apis/tokens',
+    envVars: Object.freeze(['GFW_API_ACCESS_TOKEN']),
+    maxLength: KEY_SETUP_LONG_VALUE_LIMIT,
     tier: 'free',
   }),
   Object.freeze({
@@ -422,6 +434,11 @@ export function validateKeySetupUpdates(body) {
     };
   }
   const known = knownKeySetupEnvVars();
+  const valueLimits = new Map(
+    KEY_SETUP_KEYS.flatMap((key) =>
+      key.envVars.map((name) => [name, key.maxLength || KEY_SETUP_VALUE_LIMIT]),
+    ),
+  );
   const updates = {};
   for (const [name, raw] of entries) {
     if (!known.has(name)) return { ok: false, error: `Unknown key: ${name}` };
@@ -433,10 +450,11 @@ export function validateKeySetupUpdates(body) {
       return { ok: false, error: `${name} must be a string` };
     const value = raw.trim();
     if (!value) return { ok: false, error: `${name} is empty` };
-    if (value.length > KEY_SETUP_VALUE_LIMIT) {
+    const valueLimit = valueLimits.get(name) || KEY_SETUP_VALUE_LIMIT;
+    if (value.length > valueLimit) {
       return {
         ok: false,
-        error: `${name} is longer than any real key (${KEY_SETUP_VALUE_LIMIT} max)`,
+        error: `${name} is longer than the supported credential limit (${valueLimit} max)`,
       };
     }
     if (!/^[\x21-\x7e]+$/.test(value)) {

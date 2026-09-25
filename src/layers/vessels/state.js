@@ -79,6 +79,9 @@ export function createVesselState({ source, services }) {
     /** @type {number} Monotonic token — invalidates in-flight backfill responses */
     trailBackfillToken: 0,
     trailAbort: null,
+    /** Selected-vessel Global Fishing Watch request ownership. */
+    intelligenceToken: 0,
+    intelligenceAbort: null,
   };
   return vesselState;
 }

@@ -406,7 +406,7 @@ names it.
 
 ### Choose the capabilities you want
 
-Seven provider credentials. Five have a free tier, and the two 🔴 ones are metered:
+Eight primary provider credentials. Six have a free tier, and the two 🔴 ones are metered:
 
 |     | Key             | Why                                                                                                                                                                                  | Get it                                                                                                                                                               |
 | --- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -415,6 +415,7 @@ Seven provider credentials. Five have a free tier, and the two 🔴 ones are met
 | 🔴  | **OpenAI**      | 🎙️ The voice experience + AI HUD summary. The mini model works; the standard model is noticeably smarter. Want Gemini or another provider behind the mic? PRs welcome                | [platform.openai.com](https://platform.openai.com) — metered, see costs below                                                                                        |
 | 🟡  | **AISStream**   | 🚢 Live global ships                                                                                                                                                                 | [aisstream.io](https://aisstream.io) — free signup                                                                                                                   |
 | 🟡  | **BarentsWatch AIS** | 🚢 Norwegian, Svalbard and Jan Mayen AIS enrichment plus 24-hour selected-vessel tracks                                                                                         | [barentswatch.no/minside](https://www.barentswatch.no/minside/devaccess/ais) — free AIS client                                                                      |
+| 🟡  | **Global Fishing Watch** | 🐟 Internal selected-vessel identity, registry and modelled activity-event research; not a live-position source                                                              | [globalfishingwatch.org/our-apis](https://globalfishingwatch.org/our-apis/) — approved internal non-commercial use only                                             |
 | 🟡  | **NASA FIRMS**  | 🔥 Live active fires                                                                                                                                                                 | [firms.modaps.eosdis.nasa.gov](https://firms.modaps.eosdis.nasa.gov/api/map_key/) — free                                                                             |
 | 🟡  | **TomTom**      | 🚦 Live flow speeds and congestion colors for the simulated traffic layer                                                                                                            | [developer.tomtom.com](https://developer.tomtom.com) — free tier available                                                                                           |
 

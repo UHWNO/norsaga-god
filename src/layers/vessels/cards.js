@@ -19,11 +19,14 @@ export function createCards({
     // Pinned vessels missing from recent refreshes get a stale marker
     const stale = (record.missedRefreshes || 0) > 0;
     el.classList.add('active');
-    el.textContent = [
+    const lines = [
       `AIS: ${trimHudValue(record.name, 32)}`,
       `${trimHudValue(record.type || 'VESSEL', 24)}  SPD: ${formatSpeed(record.speed)}  HDG: ${formatHeading(record.heading ?? record.course)}`,
       `MMSI: ${record.mmsi || '--'}  ${formatPositionTime(record)}${stale ? '  · STALE' : ''}`,
-    ].join('\n');
+    ];
+    const gfw = globalFishingWatchSummary(record.gfw);
+    if (gfw.length) lines.push(...gfw.map((line) => `GFW: ${line}`));
+    el.textContent = lines.join('\n');
   }
 
   function resetSelectedVesselHud() {
@@ -96,6 +99,8 @@ export function createCards({
     details.push(
       `MMSI ${record.mmsi || '--'} · ${formatPositionTime(record)}${stale ? ' · STALE' : ''}`,
     );
+    const gfw = globalFishingWatchSummary(record.gfw);
+    details.push(...gfw.map((line) => `GFW · ${line}`));
     return {
       id: vesselOverlayEntryId(record),
       actionable: Boolean(record?.mmsi),
@@ -109,6 +114,35 @@ export function createCards({
       selected: true,
       priority: 100000,
     };
+  }
+
+  function globalFishingWatchSummary(intelligence) {
+    if (!intelligence) return [];
+    if (intelligence.status === 'loading')
+      return ['CHECKING IDENTITY + EVENTS'];
+    if (intelligence.status === 'not-found') return ['NO IDENTITY MATCH'];
+    if (intelligence.status !== 'available') return [];
+    const vessel = intelligence.vessel || {};
+    const identity = [vessel.flag, vessel.gearType || vessel.shipType]
+      .map((value) => String(value || '').trim())
+      .filter(Boolean)
+      .join(' · ');
+    const counts = new Map();
+    for (const event of intelligence.events || []) {
+      const type = String(event?.type || '')
+        .trim()
+        .toUpperCase();
+      if (type) counts.set(type, (counts.get(type) || 0) + 1);
+    }
+    const activity = [...counts]
+      .sort((left, right) => right[1] - left[1])
+      .slice(0, 3)
+      .map(([type, count]) => `${count} ${type.replaceAll('_', ' ')}`)
+      .join(' · ');
+    const lines = [];
+    if (identity) lines.push(trimHudValue(identity, 34));
+    if (activity) lines.push(trimHudValue(`MODELLED ${activity}`, 46));
+    return lines;
   }
 
   /** Stable overlay identity for MMSI-keyed and source-retained unkeyed rows. */
@@ -181,5 +215,6 @@ export function createCards({
     formatSpeed,
     formatHeading,
     formatPositionTime,
+    globalFishingWatchSummary,
   };
 }

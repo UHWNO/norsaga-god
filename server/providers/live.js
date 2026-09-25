@@ -10,3 +10,9 @@ export { adsbLolProxy } from './aircraft/adsb-lol.js';
 export { adsbdbProxy } from './aircraft/enrichment.js';
 export { trackBackfillProxies } from './aircraft/tracks.js';
 export { aisLiveProxy } from './vessels/ais-live.js';
+export {
+  fetchGlobalFishingWatchIntelligence,
+  hasGlobalFishingWatchToken,
+  normalizeGlobalFishingWatchEvents,
+  normalizeGlobalFishingWatchVessel,
+} from './vessels/global-fishing-watch.js';

@@ -67,6 +67,13 @@ export const DATA_CREDITS = [
       'Norwegian Coastal Administration (NLOD where no other notice is given)',
   },
   {
+    key: 'global-fishing-watch',
+    html:
+      'Selected-vessel identity and modelled activity events: ' +
+      '<a href="https://globalfishingwatch.org/our-apis/" target="_blank" rel="noopener">Global Fishing Watch</a> ' +
+      '(internal research/training/development; provider caveats apply)',
+  },
+  {
     key: 'celestrak',
     html:
       'Satellites (TLEs): CelesTrak ' +

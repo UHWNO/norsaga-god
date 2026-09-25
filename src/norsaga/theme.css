@@ -24,14 +24,13 @@
 }
 .norsaga { font-variant-numeric: tabular-nums; }
 .norsaga button, .norsaga input, .norsaga select { font-family: var(--font-sans); }
-.norsaga #title-bar { top: 28px; left: 36px; }
-.norsaga #title-bar h1 { font-size: 36px; letter-spacing: 0.035em; text-shadow: none; }
-.norsaga-wordmark, .norsaga #loading-screen h2 { font-family: 'Goldman', 'Inter', sans-serif; font-weight: 400; }
-.norsaga #title-bar .subtitle { color: var(--norsaga-light); font-size: 10px; letter-spacing: 0.24em; margin-top: 6px; }
+.norsaga #title-bar { top: 44px; left: 36px; }
+.norsaga-brand-logo { display: block; height: auto; object-fit: contain; }
+.norsaga-title-logo { width: 220px; }
+.norsaga-loading-logo { width: min(560px, 82vw); margin: 0 auto 20px; }
 .norsaga .title-glow { opacity: 0.25; }
 .norsaga #first-run-launcher { display: none !important; }
 .norsaga #loading-screen { background: #070e20; }
-.norsaga #loading-screen h2 { color: #f1f5fa; font-size: clamp(28px, 6vw, 46px); letter-spacing: 0.06em; }
 .norsaga-loader-line { width: 64px; height: 3px; margin: 0 auto 24px; background: #3cb9e6; }
 .norsaga-operations { position: fixed; top: 118px; left: 36px; width: 286px; z-index: 110; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 10px; padding: 14px; backdrop-filter: blur(16px); }
 .norsaga-toolbar-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
@@ -72,9 +71,8 @@
 .norsaga-operations :focus-visible, .norsaga-dialog :focus-visible { outline: 2px solid #89c7da; outline-offset: 3px; }
 .norsaga.cockpit-mode .norsaga-operations, .norsaga.scene-playback-mode .norsaga-operations, .norsaga.recording-mode .norsaga-operations, .norsaga.ui-clean-view .norsaga-operations { display: none; }
 @media (max-width: 760px) {
-  .norsaga #title-bar { top: 16px; left: 16px; }
-  .norsaga #title-bar h1 { font-size: 26px; }
-  .norsaga #title-bar .subtitle { font-size: 8px; }
+  .norsaga #title-bar { top: 38px; left: 16px; }
+  .norsaga-title-logo { width: 165px; }
   .norsaga-operations { top: 94px; left: 16px; width: 248px; padding: 10px; }
   .norsaga-toolbar-head { margin-bottom: 8px; }
   .norsaga-dialog { padding: 20px; }

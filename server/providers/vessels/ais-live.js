@@ -18,6 +18,10 @@ import {
   fetchBarentsWatchTrack,
   hasBarentsWatchCredentials,
 } from './barentswatch.js';
+import {
+  fetchGlobalFishingWatchIntelligence,
+  hasGlobalFishingWatchToken,
+} from './global-fishing-watch.js';
 // ---------------------------------------------------------------------------
 // AISStream live vessel cache state
 // ---------------------------------------------------------------------------
@@ -86,6 +90,34 @@ export function aisLiveProxy() {
         // Track sub-route MUST be handled before the rows snapshot — this
         // mount prefix-matches every subpath, so without this branch
         // /api/ais-live/track would be silently answered with vessel rows.
+        if (
+          incoming.pathname === '/intelligence' ||
+          incoming.pathname.startsWith('/intelligence/')
+        ) {
+          const mmsi = String(incoming.searchParams.get('mmsi') || '').trim();
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.setHeader('Cache-Control', 'no-store');
+          if (!/^\d{5,10}$/.test(mmsi)) {
+            res.statusCode = 400;
+            res.end(JSON.stringify({ error: 'mmsi query param required' }));
+            return;
+          }
+          if (!hasGlobalFishingWatchToken()) {
+            res.statusCode = 503;
+            res.end(
+              JSON.stringify({
+                status: 'missing-key',
+                error: 'Global Fishing Watch API token is not configured',
+              }),
+            );
+            return;
+          }
+          const intelligence = await fetchGlobalFishingWatchIntelligence(mmsi);
+          res.statusCode = 200;
+          res.end(JSON.stringify(intelligence));
+          return;
+        }
+
         if (
           incoming.pathname === '/track' ||
           incoming.pathname.startsWith('/track/')

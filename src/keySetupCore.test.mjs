@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import {
   KEY_SETUP_APPEND_HEADER,
   KEY_SETUP_KEYS,
+  KEY_SETUP_LONG_VALUE_LIMIT,
   KEY_SETUP_VALUE_LIMIT,
   commandCompletedSuccessfully,
   isKeySetupExternallyManaged,
@@ -128,6 +129,20 @@ test('validation trims, and refuses empties, newlines, spaces, and oversize valu
   assert.equal(
     validateKeySetupUpdates({ OPENAI_API_KEY: 'x'.repeat(KEY_SETUP_VALUE_LIMIT + 1) }).ok,
     false,
+  );
+  assert.equal(
+    validateKeySetupUpdates({
+      GFW_API_ACCESS_TOKEN: 'x'.repeat(KEY_SETUP_VALUE_LIMIT + 1),
+    }).ok,
+    true,
+    'GFW bearer tokens may exceed the ordinary API-key limit',
+  );
+  assert.equal(
+    validateKeySetupUpdates({
+      GFW_API_ACCESS_TOKEN: 'x'.repeat(KEY_SETUP_LONG_VALUE_LIMIT + 1),
+    }).ok,
+    false,
+    'GFW bearer tokens remain bounded',
   );
   assert.equal(validateKeySetupUpdates(null).ok, false);
   assert.equal(validateKeySetupUpdates([]).ok, false);
