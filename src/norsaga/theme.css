@@ -38,7 +38,7 @@
     circle at 50% 48%,
     rgba(7, 14, 32, 0.5) 0 32%,
     rgba(7, 14, 32, 0.38) 48%,
-    rgba(7, 14, 32, 0.2) 68%
+    rgba(7, 14, 32, 0.1) 68%
   );
   -webkit-backdrop-filter: blur(9px) saturate(0.82);
   backdrop-filter: blur(9px) saturate(0.82);
