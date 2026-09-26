@@ -11,7 +11,14 @@ test('the standalone document expands every component once and preserves unique 
   const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]);
   assert.equal(new Set(ids).size, ids.length);
   assert.match(html, /id="cesiumContainer"/);
-  assert.match(html, /type="module" src="\/src\/main.js"/);
+  assert.match(html, /type="module" src="\/src\/passwordGate.js"/);
+  assert.doesNotMatch(html, /type="module" src="\/src\/main.js"/);
+
+  const passwordGate = readFileSync(
+    new URL('../passwordGate.js', import.meta.url),
+    'utf8',
+  );
+  assert.match(passwordGate, /await import\('\.\/main.js'\)/);
 });
 
 test('component selection includes only requested markup and refuses filesystem traversal', () => {

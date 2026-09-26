@@ -2,9 +2,17 @@
   <div id="intel-hud"></div>
 
   <!-- Loading screen -->
-  <div id="loading-screen">
-    <div class="loader-content">
+  <div id="loading-screen" class="access-gate">
+    <div class="loader-content" role="dialog" aria-modal="true" aria-labelledby="access-gate-title" aria-describedby="access-gate-status">
       <img class="norsaga-brand-logo norsaga-loading-logo" src="https://intra.norsaga.com/logos/nor_saga.png" alt="NorSaga Maritime Intelligence" />
-      <p class="loader-status">Initializing maritime intelligence...</p>
+      <h1 id="access-gate-title" class="access-gate-title">Restricted access</h1>
+      <form id="access-gate-form" class="access-gate-form" novalidate>
+        <label class="access-gate-label" for="access-gate-password">Password</label>
+        <div class="access-gate-controls">
+          <input id="access-gate-password" class="access-gate-input" name="password" type="password" autocomplete="current-password" spellcheck="false" required />
+          <button class="access-gate-submit" type="submit">Enter</button>
+        </div>
+      </form>
+      <p id="access-gate-status" class="loader-status access-gate-status" aria-live="polite">Enter your password to continue</p>
     </div>
   </div>

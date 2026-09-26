@@ -1,4 +1,3 @@
-import './norsaga/theme.css';
 import { createStandaloneApplication } from './standalone/application.js';
 import { describeError } from './standalone/errors.js';
 

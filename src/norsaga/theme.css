@@ -29,10 +29,84 @@
 .norsaga #title-bar { top: 20px; left: 36px; }
 .norsaga-brand-logo { display: block; height: auto; object-fit: contain; }
 .norsaga-title-logo { width: 330px; }
-.norsaga-loading-logo { width: min(560px, 82vw); margin: 0 auto 20px; }
+.norsaga-loading-logo { width: min(480px, 76vw); margin: 0 auto 30px; }
 .norsaga .title-glow { opacity: 0.25; }
 .norsaga #first-run-launcher { display: none !important; }
-.norsaga #loading-screen { background: #070e20; }
+.norsaga #loading-screen { background: rgba(7, 14, 32, 0.9); }
+.norsaga #loading-screen.access-gate {
+  background:
+    radial-gradient(circle at 50% 42%, rgba(39, 98, 142, 0.2), transparent 42%),
+    rgba(7, 14, 32, 0.5);
+  -webkit-backdrop-filter: blur(9px) saturate(0.82);
+  backdrop-filter: blur(9px) saturate(0.82);
+}
+.norsaga #loading-screen .loader-content { width: min(520px, calc(100vw - 40px)); }
+.access-gate-title {
+  margin: 0 0 22px;
+  color: #f1f5fa;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.access-gate-form { width: min(360px, 100%); margin: 0 auto; }
+.access-gate-label {
+  display: block;
+  margin: 0 0 8px;
+  color: #b8cbe0;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-align: left;
+  text-transform: uppercase;
+}
+.access-gate-controls { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+.access-gate-input,
+.access-gate-submit {
+  min-height: 44px;
+  border: 1px solid rgba(137, 199, 218, 0.34);
+  border-radius: 7px;
+  font-family: var(--font-sans);
+}
+.access-gate-input {
+  min-width: 0;
+  padding: 0 14px;
+  color: #f1f5fa;
+  background: rgba(8, 20, 43, 0.86);
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+.access-gate-input:focus {
+  border-color: #89c7da;
+  box-shadow: 0 0 0 3px rgba(137, 199, 218, 0.12);
+}
+.access-gate-submit {
+  padding: 0 19px;
+  cursor: pointer;
+  color: #f1f5fa;
+  background: #1f2f6e;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  transition: background 160ms ease, border-color 160ms ease;
+}
+.access-gate-submit:hover { background: #27628e; border-color: #89c7da; }
+.access-gate-status { min-height: 16px; margin-top: 16px; animation: none; letter-spacing: 0.06em; }
+.access-gate-rejected .access-gate-controls { animation: access-gate-shake 240ms ease-in-out; }
+.access-gate-rejected .access-gate-input { border-color: rgba(255, 144, 144, 0.8); }
+.access-gate-rejected .access-gate-status { color: #ffadad; }
+.application-starting .access-gate-title { display: none; }
+@keyframes access-gate-shake {
+  0%, 100% { transform: translateX(0); }
+  33% { transform: translateX(-5px); }
+  66% { transform: translateX(5px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .access-gate-rejected .access-gate-controls { animation: none; }
+}
 .norsaga-operations { position: fixed; top: var(--norsaga-workspace-top); left: var(--norsaga-control-left); width: 210px; z-index: 110; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 10px; padding: 14px 14px 6px; backdrop-filter: blur(16px); }
 .norsaga-toolbar-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 6px 8px; margin-bottom: 12px; }
 .norsaga-toolbar-head .norsaga-eyebrow { grid-row: 1 / span 2; align-self: center; }
