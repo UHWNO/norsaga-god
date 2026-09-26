@@ -50,6 +50,26 @@
   letter-spacing: 0.16em;
   text-transform: uppercase;
 }
+.access-gate-device-notice {
+  width: min(440px, 100%);
+  margin: 0 auto 14px;
+  padding: 13px 15px;
+  color: #b8cbe0;
+  background: rgba(16, 30, 60, 0.74);
+  border: 1px solid rgba(137, 199, 218, 0.22);
+  border-radius: 7px;
+  font-size: 11px;
+  line-height: 1.55;
+  text-align: left;
+}
+.access-gate-device-notice > strong { color: #f1f5fa; font-size: 12px; font-weight: 600; }
+.access-gate-device-notice p { margin: 5px 0 0; }
+.access-gate-device-notice p strong { color: #d7e8f4; font-weight: 600; }
+.access-gate-viewport-notice {
+  background: rgba(39, 98, 142, 0.22);
+  border-color: rgba(137, 199, 218, 0.42);
+}
+.access-gate-viewport-notice[hidden] { display: none; }
 .access-gate-form { width: min(360px, 100%); margin: 0 auto; }
 .access-gate-label {
   display: block;

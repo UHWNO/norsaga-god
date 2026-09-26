@@ -1,13 +1,32 @@
-import { isPasswordAccepted } from './passwordGateCore.js';
+import {
+  createInactivityLogout,
+  isPasswordAccepted,
+  meetsMinimumViewport,
+} from './passwordGateCore.js';
 
 const loadingScreen = document.getElementById('loading-screen');
 const form = document.getElementById('access-gate-form');
 const passwordInput = document.getElementById('access-gate-password');
 const status = document.getElementById('access-gate-status');
+const viewportNotice = document.getElementById('access-gate-viewport-notice');
 const submitButton = form?.querySelector('button[type="submit"]');
 
-if (!loadingScreen || !form || !passwordInput || !status || !submitButton) {
+if (
+  !loadingScreen ||
+  !form ||
+  !passwordInput ||
+  !status ||
+  !viewportNotice ||
+  !submitButton
+) {
   throw new Error('NorSaga access gate markup is incomplete');
+}
+
+function updateViewportNotice() {
+  viewportNotice.hidden = meetsMinimumViewport(
+    window.innerWidth,
+    window.innerHeight,
+  );
 }
 
 function showRejectedState() {
@@ -32,6 +51,10 @@ async function startApplication() {
 
   try {
     await import('./main.js');
+    createInactivityLogout({
+      eventTarget: window,
+      onTimeout: () => window.location.reload(),
+    });
   } catch (error) {
     console.error('Unable to load NorSaga:', error);
     loadingScreen.classList.add('access-gate');
@@ -59,4 +82,6 @@ passwordInput.addEventListener('input', () => {
   status.textContent = 'Enter your password to continue';
 });
 
+window.addEventListener('resize', updateViewportNotice, { passive: true });
+updateViewportNotice();
 passwordInput.focus();
