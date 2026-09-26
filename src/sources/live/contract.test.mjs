@@ -221,6 +221,13 @@ test('AIS reports limited received coverage and keeps connection state separate 
     fetchImpl: async (url) => {
       if (url.includes('/track?'))
         return response({ samples: [{ lat: 30, lon: -97, t: now / 1000 }] });
+      if (url.includes('/intelligence?'))
+        return response({
+          status: 'available',
+          source: 'Global Fishing Watch',
+          vessel: { mmsi: '123456789', flag: 'NOR' },
+          events: [],
+        });
       assert.equal(url, 'http://example.test/api/ais-live?maxRows=500');
       return response({
         status: 'reconnecting',
@@ -246,6 +253,7 @@ test('AIS reports limited received coverage and keeps connection state separate 
     (await source.getTrack('123456789')).records[0].observedAtMs,
     now,
   );
+  assert.equal((await source.getIntelligence('123456789')).vessel.flag, 'NOR');
 });
 
 test('a malformed vessel row cannot prevent admission of valid positions', async () => {

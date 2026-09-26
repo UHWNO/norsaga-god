@@ -189,6 +189,43 @@ export function createSelection({
     } else {
       components.tracking.startSelectedVesselTrail(record);
     }
+    void enrichSelectedVessel(record);
+  }
+
+  async function enrichSelectedVessel(record) {
+    const load = vesselState._source?.getIntelligence;
+    if (!record?.mmsi || typeof load !== 'function') return;
+    state.intelligenceAbort?.abort();
+    const controller = new AbortController();
+    const token = ++state.intelligenceToken;
+    state.intelligenceAbort = controller;
+    record.gfw = { status: 'loading', source: 'Global Fishing Watch' };
+    components.rendering.updateVisibility(true);
+    components.cards.updateSelectedVesselHud(record);
+    try {
+      const intelligence = await load.call(vesselState._source, record.mmsi, {
+        signal: controller.signal,
+      });
+      if (token !== state.intelligenceToken || state.selectedRecord !== record)
+        return;
+      record.gfw = intelligence;
+      components.rendering.updateVisibility(true);
+      components.cards.updateSelectedVesselHud(record);
+      registerSelectedContext(record);
+    } catch (error) {
+      if (error?.name === 'AbortError' || token !== state.intelligenceToken)
+        return;
+      if (state.selectedRecord !== record) return;
+      record.gfw = {
+        status: 'unavailable',
+        source: 'Global Fishing Watch',
+      };
+      components.rendering.updateVisibility(true);
+      components.cards.updateSelectedVesselHud(record);
+    } finally {
+      if (state.intelligenceAbort === controller)
+        state.intelligenceAbort = null;
+    }
   }
 
   /**
@@ -215,6 +252,17 @@ export function createSelection({
           speedKt: record.speed,
           course: record.course,
           destination: record.destination,
+          globalFishingWatch:
+            record.gfw?.status === 'available'
+              ? {
+                  flag: record.gfw.vessel?.flag || null,
+                  shipType: record.gfw.vessel?.shipType || null,
+                  gearType: record.gfw.vessel?.gearType || null,
+                  eventTotal: record.gfw.eventTotal || 0,
+                  lookbackDays: record.gfw.lookbackDays || null,
+                  caveat: record.gfw.caveat || null,
+                }
+              : null,
         },
       });
     } catch (error) {
@@ -232,6 +280,9 @@ export function createSelection({
         components.rendering.shipScale(record);
     }
     state.selectedRecord = null;
+    state.intelligenceToken += 1;
+    state.intelligenceAbort?.abort();
+    state.intelligenceAbort = null;
     // Drop the full-detail card right away (no-op when the layer is disabled —
     // disable() clears the entry set itself).
     if (record && state.feed.enabled)
@@ -261,6 +312,7 @@ export function createSelection({
     removeVesselInteraction,
     onVesselKeyDown,
     selectVessel,
+    enrichSelectedVessel,
     registerSelectedContext,
     clearSelection,
     clearVesselInspection,

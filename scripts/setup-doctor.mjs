@@ -17,6 +17,21 @@ export const CREDENTIALS = Object.freeze([
   { name: 'CESIUM_ION_TOKEN', label: 'Cesium ion', keychain: [['cesium-ion', 'token']] },
   { name: 'OPENAI_API_KEY', label: 'OpenAI voice', keychain: [['openai-api', 'api-key']] },
   { name: 'AISSTREAM_API_KEY', label: 'AISStream vessels', keychain: [['aisstream-api', 'api-key']] },
+  {
+    name: 'BARENTSWATCH_AIS_CLIENT_ID',
+    label: 'BarentsWatch AIS client ID',
+    keychain: [['barentswatch-ais', 'client-id']],
+  },
+  {
+    name: 'BARENTSWATCH_AIS_CLIENT_SECRET',
+    label: 'BarentsWatch AIS client secret',
+    keychain: [['barentswatch-ais', 'client-secret']],
+  },
+  {
+    name: 'GFW_API_ACCESS_TOKEN',
+    label: 'Global Fishing Watch',
+    keychain: [['global-fishing-watch', 'api-token']],
+  },
   { name: 'FIRMS_MAP_KEY', label: 'NASA FIRMS fires', keychain: [['firms-map', 'map-key']] },
   { name: 'TOMTOM_API_KEY', label: 'TomTom traffic', keychain: [['tomtom-api', 'api-key']] },
   {
@@ -176,7 +191,20 @@ export function buildCapabilitySummary(
         : 'Esri World Imagery (keyless satellite basemap) with keyless terrain',
     flights,
     voice: configured('OPENAI_API_KEY') ? 'available' : 'off until an OpenAI key is added',
-    vessels: configured('AISSTREAM_API_KEY') ? 'live AISStream feed' : 'off until an AISStream key is added',
+    vessels:
+      configured('AISSTREAM_API_KEY') &&
+      configured('BARENTSWATCH_AIS_CLIENT_ID') &&
+      configured('BARENTSWATCH_AIS_CLIENT_SECRET')
+        ? 'merged AISStream + BarentsWatch feeds'
+        : configured('AISSTREAM_API_KEY')
+          ? 'live AISStream feed'
+          : configured('BARENTSWATCH_AIS_CLIENT_ID') &&
+              configured('BARENTSWATCH_AIS_CLIENT_SECRET')
+            ? 'live BarentsWatch AIS feed'
+            : 'off until AISStream or BarentsWatch credentials are added',
+    vesselResearch: configured('GFW_API_ACCESS_TOKEN')
+      ? 'Global Fishing Watch identity + modelled events available on selected vessels'
+      : 'off until a Global Fishing Watch token is added',
     fires: configured('FIRMS_MAP_KEY') ? 'live NASA FIRMS feed' : 'off until a FIRMS key is added',
     traffic: configured('TOMTOM_API_KEY') ? 'live TomTom flow' : 'built-in traffic simulation',
     missions: configured('LL2_API_TOKEN')
@@ -234,13 +262,14 @@ export function formatSetupReport(report, { readyMessage } = {}) {
     `Flights: ${report.capabilities.flights}`,
     `Voice:   ${report.capabilities.voice}`,
     `Vessels: ${report.capabilities.vessels}`,
+    `Research: ${report.capabilities.vesselResearch}`,
     `Fires:   ${report.capabilities.fires}`,
     `Traffic: ${report.capabilities.traffic}`,
     `Missions: ${report.capabilities.missions}`,
     '',
     'Configured providers:',
     ...CREDENTIALS.map((spec) => {
-      const state = report.credentials[spec.name];
+      const state = report.credentials[spec.name] || { configured: false };
       return state.configured
         ? `  [OK] ${spec.label} (${state.source})`
         : `  [--] ${spec.label}`;

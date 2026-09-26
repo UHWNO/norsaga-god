@@ -2,10 +2,26 @@
   <div id="intel-hud"></div>
 
   <!-- Loading screen -->
-  <div id="loading-screen">
-    <div class="loader-content">
-      <span class="loader-logo brand-logo" data-logo-gaze data-logo-src="/logo.svg" aria-hidden="true"><img src="/logo.svg" alt="" /></span>
-      <h2>GOD'S EYE <span class="title-accent">VIEW</span></h2>
-      <p class="loader-status">Initializing photorealistic world...</p>
+  <div id="loading-screen" class="access-gate">
+    <div class="loader-content" role="dialog" aria-modal="true" aria-labelledby="access-gate-title" aria-describedby="access-gate-status">
+      <img class="norsaga-brand-logo norsaga-loading-logo" src="https://intra.norsaga.com/logos/nor_saga.png" alt="NorSaga Maritime Intelligence" />
+      <h1 id="access-gate-title" class="access-gate-title">Restricted access</h1>
+      <div class="access-gate-device-notice">
+        <strong>Desktop or laptop required</strong>
+        <p>The NorSaga MDA Research Platform is not suitable for phones or tablets. Please use a desktop or laptop computer with a browser window of at least <strong>1280 × 720 pixels</strong>. A larger screen is recommended.</p>
+      </div>
+      <div id="access-gate-viewport-notice" class="access-gate-device-notice access-gate-viewport-notice" role="status" hidden>
+        <strong>A larger window is needed</strong>
+        <p>Please enlarge your browser window or open the NorSaga MDA Research Platform on a desktop or laptop computer.</p>
+        <p><strong>Minimum viewing area: 1280 × 720 pixels.</strong></p>
+      </div>
+      <form id="access-gate-form" class="access-gate-form" novalidate>
+        <label class="access-gate-label" for="access-gate-password">Password</label>
+        <div class="access-gate-controls">
+          <input id="access-gate-password" class="access-gate-input" name="password" type="password" autocomplete="current-password" spellcheck="false" required />
+          <button class="access-gate-submit" type="submit">Enter</button>
+        </div>
+      </form>
+      <p id="access-gate-status" class="loader-status access-gate-status" aria-live="polite">Enter your password to continue</p>
     </div>
   </div>

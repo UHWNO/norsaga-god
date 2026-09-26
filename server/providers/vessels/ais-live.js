@@ -11,6 +11,17 @@ import {
   aisStreamRows,
   newestAisPositionAt,
 } from './ais-store.js';
+import {
+  barentsWatchRows,
+  barentsWatchStatusSnapshot,
+  ensureBarentsWatchSnapshot,
+  fetchBarentsWatchTrack,
+  hasBarentsWatchCredentials,
+} from './barentswatch.js';
+import {
+  fetchGlobalFishingWatchIntelligence,
+  hasGlobalFishingWatchToken,
+} from './global-fishing-watch.js';
 // ---------------------------------------------------------------------------
 // AISStream live vessel cache state
 // ---------------------------------------------------------------------------
@@ -80,6 +91,34 @@ export function aisLiveProxy() {
         // mount prefix-matches every subpath, so without this branch
         // /api/ais-live/track would be silently answered with vessel rows.
         if (
+          incoming.pathname === '/intelligence' ||
+          incoming.pathname.startsWith('/intelligence/')
+        ) {
+          const mmsi = String(incoming.searchParams.get('mmsi') || '').trim();
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.setHeader('Cache-Control', 'no-store');
+          if (!/^\d{5,10}$/.test(mmsi)) {
+            res.statusCode = 400;
+            res.end(JSON.stringify({ error: 'mmsi query param required' }));
+            return;
+          }
+          if (!hasGlobalFishingWatchToken()) {
+            res.statusCode = 503;
+            res.end(
+              JSON.stringify({
+                status: 'missing-key',
+                error: 'Global Fishing Watch API token is not configured',
+              }),
+            );
+            return;
+          }
+          const intelligence = await fetchGlobalFishingWatchIntelligence(mmsi);
+          res.statusCode = 200;
+          res.end(JSON.stringify(intelligence));
+          return;
+        }
+
+        if (
           incoming.pathname === '/track' ||
           incoming.pathname.startsWith('/track/')
         ) {
@@ -96,12 +135,34 @@ export function aisLiveProxy() {
             );
             return;
           }
+          const localSamples = readAisTrack(mmsi);
+          let barentsWatchSamples = [];
+          let warning = null;
+          if (hasBarentsWatchCredentials()) {
+            try {
+              barentsWatchSamples = await fetchBarentsWatchTrack(mmsi);
+            } catch (error) {
+              warning =
+                error?.message || 'BarentsWatch historic AIS unavailable';
+            }
+          }
+          const samples = mergeAisTrackSamples(
+            localSamples,
+            barentsWatchSamples,
+          );
           res.end(
             JSON.stringify({
               mmsi,
-              samples: readAisTrack(mmsi),
-              source: 'AISStream (accumulated since server start)',
-              retainedSec: Math.floor(AISSTREAM_STALE_MS / 1000),
+              samples,
+              source: barentsWatchSamples.length
+                ? localSamples.length
+                  ? 'AISStream + BarentsWatch'
+                  : 'BarentsWatch historic AIS'
+                : 'AISStream (accumulated since server start)',
+              retainedSec: barentsWatchSamples.length
+                ? 24 * 60 * 60
+                : Math.floor(AISSTREAM_STALE_MS / 1000),
+              warning,
             }),
           );
           return;
@@ -113,17 +174,26 @@ export function aisLiveProxy() {
           AISSTREAM_CACHE_MAX,
           AISSTREAM_CACHE_MAX,
         );
-        const rows = aisStreamRows(maxRows);
+        await ensureBarentsWatchSnapshot();
+        const aisStreamFeed = aisStreamStatusSnapshot();
+        const barentsWatchFeed = barentsWatchStatusSnapshot();
+        const rows = mergeAisProviderRows(
+          aisStreamRows(AISSTREAM_CACHE_MAX),
+          barentsWatchRows(AISSTREAM_CACHE_MAX),
+          maxRows,
+        );
+        const feed = combinedAisStatus(aisStreamFeed, barentsWatchFeed, rows);
+        const configured = Boolean(
+          process.env.AISSTREAM_API_KEY || hasBarentsWatchCredentials(),
+        );
 
-        const feed = aisStreamStatusSnapshot();
-
-        res.statusCode = process.env.AISSTREAM_API_KEY ? 200 : 503;
+        res.statusCode = configured ? 200 : 503;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.setHeader('Cache-Control', 'no-store');
         res.end(
           JSON.stringify({
             rows,
-            source: 'AISStream',
+            source: feed.source,
             status: feed.status,
             error: feed.error,
             refreshing: feed.status !== 'live',
@@ -136,6 +206,10 @@ export function aisLiveProxy() {
             nextAttemptAt: feed.nextAttemptAt,
             staleAfterMs: feed.staleAfterMs,
             watchdog: feed.watchdog,
+            providers: {
+              aisstream: aisStreamFeed,
+              barentswatch: barentsWatchFeed,
+            },
           }),
         );
       } catch (error) {
@@ -171,6 +245,105 @@ export function aisLiveProxy() {
     closeBundle() {
       disposeAisStream();
     },
+  };
+}
+
+function rowEpoch(row) {
+  const explicit = Number(row?.last_position_epoch);
+  if (Number.isFinite(explicit)) return explicit;
+  const parsed = Date.parse(String(row?.last_position_UTC || ''));
+  return Number.isFinite(parsed) ? Math.floor(parsed / 1000) : 0;
+}
+
+function providerRow(row, provider) {
+  const sources = new Set(
+    Array.isArray(row?.sources) ? row.sources : [row?.provider || provider],
+  );
+  sources.add(provider);
+  return { ...row, provider: row?.provider || provider, sources: [...sources] };
+}
+
+function mergeFields(primary, secondary) {
+  const merged = { ...secondary, ...primary };
+  for (const key of ['name', 'imo', 'type', 'destination']) {
+    if (
+      !String(primary?.[key] || '').trim() &&
+      String(secondary?.[key] || '').trim()
+    )
+      merged[key] = secondary[key];
+  }
+  merged.sources = [
+    ...new Set([...(secondary?.sources || []), ...(primary?.sources || [])]),
+  ];
+  return merged;
+}
+
+/** Merge provider snapshots by MMSI; the newest position wins and richer static fields survive. */
+export function mergeAisProviderRows(aisRows, barentsRows, maxRows) {
+  const merged = new Map();
+  for (const [provider, providerRows] of [
+    ['AISStream', aisRows],
+    ['BarentsWatch', barentsRows],
+  ]) {
+    for (const raw of providerRows || []) {
+      const row = providerRow(raw, provider);
+      const mmsi = String(row.mmsi || '').trim();
+      if (!mmsi) continue;
+      const existing = merged.get(mmsi);
+      if (!existing) {
+        merged.set(mmsi, row);
+        continue;
+      }
+      const newer = rowEpoch(row) >= rowEpoch(existing) ? row : existing;
+      const older = newer === row ? existing : row;
+      merged.set(mmsi, mergeFields(newer, older));
+    }
+  }
+  return [...merged.values()]
+    .sort((a, b) => rowEpoch(b) - rowEpoch(a))
+    .slice(0, maxRows);
+}
+
+export function mergeAisTrackSamples(...sets) {
+  const samples = new Map();
+  for (const set of sets) {
+    for (const sample of set || []) {
+      const lat = Number(sample?.lat);
+      const lon = Number(sample?.lon);
+      const t = Number(sample?.t);
+      if (!Number.isFinite(lat) || !Number.isFinite(lon) || !Number.isFinite(t))
+        continue;
+      samples.set(`${t}:${lat.toFixed(5)}:${lon.toFixed(5)}`, { lat, lon, t });
+    }
+  }
+  return [...samples.values()].sort((a, b) => a.t - b.t);
+}
+
+function combinedAisStatus(aisStream, barentsWatch, rows) {
+  const active = [];
+  if (aisStream.status === 'live') active.push('AISStream');
+  if (barentsWatch.status === 'live') active.push('BarentsWatch');
+  const configured = [];
+  if (process.env.AISSTREAM_API_KEY) configured.push('AISStream');
+  if (hasBarentsWatchCredentials()) configured.push('BarentsWatch');
+  const live = rows.length > 0 && active.length > 0;
+  return {
+    ...aisStream,
+    source: active.join(' + ') || configured.join(' + ') || 'AIS',
+    status: live
+      ? 'live'
+      : rows.length
+        ? 'stale'
+        : configured.length
+          ? 'connecting'
+          : 'missing-key',
+    error: live
+      ? null
+      : barentsWatch.error || aisStream.error || 'AIS providers unavailable',
+    lastMessageAt:
+      newestAisPositionAt(rows) ||
+      barentsWatch.lastMessageAt ||
+      aisStream.lastMessageAt,
   };
 }
 

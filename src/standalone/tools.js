@@ -1,9 +1,15 @@
 import { createAssetDirectorySource } from '../director/packs/source.js';
 import { createApplicationTools } from '../app/tools.js';
 import { startStandaloneChrome } from './startupChrome.js';
+
 export function createStandaloneTools(options) {
   return createApplicationTools({
-    startChrome: startStandaloneChrome,
+    startChrome: (context) =>
+      startStandaloneChrome({
+        ...context,
+        viewer: options.scene.viewer,
+        enableLocalKeySetup: options.enableLocalKeySetup,
+      }),
     sceneDataPacks: {
       sources: {
         assets: createAssetDirectorySource({
