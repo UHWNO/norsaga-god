@@ -34,9 +34,12 @@
 .norsaga #first-run-launcher { display: none !important; }
 .norsaga #loading-screen { background: rgba(7, 14, 32, 0.9); }
 .norsaga #loading-screen.access-gate {
-  background:
-    radial-gradient(circle at 50% 42%, rgba(39, 98, 142, 0.2), transparent 42%),
-    rgba(7, 14, 32, 0.9);
+  background: radial-gradient(
+    circle at 50% 48%,
+    rgba(7, 14, 32, 0.5) 0 32%,
+    rgba(7, 14, 32, 0.38) 48%,
+    rgba(7, 14, 32, 0.2) 68%
+  );
   -webkit-backdrop-filter: blur(9px) saturate(0.82);
   backdrop-filter: blur(9px) saturate(0.82);
 }
