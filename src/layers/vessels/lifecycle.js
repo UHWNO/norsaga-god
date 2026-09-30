@@ -128,6 +128,7 @@ export function createLifecycle({
     state.interactionHandlerFactory = null;
     state.interactionKeyTarget = null;
     state.preRenderRemover = null;
+    state.cameraMoveEndRemover = null;
     state.lastVisibilityUpdate = 0;
     state.lastFocusUpdate = 0;
     state.activeFocusCount = 0;
@@ -160,6 +161,11 @@ export function createLifecycle({
       );
       components.selection.installInteraction(viewer);
       components.rendering.installRuntime(viewer);
+      state.cameraMoveEndRemover?.();
+      state.cameraMoveEndRemover =
+        viewer?.camera?.moveEnd?.addEventListener?.(() => {
+          if (state.feed.enabled) void layer.update(viewer);
+        }) || null;
       restoreSpriteOrder(viewer);
     },
 
@@ -237,6 +243,7 @@ export function createLifecycle({
       if (state.preRenderRemover) {
         state.preRenderRemover();
       }
+      state.cameraMoveEndRemover?.();
       resetState();
     },
   };

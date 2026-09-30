@@ -174,6 +174,7 @@ export function aisLiveProxy() {
           AISSTREAM_CACHE_MAX,
           AISSTREAM_CACHE_MAX,
         );
+        const viewportBounds = parseAisViewportBounds(incoming.searchParams);
         await ensureBarentsWatchSnapshot();
         const aisStreamFeed = aisStreamStatusSnapshot();
         const barentsWatchFeed = barentsWatchStatusSnapshot();
@@ -181,6 +182,7 @@ export function aisLiveProxy() {
           aisStreamRows(AISSTREAM_CACHE_MAX),
           barentsWatchRows(AISSTREAM_CACHE_MAX),
           maxRows,
+          viewportBounds,
         );
         const feed = combinedAisStatus(aisStreamFeed, barentsWatchFeed, rows);
         const configured = Boolean(
@@ -279,7 +281,12 @@ function mergeFields(primary, secondary) {
 }
 
 /** Merge provider snapshots by MMSI; the newest position wins and richer static fields survive. */
-export function mergeAisProviderRows(aisRows, barentsRows, maxRows) {
+export function mergeAisProviderRows(
+  aisRows,
+  barentsRows,
+  maxRows,
+  viewportBounds = null,
+) {
   const merged = new Map();
   for (const [provider, providerRows] of [
     ['AISStream', aisRows],
@@ -299,9 +306,120 @@ export function mergeAisProviderRows(aisRows, barentsRows, maxRows) {
       merged.set(mmsi, mergeFields(newer, older));
     }
   }
-  return [...merged.values()]
-    .sort((a, b) => rowEpoch(b) - rowEpoch(a))
-    .slice(0, maxRows);
+  const ordered = [...merged.values()].sort(
+    (a, b) => rowEpoch(b) - rowEpoch(a),
+  );
+  if (!viewportBounds) return ordered.slice(0, maxRows);
+
+  const visible = [];
+  const elsewhere = [];
+  for (const row of ordered) {
+    (aisRowInViewport(row, viewportBounds) ? visible : elsewhere).push(row);
+  }
+  const selectedVisible =
+    visible.length > maxRows
+      ? spatiallyBalancedAisRows(visible, maxRows, viewportBounds)
+      : visible;
+  if (selectedVisible.length >= maxRows) return selectedVisible;
+  return [
+    ...selectedVisible,
+    ...spatiallyBalancedAisRows(elsewhere, maxRows - selectedVisible.length),
+  ];
+}
+
+/** Parse a complete, valid viewport query; partial or malformed boxes are ignored. */
+export function parseAisViewportBounds(searchParams) {
+  const entries = ['west', 'south', 'east', 'north'].map((key) => {
+    const raw = searchParams?.get?.(key);
+    return [key, raw == null || raw === '' ? NaN : Number(raw)];
+  });
+  const bounds = Object.fromEntries(entries);
+  if (!Object.values(bounds).every(Number.isFinite)) return null;
+  if (
+    bounds.west < -180 ||
+    bounds.west > 180 ||
+    bounds.east < -180 ||
+    bounds.east > 180 ||
+    bounds.south < -90 ||
+    bounds.south > 90 ||
+    bounds.north < -90 ||
+    bounds.north > 90 ||
+    bounds.south > bounds.north
+  ) {
+    return null;
+  }
+  return bounds;
+}
+
+function aisRowInViewport(row, bounds) {
+  const lat = Number(row?.lat);
+  const lon = Number(row?.lon);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return false;
+  const longitudeMatches =
+    bounds.west <= bounds.east
+      ? lon >= bounds.west && lon <= bounds.east
+      : lon >= bounds.west || lon <= bounds.east;
+  return lat >= bounds.south && lat <= bounds.north && longitudeMatches;
+}
+
+/** Round-robin newest positions across geographic cells instead of dense ports winning every slot. */
+export function spatiallyBalancedAisRows(rows, limit, bounds = null) {
+  const cap = Math.max(0, Math.floor(Number(limit) || 0));
+  if (!cap || !rows?.length) return [];
+  const south = bounds?.south ?? -90;
+  const north = bounds?.north ?? 90;
+  const west = bounds?.west ?? -180;
+  const longitudeSpan = bounds
+    ? bounds.east >= west
+      ? bounds.east - west
+      : 360 - west + bounds.east
+    : 360;
+  const latitudeSpan = Math.max(0.000001, north - south);
+  const usableLongitudeSpan = Math.max(0.000001, longitudeSpan);
+  const columns = bounds ? 24 : 36;
+  const rowCount = bounds ? 16 : 18;
+  const buckets = new Map();
+
+  for (const row of rows) {
+    const latitude = Number(row?.lat);
+    const longitude = Number(row?.lon);
+    let key = 'invalid';
+    if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
+      const longitudeOffset = bounds
+        ? (longitude - west + 360) % 360
+        : longitude + 180;
+      const x = Math.min(
+        columns - 1,
+        Math.max(
+          0,
+          Math.floor((longitudeOffset / usableLongitudeSpan) * columns),
+        ),
+      );
+      const y = Math.min(
+        rowCount - 1,
+        Math.max(0, Math.floor(((latitude - south) / latitudeSpan) * rowCount)),
+      );
+      key = `${y}:${x}`;
+    }
+    if (!buckets.has(key)) buckets.set(key, []);
+    buckets.get(key).push(row);
+  }
+
+  const orderedBuckets = [...buckets.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([, bucket]) => bucket);
+  const selected = [];
+  for (let depth = 0; selected.length < cap; depth++) {
+    let added = false;
+    for (const bucket of orderedBuckets) {
+      if (depth >= bucket.length) continue;
+      selected.push(bucket[depth]);
+      added = true;
+      if (selected.length >= cap) break;
+    }
+    if (!added) break;
+  }
+  return selected;
 }
 
 export function mergeAisTrackSamples(...sets) {

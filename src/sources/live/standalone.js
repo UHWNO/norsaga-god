@@ -172,9 +172,22 @@ export function createAisStreamSource({
 } = {}) {
   return {
     label: 'AISStream + BarentsWatch',
-    async getSnapshot({ maxRows = 12000 } = {}, { signal } = {}) {
+    async getSnapshot(
+      { maxRows = 12000, bounds = null } = {},
+      { signal } = {},
+    ) {
       const url = new URL(apiUrl, origin());
       url.searchParams.set('maxRows', String(maxRows));
+      if (
+        bounds &&
+        ['west', 'south', 'east', 'north'].every((key) =>
+          Number.isFinite(bounds[key]),
+        )
+      ) {
+        for (const key of ['west', 'south', 'east', 'north']) {
+          url.searchParams.set(key, Number(bounds[key]).toFixed(5));
+        }
+      }
       const { response, payload } = await readResponse(
         fetchImpl,
         url.toString(),

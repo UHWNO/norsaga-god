@@ -256,6 +256,25 @@ test('AIS reports limited received coverage and keeps connection state separate 
   assert.equal((await source.getIntelligence('123456789')).vessel.flag, 'NOR');
 });
 
+test('AIS snapshot sends a rounded wrapped viewport to the server', async () => {
+  let requestedUrl;
+  const source = createAisStreamSource({
+    origin: () => 'http://example.test',
+    fetchImpl: async (url) => {
+      requestedUrl = String(url);
+      return response({ status: 'live', rows: [] });
+    },
+  });
+  await source.getSnapshot({
+    maxRows: 12000,
+    bounds: { west: 170.123456, south: -20, east: -170, north: 30 },
+  });
+  assert.equal(
+    requestedUrl,
+    'http://example.test/api/ais-live?maxRows=12000&west=170.12346&south=-20.00000&east=-170.00000&north=30.00000',
+  );
+});
+
 test('a malformed vessel row cannot prevent admission of valid positions', async () => {
   const source = createAisStreamSource({
     fetchImpl: async () =>

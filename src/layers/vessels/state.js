@@ -64,6 +64,8 @@ export function createVesselState({ source, services }) {
     /** Test-only key target paired with interactionHandlerFactory. */
     interactionKeyTarget: null,
     preRenderRemover: null,
+    /** Refresh viewport-prioritized rows after the camera settles. */
+    cameraMoveEndRemover: null,
     lastVisibilityUpdate: 0,
     lastFocusUpdate: 0,
     /** Sprites whose animated emphasis remains outside the 1.0 deadband. */

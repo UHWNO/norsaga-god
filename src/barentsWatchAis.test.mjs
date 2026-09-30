@@ -10,6 +10,8 @@ import {
 import {
   mergeAisProviderRows,
   mergeAisTrackSamples,
+  parseAisViewportBounds,
+  spatiallyBalancedAisRows,
 } from '../server/providers/vessels/ais-live.js';
 
 function credentials(t) {
@@ -139,6 +141,89 @@ test('AIS provider merge de-duplicates by MMSI, keeps newest fix and enriches fi
   assert.deepEqual(
     new Set(rows[0].sources),
     new Set(['AISStream', 'BarentsWatch']),
+  );
+});
+
+test('AIS provider merge prioritizes the viewport before filling globally balanced slots', () => {
+  const row = (mmsi, lat, lon, time) => ({
+    mmsi,
+    lat,
+    lon,
+    last_position_epoch: time,
+  });
+  const rows = mergeAisProviderRows(
+    [
+      row('outside-newest-a', 51, 1, 500),
+      row('outside-newest-b', 52, 2, 490),
+      row('visible-a', 1, 101, 300),
+      row('visible-b', 2, 102, 200),
+      row('outside-west', 0, -150, 100),
+      row('outside-east', 0, 150, 90),
+    ],
+    [],
+    5,
+    { west: 95, south: -10, east: 110, north: 10 },
+  );
+  assert.deepEqual(
+    rows.slice(0, 2).map(({ mmsi }) => mmsi),
+    ['visible-a', 'visible-b'],
+  );
+  assert.equal(rows.length, 5);
+  assert.equal(
+    rows.some(({ mmsi }) => mmsi === 'outside-west'),
+    true,
+  );
+  assert.equal(
+    rows.some(({ mmsi }) => mmsi === 'outside-east'),
+    true,
+  );
+});
+
+test('AIS viewport parsing accepts antimeridian boxes and rejects incomplete input', () => {
+  assert.deepEqual(
+    parseAisViewportBounds(
+      new URLSearchParams('west=170&south=-20&east=-170&north=30'),
+    ),
+    { west: 170, south: -20, east: -170, north: 30 },
+  );
+  assert.equal(parseAisViewportBounds(new URLSearchParams('west=10')), null);
+  assert.equal(
+    parseAisViewportBounds(
+      new URLSearchParams('west=-181&south=-20&east=20&north=30'),
+    ),
+    null,
+  );
+});
+
+test('AIS viewport priority includes both sides of the antimeridian', () => {
+  const rows = mergeAisProviderRows(
+    [
+      { mmsi: 'east', lat: 0, lon: 179, last_position_epoch: 2 },
+      { mmsi: 'west', lat: 0, lon: -179, last_position_epoch: 1 },
+      { mmsi: 'outside', lat: 0, lon: 0, last_position_epoch: 3 },
+    ],
+    [],
+    2,
+    { west: 170, south: -10, east: -170, north: 10 },
+  );
+  assert.deepEqual(
+    new Set(rows.map(({ mmsi }) => mmsi)),
+    new Set(['east', 'west']),
+  );
+});
+
+test('AIS balancing round-robins across geographic cells', () => {
+  const rows = [
+    { mmsi: 'dense-1', lat: 0, lon: 0 },
+    { mmsi: 'dense-2', lat: 0.1, lon: 0.1 },
+    { mmsi: 'dense-3', lat: 0.2, lon: 0.2 },
+    { mmsi: 'remote-west', lat: 0, lon: -150 },
+    { mmsi: 'remote-east', lat: 0, lon: 150 },
+  ];
+  const selected = spatiallyBalancedAisRows(rows, 3);
+  assert.deepEqual(
+    new Set(selected.map(({ mmsi }) => mmsi)),
+    new Set(['dense-1', 'remote-west', 'remote-east']),
   );
 });
 
