@@ -131,6 +131,9 @@
   .access-gate-rejected .access-gate-controls { animation: none; }
 }
 .norsaga-operations { position: fixed; top: var(--norsaga-workspace-top); left: var(--norsaga-control-left); width: 210px; z-index: 110; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 10px; padding: 14px 14px 6px; backdrop-filter: blur(16px); }
+/* Expanded rail panels intentionally spread across the workspace lane. Keep
+   their shared stacking context above the Maritime Workspace while open. */
+.norsaga #left-panel-stack:has(> [data-panel-id]:not(.collapsed)) { z-index: 120; }
 .norsaga-toolbar-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 6px 8px; margin-bottom: 12px; }
 .norsaga-toolbar-head .norsaga-eyebrow { grid-row: 1 / span 2; align-self: center; }
 .norsaga-toolbar-head button { grid-column: 2; min-width: 58px; }
