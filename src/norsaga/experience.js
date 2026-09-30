@@ -17,6 +17,11 @@ export function initNorSagaExperience({
 }) {
   if (signal?.aborted) return { destroy() {} };
   const doc = documentRef;
+  const notifyWorkspaceLayout = () => {
+    const view = doc.defaultView;
+    if (view?.dispatchEvent && view.Event)
+      view.dispatchEvent(new view.Event('gev:norsaga-workspace-layout-change'));
+  };
   const lifetime = new AbortController();
   const removers = [];
   const layerInputs = new Map();
@@ -231,10 +236,12 @@ export function initNorSagaExperience({
   button('Views', () => dialog.showModal(), toolbarHead);
   button('About', () => about.showModal(), toolbarHead);
   doc.body.append(toolbar, dialog, about);
+  notifyWorkspaceLayout();
 
   function report(message) {
     status.textContent = message;
     dialogStatus.textContent = message;
+    notifyWorkspaceLayout();
   }
   function syncLayers() {
     for (const [id, input] of layerInputs)
