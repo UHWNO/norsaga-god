@@ -1,8 +1,10 @@
 import {
   createInactivityLogout,
   isPasswordAccepted,
+  logoutToAccessGate,
   meetsMinimumViewport,
 } from './passwordGateCore.js';
+import { bindUserGuidePopup } from './userGuidePopup.js';
 
 const loadingScreen = document.getElementById('loading-screen');
 const form = document.getElementById('access-gate-form');
@@ -10,6 +12,8 @@ const passwordInput = document.getElementById('access-gate-password');
 const status = document.getElementById('access-gate-status');
 const viewportNotice = document.getElementById('access-gate-viewport-notice');
 const submitButton = form?.querySelector('button[type="submit"]');
+const logoutButton = document.getElementById('logout-button');
+bindUserGuidePopup();
 
 if (
   !loadingScreen ||
@@ -53,7 +57,7 @@ async function startApplication() {
     await import('./main.js');
     createInactivityLogout({
       eventTarget: window,
-      onTimeout: () => window.location.reload(),
+      onTimeout: () => logoutToAccessGate(window.location),
     });
   } catch (error) {
     console.error('Unable to load NorSaga:', error);
@@ -75,6 +79,10 @@ form.addEventListener('submit', (event) => {
   }
   void startApplication();
 });
+
+logoutButton?.addEventListener('click', () =>
+  logoutToAccessGate(window.location),
+);
 
 passwordInput.addEventListener('input', () => {
   passwordInput.removeAttribute('aria-invalid');

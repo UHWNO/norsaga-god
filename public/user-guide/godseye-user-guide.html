@@ -58,47 +58,18 @@
     }
 
     .brand{
-      padding:4px 10px 22px;
+      padding:8px 10px 22px;
       border-bottom:1px solid var(--line);
       margin-bottom:18px;
     }
 
-    .brand-mark{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      margin-bottom:14px;
-    }
-
-    .brand-symbol{
-      width:36px;
-      height:36px;
-      border-radius:11px;
-      background:
-        radial-gradient(circle at 35% 30%, #91e3ff 0 6%, transparent 7%),
-        radial-gradient(circle at 50% 50%, rgba(60,185,230,.9), rgba(31,47,110,.95) 70%);
-      box-shadow:0 0 0 1px rgba(255,255,255,.1), 0 0 28px rgba(60,185,230,.18);
-    }
-
-    .brand-title{
-      font-size:14px;
-      letter-spacing:.18em;
-      text-transform:uppercase;
-      color:#dce7f4;
-      font-weight:700;
-    }
-
     .brand h1{
       margin:0;
-      font-size:25px;
-      letter-spacing:-.03em;
-    }
-
-    .brand p{
-      margin:6px 0 0;
-      color:var(--muted);
-      font-size:12px;
-      line-height:1.45;
+      color:#f4f7fb;
+      font-size:19px;
+      font-weight:650;
+      letter-spacing:-.015em;
+      line-height:1.3;
     }
 
     .nav-label{
@@ -182,6 +153,7 @@
       top:0;
       z-index:20;
       height:72px;
+      padding-right:58px;
       display:flex;
       align-items:center;
       justify-content:space-between;
@@ -212,6 +184,33 @@
       border-radius:11px;
       padding:9px 12px;
       cursor:pointer;
+    }
+
+    .close-guide{
+      position:fixed;
+      top:16px;
+      right:18px;
+      z-index:100;
+      display:grid;
+      place-items:center;
+      width:44px;
+      height:44px;
+      padding:0;
+      color:#1a1202;
+      background:linear-gradient(135deg,#ffe064 0%,#f3a712 100%);
+      border:1px solid rgba(255,226,107,.92);
+      border-radius:13px;
+      box-shadow:0 10px 30px rgba(0,0,0,.32),0 0 20px rgba(255,185,35,.2);
+      font-size:29px;
+      font-weight:500;
+      line-height:1;
+      cursor:pointer;
+    }
+
+    .close-guide:hover,.close-guide:focus-visible{
+      background:linear-gradient(135deg,#fff09a 0%,#ffc332 100%);
+      outline:2px solid #fff6c7;
+      outline-offset:3px;
     }
 
     .menu-toggle{display:none}
@@ -575,17 +574,11 @@
   </style>
 </head>
 <body>
+  <button class="close-guide" id="closeGuide" type="button" aria-label="Close user guide" title="Close user guide">&times;</button>
   <div class="app">
     <aside class="sidebar" aria-label="Guide navigation">
       <div class="brand">
-        <div class="brand-mark">
-          <div class="brand-symbol" aria-hidden="true"></div>
-          <div>
-            <div class="brand-title">NorSaga</div>
-            <h1>God's Eye</h1>
-          </div>
-        </div>
-        <p>Introduction &amp; User Guide</p>
+        <h1>Introduction &amp; User Guide</h1>
       </div>
 
       <div class="nav-label">Guide</div>
@@ -609,7 +602,7 @@
     <main class="main">
       <header class="topbar">
         <button class="top-button menu-toggle" id="menuToggle" aria-label="Open guide menu">☰</button>
-        <div class="mobile-title">God's Eye User Guide</div>
+        <div class="mobile-title">Introduction &amp; User Guide</div>
         <div class="crumb">User Guide / <strong id="crumbCurrent">Overview</strong></div>
         <div class="top-actions">
           <button class="top-button" onclick="window.print()">Print / PDF</button>
@@ -1002,6 +995,10 @@
 
     document.getElementById("menuToggle").addEventListener("click", () => {
       document.body.classList.toggle("nav-open");
+    });
+
+    document.getElementById("closeGuide").addEventListener("click", () => {
+      window.close();
     });
 
     document.addEventListener("click", (e) => {

@@ -3,6 +3,7 @@ import {
   createInactivityLogout,
   INACTIVITY_LOGOUT_MS,
   isPasswordAccepted,
+  logoutToAccessGate,
   meetsMinimumViewport,
   MINIMUM_VIEWPORT_HEIGHT,
   MINIMUM_VIEWPORT_WIDTH,
@@ -13,12 +14,16 @@ assert.equal(isPasswordAccepted(NORSAGA_ACCESS_PASSWORD), true);
 assert.equal(isPasswordAccepted('NORSAGA'), false);
 assert.equal(isPasswordAccepted(` ${NORSAGA_ACCESS_PASSWORD} `), false);
 assert.equal(isPasswordAccepted(''), false);
-assert.equal(INACTIVITY_LOGOUT_MS, 1_200_000);
+assert.equal(INACTIVITY_LOGOUT_MS, 1_800_000);
 assert.equal(MINIMUM_VIEWPORT_WIDTH, 1280);
 assert.equal(MINIMUM_VIEWPORT_HEIGHT, 720);
 assert.equal(meetsMinimumViewport(1280, 720), true);
 assert.equal(meetsMinimumViewport(1279, 720), false);
 assert.equal(meetsMinimumViewport(1280, 719), false);
+
+let manualLogoutCount = 0;
+logoutToAccessGate({ reload: () => manualLogoutCount++ });
+assert.equal(manualLogoutCount, 1, 'manual logout returns to the access gate');
 
 const listeners = new Map();
 const eventTarget = {
@@ -51,6 +56,6 @@ assert.equal(logoutCount, 0, 'recent activity renews the session deadline');
 
 currentTime = INACTIVITY_LOGOUT_MS * 2 - 1;
 pendingTimer();
-assert.equal(logoutCount, 1, 'twenty inactive minutes logs the session out');
+assert.equal(logoutCount, 1, 'thirty inactive minutes logs the session out');
 assert.equal(listeners.size, 0, 'expiration releases activity listeners');
 stop();
