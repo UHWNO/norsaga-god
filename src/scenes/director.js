@@ -292,6 +292,25 @@ export class SceneDirector {
         installed.add(recipe.id);
         migrated = true;
       }
+      const flightsRecipe = SCENE_RECIPES.find(
+        (recipe) => recipe.id === 'flights-radar',
+      );
+      const flightsScene = project.scenes.find(
+        (scene) =>
+          scene.id === 'flights-radar' &&
+          scene.title === 'Global Flights Radar',
+      );
+      if (
+        flightsRecipe &&
+        flightsScene?.shots.length === 4 &&
+        flightsScene.shots.every(
+          (shot, index) => shot.title === `Shot ${index + 2}`,
+        )
+      ) {
+        const [missingShot] = recipeToScene(flightsRecipe).shots;
+        flightsScene.shots.unshift(missingShot);
+        migrated = true;
+      }
       if (migrated) {
         project.installedBuiltInSceneIds = [...installed];
         try {

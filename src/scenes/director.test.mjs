@@ -16,6 +16,7 @@ import fs from 'node:fs';
 import test from 'node:test';
 
 import { SceneDirector } from './director.js';
+import { recipeToScene } from './project.js';
 import { SCENE_TRACKING_PARAM_KEYS } from './scenePolicy.js';
 import { SCENE_RECIPES, getSceneAppendRecipeById } from './recipes.js';
 
@@ -540,6 +541,32 @@ test('an existing public default project gains Nepal without replacing authored 
     assert.equal(director._project.scenes[1].title, 'Nepal Flood Incident');
     assert.equal(director._project.scenes[1].shots.length, 25);
     assert.deepEqual(director._project.installedBuiltInSceneIds, ['bhote-koshi-nepal-scene']);
+  } finally { restore(); }
+});
+
+test('Global Flights Radar restores only a missing Shot 1 ahead of exact Shots 2–5', () => {
+  const recipe = SCENE_RECIPES.find(({ id }) => id === 'flights-radar');
+  const scene = recipeToScene(recipe);
+  const survivingShots = structuredClone(scene.shots.slice(1));
+  scene.shots = survivingShots;
+  const project = {
+    version: 6,
+    installedBuiltInSceneIds: [],
+    scenes: [scene],
+  };
+  const { director, restore } = makeDirector({ project });
+  try {
+    const restored = director._project.scenes[0];
+    assert.equal(restored.shots.length, 5);
+    assert.equal(restored.shots[0].title, 'Shot 1');
+    assert.equal(restored.shots[0].durationSec, 6);
+    assert.equal(restored.shots[0].holdSec, 1);
+    assert.deepEqual(
+      restored.shots.slice(1).map(({ id, title, durationSec, holdSec, camera }) =>
+        ({ id, title, durationSec, holdSec, camera })),
+      survivingShots.map(({ id, title, durationSec, holdSec, camera }) =>
+        ({ id, title, durationSec, holdSec, camera })),
+    );
   } finally { restore(); }
 });
 
