@@ -217,7 +217,7 @@ test('the Nepal evidence pack appends once and applies the approved corridor fra
     assert.ok(scene.releaseLayerIds.includes('bhote-koshi-2026'));
     assert.ok(scene.releaseLayerIds.includes('bhote-koshi-locator'));
     assert.equal(scene.appliedShotPacks[0].id, 'bhote-koshi-nepal-evidence-pack');
-    assert.equal(scene.appliedShotPacks[0].version, 18);
+    assert.equal(scene.appliedShotPacks[0].version, 19);
     assert.deepEqual(
       Object.keys(scene.appliedShotPacks[0].shotBindings),
       [...NEPAL_ORIGINAL_SHOT_TITLES, ...scene.shots.slice(8).map(({ title }) => title)],
@@ -350,9 +350,45 @@ test('installed v12 Nepal pack inserts ten points without replacing renamed came
     }
     assert.deepEqual(scene.shots.filter((shot) => shot.sourcePackId).map((shot) =>
       shot.layers['bhote-koshi-2026'].params.beatId), recipe.requiredSourcePackBeatIds);
-    assert.equal(scene.appliedShotPacks[0].version, 18);
+    assert.equal(scene.appliedShotPacks[0].version, 19);
     assert.equal(upgraded.director.appendShotPack(scene.id, recipe.id).reason, 'already-appended');
   } finally { upgraded.restore(); }
+});
+
+test('installed v18 Nepal pack restores the exact five deleted live shots', () => {
+  const installed = makeDirector({ project: nepalProjectFixture() });
+  let damaged;
+  const missingTitles = [
+    'Bhote Koshi Incident Corridor',
+    'Bhote Koshi Upper Valley',
+    'Dhunche',
+    'Dandagaun, Rasuwa',
+    'Bhainse',
+  ];
+  const recipe = getSceneAppendRecipeById('bhote-koshi-nepal-evidence-pack');
+  try {
+    installed.director.appendShotPack('scene-1', recipe.id);
+    damaged = structuredClone(installed.director._project);
+    const scene = damaged.scenes[0];
+    scene.shots = scene.shots.filter((shot) => !missingTitles.includes(shot.title));
+    scene.appliedShotPacks[0].version = 18;
+  } finally { installed.restore(); }
+
+  const survivingShots = structuredClone(damaged.scenes[0].shots);
+  const restored = makeDirector({ project: damaged });
+  try {
+    const scene = restored.director._project.scenes[0];
+    assert.equal(scene.shots.length, 25);
+    assert.deepEqual(scene.shots.map(({ title }) => title), recipe.requiredShotTitles);
+    assert.equal(scene.appliedShotPacks[0].version, 19);
+    for (const surviving of survivingShots) {
+      const current = scene.shots.find(({ id }) => id === surviving.id);
+      assert.ok(current);
+      assert.deepEqual(current, surviving);
+    }
+    assert.deepEqual(missingTitles.map((title) =>
+      scene.shots.find((shot) => shot.title === title)?.title), missingTitles);
+  } finally { restored.restore(); }
 });
 
 
@@ -369,7 +405,7 @@ test('a legacy three-shot Nepal browser project bootstraps to the current 25-sho
     assert.deepEqual(scene.shots.slice(0, 3).map(({ id }) => id), originalIds);
     assert.deepEqual(scene.shots.slice(0, 3).map(({ camera }) => camera), originalCameras);
     assert.equal(scene.appliedShotPacks[0].id, 'bhote-koshi-nepal-evidence-pack');
-    assert.equal(scene.appliedShotPacks[0].version, 18);
+    assert.equal(scene.appliedShotPacks[0].version, 19);
     assert.equal(director._selectedSceneId, scene.id);
     assert.equal(director._selectedShotId, scene.shots[0].id);
   } finally {
@@ -437,7 +473,7 @@ test('the Nepal pack upgrades the upper-valley shots without duplicating evidenc
       pitch: -34,
       roll: 0,
     });
-    assert.equal(scene.appliedShotPacks[0].version, 18);
+    assert.equal(scene.appliedShotPacks[0].version, 19);
     assert.equal(Object.keys(scene.appliedShotPacks[0].shotBindings).length, 25);
     assert.ok(scene.shots.every((shot) => (
       shot.layers['bhote-koshi-2026']?.enabled === true
