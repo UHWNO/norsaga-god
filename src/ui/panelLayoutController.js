@@ -9,6 +9,7 @@ const COCKPIT_LAYOUT_SETTLE_MS = 240;
  * intersect it at the current viewport size.
  */
 const LEFT_STACK_OBSTACLE_SELECTOR = [
+  '#norsaga-operations',
   '#cockpit-hud .cockpit-topline',
   '#cockpit-hud .cockpit-topline > div',
   '#title-bar',
@@ -80,6 +81,7 @@ export class PanelLayoutController {
     this._leftStackHudTransitionHandler = null;
     this._leftStackLayoutFrame = null;
     this._leftStackMutationObserver = null;
+    this._leftStackWorkspaceLayoutHandler = null;
     this._leftStackPreferredPanelId = null;
     this._leftStackReconsiderAutoCollapse = false;
     this._leftStackResizeObserver = null;
@@ -313,6 +315,10 @@ export class PanelLayoutController {
       onCollapse: (panel) => this._syncPanelCollapseButton(panel),
       onRetry: () => this._scheduleRightPanelLayout(),
       leftStack: this._leftPanelStack,
+      topAnchor:
+        this._rightPanelStack?.ownerDocument?.getElementById?.(
+          'norsaga-operations',
+        ) || this._leftPanelStack,
       displayPanel: this._ppToggles,
       readDisplayScrollTop: this.readDisplayScrollTop,
     });
@@ -322,6 +328,15 @@ export class PanelLayoutController {
     if (this.destroyed) return;
     const stack = this._leftPanelStack;
     if (!stack) return;
+
+    this._leftStackWorkspaceLayoutHandler = () => {
+      if (this.destroyed) return;
+      this._scheduleLeftPanelLayout();
+    };
+    window.addEventListener(
+      'gev:norsaga-workspace-layout-change',
+      this._leftStackWorkspaceLayoutHandler,
+    );
 
     if (typeof ResizeObserver !== 'undefined') {
       this._leftStackResizeObserver = new ResizeObserver(() => {
@@ -440,6 +455,7 @@ export class PanelLayoutController {
     if (this.destroyed) return;
     layoutLeftPanelRail({
       stack: this._leftPanelStack,
+      topAnchor: document.getElementById('norsaga-operations'),
       obstacles: document.querySelectorAll(LEFT_STACK_OBSTACLE_SELECTOR),
       windowRef: window,
       hud: this.readHud(),
@@ -490,5 +506,11 @@ export class PanelLayoutController {
         this._leftStackCockpitModeHandler,
       );
     this._leftStackCockpitModeHandler = null;
+    if (this._leftStackWorkspaceLayoutHandler)
+      window.removeEventListener(
+        'gev:norsaga-workspace-layout-change',
+        this._leftStackWorkspaceLayoutHandler,
+      );
+    this._leftStackWorkspaceLayoutHandler = null;
   }
 }

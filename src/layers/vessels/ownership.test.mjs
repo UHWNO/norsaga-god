@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createVesselLayer } from './index.js';
 import { createVesselState } from './state.js';
+import { createLifecycle } from './lifecycle.js';
 
 const noop = () => {};
 function services() {
@@ -111,6 +112,55 @@ test('missing vessel source fails before mutating the viewer', () => {
   const layer = createVesselLayer({ services: services() });
   assert.throws(() => layer.init({}), /snapshot source/);
   layer.setSource({ getSnapshot: noop });
+});
+
+test('an enabled vessel layer refreshes viewport-prioritized rows when camera movement ends', () => {
+  let moveEndListener;
+  let removed = 0;
+  let updates = 0;
+  const state = { feed: { enabled: false }, cameraMoveEndRemover: null };
+  const viewer = {
+    camera: {
+      moveEnd: {
+        addEventListener(listener) {
+          moveEndListener = listener;
+          return () => removed++;
+        },
+      },
+    },
+  };
+  const lifecycle = createLifecycle({
+    vesselState: {
+      state,
+      _source: { getSnapshot: noop },
+      _vesselOverlayHost: { setVisible: noop },
+    },
+    services: {
+      sprites: { restoreSpriteOrder: noop },
+      render: {},
+      geoid: {},
+      picking: {},
+    },
+    parts: {
+      rendering: { ensureCollections: noop, installRuntime: noop },
+      selection: { installInteraction: noop },
+    },
+    layer: {
+      update(activeViewer) {
+        assert.equal(activeViewer, viewer);
+        updates++;
+      },
+    },
+    options: {},
+  });
+  lifecycle.methods.init(viewer);
+  moveEndListener();
+  assert.equal(updates, 0);
+  state.feed.enabled = true;
+  moveEndListener();
+  assert.equal(updates, 1);
+  lifecycle.methods.init(viewer);
+  assert.equal(removed, 1);
 });
 
 test('partial observations retain missing contacts only until their receipt deadline', async () => {

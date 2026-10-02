@@ -171,10 +171,23 @@ export function createAisStreamSource({
   origin = () => globalThis.location?.origin || 'http://localhost',
 } = {}) {
   return {
-    label: 'AISStream',
-    async getSnapshot({ maxRows = 12000 } = {}, { signal } = {}) {
+    label: 'AISStream + BarentsWatch',
+    async getSnapshot(
+      { maxRows = 12000, bounds = null } = {},
+      { signal } = {},
+    ) {
       const url = new URL(apiUrl, origin());
       url.searchParams.set('maxRows', String(maxRows));
+      if (
+        bounds &&
+        ['west', 'south', 'east', 'north'].every((key) =>
+          Number.isFinite(bounds[key]),
+        )
+      ) {
+        for (const key of ['west', 'south', 'east', 'north']) {
+          url.searchParams.set(key, Number(bounds[key]).toFixed(5));
+        }
+      }
       const { response, payload } = await readResponse(
         fetchImpl,
         url.toString(),
@@ -193,7 +206,15 @@ export function createAisStreamSource({
         error.message = reasons[payload?.status] || error.message;
         throw error;
       }
-      return { ...vesselSnapshot(payload), status: response.status };
+      return {
+        ...vesselSnapshot(payload, {
+          source: payload?.source || 'AISStream + BarentsWatch',
+          coverage: payload?.providers?.barentswatch?.rowCount
+            ? 'global AISStream plus Norwegian BarentsWatch AIS'
+            : 'received AIS positions',
+        }),
+        status: response.status,
+      };
     },
     async getTrack(reference, { signal } = {}) {
       const { response, payload } = await readResponse(
@@ -207,6 +228,18 @@ export function createAisStreamSource({
         records: normalizeVesselTrack(payload?.samples),
         complete: false,
       };
+    },
+    async getIntelligence(reference, { signal } = {}) {
+      const url = new URL(`${apiUrl}/intelligence`, origin());
+      url.searchParams.set('mmsi', String(reference || ''));
+      const { response, payload } = await readResponse(
+        fetchImpl,
+        url.toString(),
+        { signal, cache: 'no-store' },
+        'Global Fishing Watch',
+      );
+      if (!response.ok) throw httpError(response, 'Global Fishing Watch');
+      return payload;
     },
   };
 }

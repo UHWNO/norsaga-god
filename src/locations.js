@@ -514,6 +514,101 @@ export const CITY_POIS = {
       },
     ],
   },
+  skagen: {
+    name: 'SKAGEN, DK',
+    groundElevation: 3,
+    viewBounds: {
+      southwest: { lat: 57.65, lng: 10.42 },
+      northeast: { lat: 57.78, lng: 10.7 },
+    },
+    pois: [
+      {
+        name: 'Skagen',
+        lat: 57.7209,
+        lon: 10.5839,
+        alt: 50000,
+        pitch: -65,
+        heading: 0,
+        buildingHeight: 0,
+      },
+    ],
+  },
+  gotland: {
+    name: 'GOTLAND, SE',
+    groundElevation: 30,
+    viewBounds: {
+      southwest: { lat: 56.9, lng: 17.9 },
+      northeast: { lat: 58.0, lng: 19.4 },
+    },
+    pois: [
+      {
+        name: 'Gotland',
+        lat: 57.4684,
+        lon: 18.4867,
+        alt: 250000,
+        pitch: -75,
+        heading: 0,
+        buildingHeight: 0,
+      },
+    ],
+  },
+  tromso: {
+    name: 'TROMSØ, NO',
+    groundElevation: 10,
+    viewBounds: {
+      southwest: { lat: 69.5, lng: 18.5 },
+      northeast: { lat: 69.8, lng: 19.4 },
+    },
+    pois: [
+      {
+        name: 'Tromsø',
+        lat: 69.6492,
+        lon: 18.9553,
+        alt: 60000,
+        pitch: -60,
+        heading: 0,
+        buildingHeight: 0,
+      },
+    ],
+  },
+  'jan-mayen': {
+    name: 'JAN MAYEN, NO',
+    groundElevation: 0,
+    viewBounds: {
+      southwest: { lat: 70.75, lng: -9.2 },
+      northeast: { lat: 71.2, lng: -7.8 },
+    },
+    pois: [
+      {
+        name: 'Jan Mayen',
+        lat: 70.98,
+        lon: -8.52,
+        alt: 220000,
+        pitch: -70,
+        heading: 0,
+        buildingHeight: 0,
+      },
+    ],
+  },
+  iceland: {
+    name: 'ICELAND',
+    groundElevation: 500,
+    viewBounds: {
+      southwest: { lat: 63.2, lng: -25.0 },
+      northeast: { lat: 66.7, lng: -13.0 },
+    },
+    pois: [
+      {
+        name: 'Iceland',
+        lat: 64.9631,
+        lon: -19.0208,
+        alt: 800000,
+        pitch: -80,
+        heading: 0,
+        buildingHeight: 0,
+      },
+    ],
+  },
 };
 
 /**

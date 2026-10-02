@@ -1,5 +1,29 @@
 import { AIS_FIRST_CONNECT_LABEL } from './recordPolicy.js';
 
+const DEGREES_PER_RADIAN = 180 / Math.PI;
+
+/** Return the current Cesium view rectangle as a wrapped degree bounding box. */
+export function vesselViewportBounds(viewer) {
+  let rectangle;
+  try {
+    rectangle = viewer?.camera?.computeViewRectangle?.(
+      viewer?.scene?.globe?.ellipsoid,
+    );
+  } catch {
+    return null;
+  }
+  if (!rectangle) return null;
+  const degrees = (radians) =>
+    Number((Number(radians) * DEGREES_PER_RADIAN).toFixed(6));
+  const bounds = {
+    west: degrees(rectangle.west),
+    south: degrees(rectangle.south),
+    east: degrees(rectangle.east),
+    north: degrees(rectangle.north),
+  };
+  return Object.values(bounds).every(Number.isFinite) ? bounds : null;
+}
+
 /** Own source requests and classified feed state through explicit operations. */
 export function createIngestion({
   feed,
@@ -35,7 +59,10 @@ export function createIngestion({
             ])
           : requestController.signal;
       const snapshot = await readSource().getSnapshot(
-        { maxRows: getRowLimit() },
+        {
+          maxRows: getRowLimit(),
+          bounds: vesselViewportBounds(viewer),
+        },
         { signal },
       );
       if (!ownsAisRequest(requestController, requestSessionId)) return;

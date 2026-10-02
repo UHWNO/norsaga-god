@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createIngestion, createVesselFeed } from './ingestion.js';
+import {
+  createIngestion,
+  createVesselFeed,
+  vesselViewportBounds,
+} from './ingestion.js';
 function setup(source) {
   const feed = createVesselFeed();
   feed.enabled = true;
@@ -84,6 +88,7 @@ test('vessel ingestion converts source units once and retains warm records on a 
   const probe = setup({
     async getSnapshot(query) {
       assert.equal(query.maxRows, 500);
+      assert.equal(query.bounds, null);
       return snapshot;
     },
   });
@@ -103,4 +108,40 @@ test('vessel ingestion converts source units once and retains warm records on a 
   assert.equal(probe.feed.error, 'No accepted positions');
   assert.equal(probe.feed.loading, false);
   assert.equal(probe.feed.abort, null);
+});
+
+test('vessel ingestion requests positions for the current wrapped Cesium viewport', async () => {
+  const queries = [];
+  const viewer = {
+    scene: { globe: { ellipsoid: {} } },
+    camera: {
+      computeViewRectangle(ellipsoid) {
+        assert.equal(ellipsoid, viewer.scene.globe.ellipsoid);
+        return {
+          west: (170 * Math.PI) / 180,
+          south: (-20 * Math.PI) / 180,
+          east: (-170 * Math.PI) / 180,
+          north: (30 * Math.PI) / 180,
+        };
+      },
+    },
+  };
+  const probe = setup({
+    async getSnapshot(query) {
+      queries.push(query);
+      return {
+        records: [],
+        source: 'Fixture',
+        transportStatus: 'live',
+      };
+    },
+  });
+  await probe.methods.update(viewer);
+  assert.deepEqual(queries[0].bounds, {
+    west: 170,
+    south: -20,
+    east: -170,
+    north: 30,
+  });
+  assert.equal(vesselViewportBounds({}), null);
 });

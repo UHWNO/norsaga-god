@@ -11,6 +11,17 @@ import {
   aisStreamRows,
   newestAisPositionAt,
 } from './ais-store.js';
+import {
+  barentsWatchRows,
+  barentsWatchStatusSnapshot,
+  ensureBarentsWatchSnapshot,
+  fetchBarentsWatchTrack,
+  hasBarentsWatchCredentials,
+} from './barentswatch.js';
+import {
+  fetchGlobalFishingWatchIntelligence,
+  hasGlobalFishingWatchToken,
+} from './global-fishing-watch.js';
 // ---------------------------------------------------------------------------
 // AISStream live vessel cache state
 // ---------------------------------------------------------------------------
@@ -80,6 +91,34 @@ export function aisLiveProxy() {
         // mount prefix-matches every subpath, so without this branch
         // /api/ais-live/track would be silently answered with vessel rows.
         if (
+          incoming.pathname === '/intelligence' ||
+          incoming.pathname.startsWith('/intelligence/')
+        ) {
+          const mmsi = String(incoming.searchParams.get('mmsi') || '').trim();
+          res.setHeader('Content-Type', 'application/json; charset=utf-8');
+          res.setHeader('Cache-Control', 'no-store');
+          if (!/^\d{5,10}$/.test(mmsi)) {
+            res.statusCode = 400;
+            res.end(JSON.stringify({ error: 'mmsi query param required' }));
+            return;
+          }
+          if (!hasGlobalFishingWatchToken()) {
+            res.statusCode = 503;
+            res.end(
+              JSON.stringify({
+                status: 'missing-key',
+                error: 'Global Fishing Watch API token is not configured',
+              }),
+            );
+            return;
+          }
+          const intelligence = await fetchGlobalFishingWatchIntelligence(mmsi);
+          res.statusCode = 200;
+          res.end(JSON.stringify(intelligence));
+          return;
+        }
+
+        if (
           incoming.pathname === '/track' ||
           incoming.pathname.startsWith('/track/')
         ) {
@@ -96,12 +135,34 @@ export function aisLiveProxy() {
             );
             return;
           }
+          const localSamples = readAisTrack(mmsi);
+          let barentsWatchSamples = [];
+          let warning = null;
+          if (hasBarentsWatchCredentials()) {
+            try {
+              barentsWatchSamples = await fetchBarentsWatchTrack(mmsi);
+            } catch (error) {
+              warning =
+                error?.message || 'BarentsWatch historic AIS unavailable';
+            }
+          }
+          const samples = mergeAisTrackSamples(
+            localSamples,
+            barentsWatchSamples,
+          );
           res.end(
             JSON.stringify({
               mmsi,
-              samples: readAisTrack(mmsi),
-              source: 'AISStream (accumulated since server start)',
-              retainedSec: Math.floor(AISSTREAM_STALE_MS / 1000),
+              samples,
+              source: barentsWatchSamples.length
+                ? localSamples.length
+                  ? 'AISStream + BarentsWatch'
+                  : 'BarentsWatch historic AIS'
+                : 'AISStream (accumulated since server start)',
+              retainedSec: barentsWatchSamples.length
+                ? 24 * 60 * 60
+                : Math.floor(AISSTREAM_STALE_MS / 1000),
+              warning,
             }),
           );
           return;
@@ -113,17 +174,28 @@ export function aisLiveProxy() {
           AISSTREAM_CACHE_MAX,
           AISSTREAM_CACHE_MAX,
         );
-        const rows = aisStreamRows(maxRows);
+        const viewportBounds = parseAisViewportBounds(incoming.searchParams);
+        await ensureBarentsWatchSnapshot();
+        const aisStreamFeed = aisStreamStatusSnapshot();
+        const barentsWatchFeed = barentsWatchStatusSnapshot();
+        const rows = mergeAisProviderRows(
+          aisStreamRows(AISSTREAM_CACHE_MAX),
+          barentsWatchRows(AISSTREAM_CACHE_MAX),
+          maxRows,
+          viewportBounds,
+        );
+        const feed = combinedAisStatus(aisStreamFeed, barentsWatchFeed, rows);
+        const configured = Boolean(
+          process.env.AISSTREAM_API_KEY || hasBarentsWatchCredentials(),
+        );
 
-        const feed = aisStreamStatusSnapshot();
-
-        res.statusCode = process.env.AISSTREAM_API_KEY ? 200 : 503;
+        res.statusCode = configured ? 200 : 503;
         res.setHeader('Content-Type', 'application/json; charset=utf-8');
         res.setHeader('Cache-Control', 'no-store');
         res.end(
           JSON.stringify({
             rows,
-            source: 'AISStream',
+            source: feed.source,
             status: feed.status,
             error: feed.error,
             refreshing: feed.status !== 'live',
@@ -136,6 +208,10 @@ export function aisLiveProxy() {
             nextAttemptAt: feed.nextAttemptAt,
             staleAfterMs: feed.staleAfterMs,
             watchdog: feed.watchdog,
+            providers: {
+              aisstream: aisStreamFeed,
+              barentswatch: barentsWatchFeed,
+            },
           }),
         );
       } catch (error) {
@@ -171,6 +247,221 @@ export function aisLiveProxy() {
     closeBundle() {
       disposeAisStream();
     },
+  };
+}
+
+function rowEpoch(row) {
+  const explicit = Number(row?.last_position_epoch);
+  if (Number.isFinite(explicit)) return explicit;
+  const parsed = Date.parse(String(row?.last_position_UTC || ''));
+  return Number.isFinite(parsed) ? Math.floor(parsed / 1000) : 0;
+}
+
+function providerRow(row, provider) {
+  const sources = new Set(
+    Array.isArray(row?.sources) ? row.sources : [row?.provider || provider],
+  );
+  sources.add(provider);
+  return { ...row, provider: row?.provider || provider, sources: [...sources] };
+}
+
+function mergeFields(primary, secondary) {
+  const merged = { ...secondary, ...primary };
+  for (const key of ['name', 'imo', 'type', 'destination']) {
+    if (
+      !String(primary?.[key] || '').trim() &&
+      String(secondary?.[key] || '').trim()
+    )
+      merged[key] = secondary[key];
+  }
+  merged.sources = [
+    ...new Set([...(secondary?.sources || []), ...(primary?.sources || [])]),
+  ];
+  return merged;
+}
+
+/** Merge provider snapshots by MMSI; the newest position wins and richer static fields survive. */
+export function mergeAisProviderRows(
+  aisRows,
+  barentsRows,
+  maxRows,
+  viewportBounds = null,
+) {
+  const merged = new Map();
+  for (const [provider, providerRows] of [
+    ['AISStream', aisRows],
+    ['BarentsWatch', barentsRows],
+  ]) {
+    for (const raw of providerRows || []) {
+      const row = providerRow(raw, provider);
+      const mmsi = String(row.mmsi || '').trim();
+      if (!mmsi) continue;
+      const existing = merged.get(mmsi);
+      if (!existing) {
+        merged.set(mmsi, row);
+        continue;
+      }
+      const newer = rowEpoch(row) >= rowEpoch(existing) ? row : existing;
+      const older = newer === row ? existing : row;
+      merged.set(mmsi, mergeFields(newer, older));
+    }
+  }
+  const ordered = [...merged.values()].sort(
+    (a, b) => rowEpoch(b) - rowEpoch(a),
+  );
+  if (!viewportBounds) return ordered.slice(0, maxRows);
+
+  const visible = [];
+  const elsewhere = [];
+  for (const row of ordered) {
+    (aisRowInViewport(row, viewportBounds) ? visible : elsewhere).push(row);
+  }
+  const selectedVisible =
+    visible.length > maxRows
+      ? spatiallyBalancedAisRows(visible, maxRows, viewportBounds)
+      : visible;
+  if (selectedVisible.length >= maxRows) return selectedVisible;
+  return [
+    ...selectedVisible,
+    ...spatiallyBalancedAisRows(elsewhere, maxRows - selectedVisible.length),
+  ];
+}
+
+/** Parse a complete, valid viewport query; partial or malformed boxes are ignored. */
+export function parseAisViewportBounds(searchParams) {
+  const entries = ['west', 'south', 'east', 'north'].map((key) => {
+    const raw = searchParams?.get?.(key);
+    return [key, raw == null || raw === '' ? NaN : Number(raw)];
+  });
+  const bounds = Object.fromEntries(entries);
+  if (!Object.values(bounds).every(Number.isFinite)) return null;
+  if (
+    bounds.west < -180 ||
+    bounds.west > 180 ||
+    bounds.east < -180 ||
+    bounds.east > 180 ||
+    bounds.south < -90 ||
+    bounds.south > 90 ||
+    bounds.north < -90 ||
+    bounds.north > 90 ||
+    bounds.south > bounds.north
+  ) {
+    return null;
+  }
+  return bounds;
+}
+
+function aisRowInViewport(row, bounds) {
+  const lat = Number(row?.lat);
+  const lon = Number(row?.lon);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return false;
+  const longitudeMatches =
+    bounds.west <= bounds.east
+      ? lon >= bounds.west && lon <= bounds.east
+      : lon >= bounds.west || lon <= bounds.east;
+  return lat >= bounds.south && lat <= bounds.north && longitudeMatches;
+}
+
+/** Round-robin newest positions across geographic cells instead of dense ports winning every slot. */
+export function spatiallyBalancedAisRows(rows, limit, bounds = null) {
+  const cap = Math.max(0, Math.floor(Number(limit) || 0));
+  if (!cap || !rows?.length) return [];
+  const south = bounds?.south ?? -90;
+  const north = bounds?.north ?? 90;
+  const west = bounds?.west ?? -180;
+  const longitudeSpan = bounds
+    ? bounds.east >= west
+      ? bounds.east - west
+      : 360 - west + bounds.east
+    : 360;
+  const latitudeSpan = Math.max(0.000001, north - south);
+  const usableLongitudeSpan = Math.max(0.000001, longitudeSpan);
+  const columns = bounds ? 24 : 36;
+  const rowCount = bounds ? 16 : 18;
+  const buckets = new Map();
+
+  for (const row of rows) {
+    const latitude = Number(row?.lat);
+    const longitude = Number(row?.lon);
+    let key = 'invalid';
+    if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
+      const longitudeOffset = bounds
+        ? (longitude - west + 360) % 360
+        : longitude + 180;
+      const x = Math.min(
+        columns - 1,
+        Math.max(
+          0,
+          Math.floor((longitudeOffset / usableLongitudeSpan) * columns),
+        ),
+      );
+      const y = Math.min(
+        rowCount - 1,
+        Math.max(0, Math.floor(((latitude - south) / latitudeSpan) * rowCount)),
+      );
+      key = `${y}:${x}`;
+    }
+    if (!buckets.has(key)) buckets.set(key, []);
+    buckets.get(key).push(row);
+  }
+
+  const orderedBuckets = [...buckets.entries()]
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([, bucket]) => bucket);
+  const selected = [];
+  for (let depth = 0; selected.length < cap; depth++) {
+    let added = false;
+    for (const bucket of orderedBuckets) {
+      if (depth >= bucket.length) continue;
+      selected.push(bucket[depth]);
+      added = true;
+      if (selected.length >= cap) break;
+    }
+    if (!added) break;
+  }
+  return selected;
+}
+
+export function mergeAisTrackSamples(...sets) {
+  const samples = new Map();
+  for (const set of sets) {
+    for (const sample of set || []) {
+      const lat = Number(sample?.lat);
+      const lon = Number(sample?.lon);
+      const t = Number(sample?.t);
+      if (!Number.isFinite(lat) || !Number.isFinite(lon) || !Number.isFinite(t))
+        continue;
+      samples.set(`${t}:${lat.toFixed(5)}:${lon.toFixed(5)}`, { lat, lon, t });
+    }
+  }
+  return [...samples.values()].sort((a, b) => a.t - b.t);
+}
+
+function combinedAisStatus(aisStream, barentsWatch, rows) {
+  const active = [];
+  if (aisStream.status === 'live') active.push('AISStream');
+  if (barentsWatch.status === 'live') active.push('BarentsWatch');
+  const configured = [];
+  if (process.env.AISSTREAM_API_KEY) configured.push('AISStream');
+  if (hasBarentsWatchCredentials()) configured.push('BarentsWatch');
+  const live = rows.length > 0 && active.length > 0;
+  return {
+    ...aisStream,
+    source: active.join(' + ') || configured.join(' + ') || 'AIS',
+    status: live
+      ? 'live'
+      : rows.length
+        ? 'stale'
+        : configured.length
+          ? 'connecting'
+          : 'missing-key',
+    error: live
+      ? null
+      : barentsWatch.error || aisStream.error || 'AIS providers unavailable',
+    lastMessageAt:
+      newestAisPositionAt(rows) ||
+      barentsWatch.lastMessageAt ||
+      aisStream.lastMessageAt,
   };
 }
 

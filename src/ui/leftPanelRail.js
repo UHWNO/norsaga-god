@@ -12,6 +12,7 @@ import { measurePanelNaturalHeight } from './panelMeasurement.js';
  * persistence. Auto-collapse is presentation only and reports through callbacks.
  * @param {object} options Live DOM and caller policy.
  * @param {HTMLElement} options.stack Rail element.
+ * @param {HTMLElement} [options.topAnchor] Control the rail must remain below.
  * @param {Iterable<HTMLElement>} options.obstacles Caller-selected obstacle nodes.
  * @param {Window} options.windowRef Viewport and style reader.
  * @param {{visible: boolean, variant: string}} options.hud Current HUD presentation.
@@ -24,6 +25,7 @@ import { measurePanelNaturalHeight } from './panelMeasurement.js';
  */
 export function layoutLeftPanelRail({
   stack,
+  topAnchor,
   obstacles,
   windowRef,
   hud,
@@ -73,8 +75,29 @@ export function layoutLeftPanelRail({
   let safeBottom = viewportHeight - baseBottomInset;
   const bottomObstacles = [];
 
+  const hasExpandedPanel = panels.some(
+    (panel) => !panel.classList.contains('collapsed'),
+  );
+  if (topAnchor && !hasExpandedPanel) {
+    const anchorStyle = getComputedStyle(topAnchor);
+    const anchorRect = topAnchor.getBoundingClientRect();
+    const anchorIsVisible =
+      anchorStyle.display !== 'none' &&
+      anchorStyle.visibility !== 'hidden' &&
+      Number(anchorStyle.opacity) !== 0 &&
+      anchorRect.width > 0 &&
+      anchorRect.height > 0;
+    const anchorOverlapsHorizontally =
+      anchorRect.right > stackRect.left && anchorRect.left < stackRect.right;
+    if (anchorIsVisible && anchorOverlapsHorizontally) {
+      const anchorBottom = anchorRect.bottom + safeGap;
+      obstacleSafeTop = Math.max(obstacleSafeTop, anchorBottom);
+      safeTop = Math.max(safeTop, anchorBottom);
+    }
+  }
+
   for (const obstacle of obstacles) {
-    if (stack.contains(obstacle)) continue;
+    if (obstacle === topAnchor || stack.contains(obstacle)) continue;
     let hiddenByAncestor = false;
     for (let element = obstacle; element; element = element.parentElement) {
       const style = getComputedStyle(element);

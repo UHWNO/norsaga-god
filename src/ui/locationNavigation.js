@@ -2,6 +2,14 @@ import * as Cesium from 'cesium';
 import { createStateChannel } from '../app/stateChannel.js';
 import { LocationControls } from './location.js';
 
+const LOCATION_PRESET_IDS = [
+  'skagen',
+  'gotland',
+  'tromso',
+  'jan-mayen',
+  'iceland',
+];
+
 /** Own destination selection, lookup, orbit and world-jump lifetime. */
 export class LocationNavigation {
   constructor({
@@ -101,6 +109,9 @@ export class LocationNavigation {
 
   _initLocationBar() {
     const { CITY_POIS, searchAndFlyTo, LocationSearch } = this.services;
+    const presetCities = Object.fromEntries(
+      LOCATION_PRESET_IDS.map((id) => [id, CITY_POIS[id]]),
+    );
     this._locationControls?.destroy();
     this._locationLookupUnsubscribe?.();
     this._locationLookup?.destroy();
@@ -133,7 +144,7 @@ export class LocationNavigation {
         statusCity: this._locationMiniCity,
         statusPoi: this._locationMiniPoi,
       },
-      cities: CITY_POIS,
+      cities: presetCities,
       getExpandedCity: () => this._expandedCityId,
       onCity: (id) => this._onCityPillClick(id),
       onPoi: (id, index) => this._onPoiClick(id, index),

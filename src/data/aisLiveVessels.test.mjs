@@ -1454,6 +1454,24 @@ test('buildSelectedVesselCard: destination line + STALE marker; placeholders for
   ]);
 });
 
+test('buildSelectedVesselCard: Global Fishing Watch enrichment is clearly modelled', () => {
+  const card = buildSelectedVesselCard(makeRecord({
+    gfw: {
+      status: 'available',
+      vessel: { flag: 'NOR', gearType: 'TRAWLERS' },
+      events: [
+        { type: 'FISHING' },
+        { type: 'FISHING' },
+        { type: 'AIS_GAP' },
+      ],
+    },
+  }));
+  assert.deepEqual(card.details.slice(-2), [
+    'GFW · NOR · TRAWLERS',
+    'GFW · MODELLED 2 FISHING · 1 AIS GAP',
+  ]);
+});
+
 // --- Vertical datum (h = N + lift) ------------------------------------------
 
 test('vesselDatumHeightM falls back to lift alone while the geoid grid is cold', () => {
