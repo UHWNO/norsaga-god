@@ -1,5 +1,25 @@
 # God's Eye View Current State
 
+## NOAA Aurora Forecast — October 6, 2026
+
+Data Layers > Space Weather contains Aurora Forecast, off by default and enabled
+independently. NorSaga also exposes its explicit layer toggle; mission presets
+do not automatically enable it. Aurora works with AIS and weather switched off.
+Its compact row shows NOAA SWPC / OVATION, observation and forecast UTC times, the
+current or explicitly upcoming predicted planetary Kp interval, bounded active G-level notices and separate
+stale/unavailable source status. The source is `/api/aurora`; no browser request
+goes directly to NOAA. See DATA_SOURCES.md for data semantics and cache limits.
+
+The renderer updates a single translucent raster shell in place, supports both
+hemispheres and releases its primitive, material and canvas on disable/destroy.
+It adds no animation, continuous-render hold or private polling timer; the existing
+manager refreshes every two minutes. Hidden tabs abort/skip acquisition and refresh
+on return. Focused tests live in `src/data/auroraProxy.test.mjs` and
+`src/layers/aurora/aurora.test.mjs`; local standalone/resource evidence is generated
+by `node scripts/qa-aurora.mjs --allow-map-fallback` against the running dev server.
+`--combined` optionally checks AIS and weather together; photoreal verification
+remains separate and requires working existing map credentials.
+
 ## Cyber HUD — September 23, 2026
 
 Display > HUD > Layout includes Cyber, also available through the HUD voice

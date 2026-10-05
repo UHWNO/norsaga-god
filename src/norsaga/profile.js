@@ -20,6 +20,11 @@ export const REGIONS = Object.freeze(
 
 export const MARITIME_LAYERS = Object.freeze([
   Object.freeze({
+    id: 'aurora',
+    label: 'Aurora Forecast',
+    note: 'NOAA SWPC environmental context',
+  }),
+  Object.freeze({
     id: 'ais-live-vessels',
     label: 'Vessels / AIS',
     note: 'Provider key required',

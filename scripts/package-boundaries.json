@@ -1954,7 +1954,10 @@
       "src/layers/recentImagery/thumbnails.js",
       "src/maps/imageryHost.js",
       "src/ui/recentImagery.js",
-      "src/ui/imageryBoxTool.js"
+      "src/ui/imageryBoxTool.js",
+      "src/layers/aurora/index.js",
+      "src/layers/aurora/rendering.js",
+      "src/layers/aurora/source.js"
     ],
     "external": [
       "hls.js",
@@ -2413,7 +2416,10 @@
       "src/layers/recentImagery/catalog.js",
       "src/layers/recentImagery/rendering.js",
       "src/layers/recentImagery/thumbnails.js",
-      "src/maps/imageryHost.js"
+      "src/maps/imageryHost.js",
+      "src/layers/aurora/index.js",
+      "src/layers/aurora/rendering.js",
+      "src/layers/aurora/source.js"
     ],
     "external": [
       "hls.js",

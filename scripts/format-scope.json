@@ -841,5 +841,9 @@
   "src/ui/imageryBoxTool.test.mjs",
   "src/ui/recentImagery.test.mjs",
   "src/layers/recentImagery/testDoubles.mjs",
-  "scripts/qa-recent-imagery.mjs"
+  "scripts/qa-recent-imagery.mjs",
+  "src/data/auroraProxy.test.mjs",
+  "src/layers/aurora/aurora.test.mjs",
+  "scripts/qa-aurora.mjs",
+  "scripts/qa-norsaga-access.mjs"
 ]

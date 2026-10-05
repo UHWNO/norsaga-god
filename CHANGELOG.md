@@ -1,5 +1,10 @@
 # Changelog
 
+- Add the keyless NOAA SWPC Aurora Forecast layer, with shared validated server
+  data, bounded stale fallback, compact Kp/geomagnetic context, both hemispheres
+  and static translucent rendering. Aurora is selected independently through
+  Data Layers or the NorSaga layer toggle; mission presets do not enable it automatically.
+
 - Region scopes in voice analyst queries ("in the Gulf of Mexico", "over
   the Alps") work again in the dev server: the bundled Natural Earth and
   neighborhood packs are fetched as JSON in the browser

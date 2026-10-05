@@ -345,3 +345,51 @@ NOAA density imagery with the raw GLM product.
 ## In-app attribution
 
 The required Google Maps / Cesium credit renders on the on-globe credit line (`#cesium-credits`, bottom-left) and must stay visible — including in clean-view and recording modes (the whole line, logo + "Google Maps" + the "Data attribution" link, stays on screen; only the GEV panels/HUD fade). The layer-specific credits (adsb.lol, adsbdb, TeleGeography, OSM datacenters/dams/roads, NASA FIRMS, CelesTrak, USGS, City of Austin, Fintraffic, GBFS, Radio Browser, OpenSky, AISStream, BarentsWatch) are registered into the expandable **"Data attribution"** popover on that credit line via `viewer.creditDisplay.addStaticCredit(new Cesium.Credit(html, /* showOnScreen */ false))` — see `src/data/dataCredits.js`. When you add a new data source, add its license and attribution to this file **and** append an entry to `DATA_CREDITS` in `src/data/dataCredits.js` so it surfaces in the app.
+
+
+## NOAA SWPC Aurora Forecast (OVATION)
+
+The keyless Space Weather layer fetches NOAA public environmental data at runtime,
+through the local server provider only:
+
+- OVATION: <https://services.swpc.noaa.gov/json/ovation_aurora_latest.json>
+- Planetary Kp forecast: <https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json>
+- Alerts: <https://services.swpc.noaa.gov/products/alerts.json>
+
+Attribution: **NOAA SWPC · OVATION**. NOAA public environmental data; no NOAA
+endorsement is implied. Existing third-party credits remain in the Cesium data
+attribution display. No AuroraWatch UK or other restricted feed is used.
+
+[NOAA's current product documentation](https://www.swpc.noaa.gov/products/aurora-30-minute-forecast)
+describes a short-term location/intensity forecast, normally 30–90 minutes from
+L1 solar-wind travel time; Kp-driven fallback can have no lead time. Its empirical
+intensity-to-viewing-probability relationship is not a calibrated local chance
+accounting for daylight, cloud cover, obstructions or viewing conditions.
+The JSON supplies integer `[Longitude, Latitude, Aurora]` samples on a 1° grid,
+with a 0–100 auroral value, explicit observation/forecast timestamps, and both
+hemispheres. The UI conservatively labels the unchanged values **OVATION relative
+intensity (0–100)**, not physical energy flux, auroral altitude, or a local
+percentage chance. NOAA-hosted supporting research describes the empirical
+conversion and its limits: [Case et al., 2016](https://repository.library.noaa.gov/view/noaa/15196/noaa_15196_DS1.pdf).
+
+Kp is the dimensionless planetary geomagnetic index (0–9), selected only from
+NOAA's `predicted` three-hour interval covering the current time, or the next
+interval within three hours labelled **upcoming predicted**. Observed and
+estimated rows are preserved server-side but never relabelled as forecasts.
+G1–G5 notices come from explicit NOAA geomagnetic scales and validity intervals;
+expired, cancelled, unrelated and unbounded notices are not shown as active.
+Missing supplemental data is reported independently of OVATION availability.
+
+The server shares a two-minute OVATION cache (five minutes for supplements),
+retries failures no more than every 30 seconds, and can return an explicitly
+stale last-good grid for at most 60 minutes from both observation and acquisition.
+Supplemental cache fallback is limited to 30 minutes; intervals are re-evaluated
+on every response. Observations older than 15 minutes, or forecasts more than
+five minutes behind current time, are marked delayed/stale. Expired data is
+unavailable, with no fabricated values.
+
+The static translucent globe shell sits 80 km above the ellipsoid for visibility
+over coarse photorealistic tiles and weather; this is a display offset, not
+forecast auroral altitude. Values below 5 are transparent. No new credentials,
+framework or mobile-specific behavior is required. This is environmental context,
+not a navigation, voyage-planning or safety product.

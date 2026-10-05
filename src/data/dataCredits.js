@@ -248,6 +248,10 @@ export const DATA_CREDITS = [
       'Mapterhorn (CC BY 4.0) / EGM2008 (NGA)',
   },
   {
+    key: 'aurora-noaa',
+    html: 'Aurora Forecast: <a href="https://www.swpc.noaa.gov/products/aurora-30-minute-forecast" target="_blank" rel="noopener">NOAA SWPC · OVATION</a> · NOAA public environmental data. No NOAA endorsement.',
+  },
+  {
     key: 'weather-noaa',
     html: 'Observed weather: <a href="https://nowcoast.noaa.gov/" target="_blank" rel="noopener">NOAA nowCOAST</a> · NWS/OAR MRMS radar; NESDIS GOES and global satellite partners. <a href="https://oceanservice.noaa.gov/disclaimer.html" target="_blank" rel="noopener">Source disclaimer</a>.',
   },

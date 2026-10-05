@@ -92,6 +92,7 @@
  *   --keep-open        Leave the browser open after the run (debugging)
  */
 
+import { unlockNorSaga, redactQaUrl } from './qa-norsaga-access.mjs';
 import fs from 'node:fs';
 import puppeteer from 'puppeteer';
 import { classifyAircraft, CLASS_SCALE_3D, CLASS_MODEL_REAL } from '../src/data/aircraftClass.js';
@@ -298,7 +299,7 @@ async function main() {
     });
 
     page.on('console', (msg) => {
-      const text = msg.text();
+      const text = redactQaUrl(msg.text());
       const type = msg.type();
       if (text.includes('[Detection] Initialized')) sawLog.detection = true;
       if (text.includes('[TrackedReadout] Initialized')) sawLog.readout = true;
@@ -308,16 +309,16 @@ async function main() {
         // environmental noise, not a tracking-invariant regression. Real JS
         // errors (TypeError, unhandled rejection, etc.) are still captured.
         const isBenign404 = /Failed to load resource.*404/i.test(text);
-        const sourceUrl = msg.location()?.url || '';
+        const sourceUrl = redactQaUrl(msg.location()?.url || '');
         if (!isBenign404) consoleErrors.push(sourceUrl ? `${text} [${sourceUrl}]` : text);
       }
       // Surface a trace for debugging, but keep it quiet.
       if (process.env.GEV_TEST_VERBOSE) console.log(`    [page:${type}] ${text}`);
     });
-    page.on('pageerror', (err) => consoleErrors.push(`pageerror: ${err.message}`));
+    page.on('pageerror', (err) => consoleErrors.push(`pageerror: ${redactQaUrl(err.message)}`));
     page.on('response', (response) => {
       if (response.status() >= 500) {
-        failedResponses.push(`HTTP ${response.status()} ${response.url()}`);
+        failedResponses.push(`HTTP ${response.status()} ${redactQaUrl(response.url())}`);
       }
     });
 
@@ -473,6 +474,7 @@ async function main() {
 
     console.log('Loading app...');
     await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await unlockNorSaga(page);
     if (HEADFUL) await page.bringToFront();
 
     // Wait for the app to expose its globals (Cesium viewer + dataManager).
@@ -686,6 +688,7 @@ async function main() {
     );
 
     await page.reload({ waitUntil: 'domcontentloaded', timeout: 60000 });
+    await unlockNorSaga(page);
     await page.waitForFunction(
       () => window.__godsEyeView?.dataManager?.layers?.size >= 12,
       { timeout: 60000, polling: 200 },
@@ -727,6 +730,7 @@ async function main() {
     // preference, then open the captured link as a clean recipient would.
     await evalPage(() => localStorage.removeItem('gev:layer-state:v2'));
     await page.goto(trackedShareUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await unlockNorSaga(page);
     await page.waitForFunction(
       () => window.__godsEyeView?.dataManager?.layers?.size >= 12,
       { timeout: 60000, polling: 200 },
@@ -769,6 +773,7 @@ async function main() {
     // Leave the document first so this is a real cold boot of the shared link.
     await page.goto('about:blank', { waitUntil: 'domcontentloaded', timeout: 30000 });
     await page.goto(trackedShareUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await unlockNorSaga(page);
     await page.waitForFunction(
       () => window.__godsEyeView?.dataManager?.layers?.size >= 12,
       { timeout: 60000, polling: 200 },

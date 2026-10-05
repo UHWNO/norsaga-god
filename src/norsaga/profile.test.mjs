@@ -102,3 +102,11 @@ test('invalid wait budget is rejected', async () => {
     navigate: () => true, setEnabled: () => true, timeoutMs: Infinity,
   }), RangeError);
 });
+
+test('Aurora is available independently and no mission enables it automatically', async () => {
+  assert.ok(MARITIME_LAYERS.some((layer) => layer.id === 'aurora'));
+  for (const mission of MISSIONS) assert.ok(!mission.layers.includes('aurora'));
+  const calls = [];
+  await runMission('arctic', { navigate: () => true, setEnabled: (id) => { calls.push(id); return true; } });
+  assert.deepEqual(calls, ['ais-live-vessels', 'wind', 'weather-satellite']);
+});
