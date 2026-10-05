@@ -1957,7 +1957,9 @@
       "src/ui/imageryBoxTool.js",
       "src/layers/aurora/index.js",
       "src/layers/aurora/rendering.js",
-      "src/layers/aurora/source.js"
+      "src/layers/aurora/source.js",
+      "src/layers/aurora/inspection.js",
+      "src/layers/aurora/animationSource.js"
     ],
     "external": [
       "hls.js",
@@ -2419,7 +2421,9 @@
       "src/maps/imageryHost.js",
       "src/layers/aurora/index.js",
       "src/layers/aurora/rendering.js",
-      "src/layers/aurora/source.js"
+      "src/layers/aurora/source.js",
+      "src/layers/aurora/inspection.js",
+      "src/layers/aurora/animationSource.js"
     ],
     "external": [
       "hls.js",

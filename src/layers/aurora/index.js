@@ -1,5 +1,6 @@
 import * as Cesium from 'cesium';
 import { createAuroraRendering } from './rendering.js';
+import { createAuroraGrid, inspectAuroraAtCenter } from './inspection.js';
 
 const utc = (value) =>
   value ? `${value.slice(0, 16).replace('T', ' ')} UTC` : 'Unavailable';
@@ -25,7 +26,14 @@ export function createAuroraLayer({
     destroyed = false,
     loading = false,
     error = null;
-  const notify = () => listener?.();
+  let grid = null,
+    reading = null,
+    opacity = 0.9;
+  const readoutListeners = new Set();
+  const notify = () => {
+    listener?.();
+    for (const callback of readoutListeners) callback();
+  };
   const expired = () =>
     snapshot &&
     !snapshot.unavailable &&
@@ -39,6 +47,22 @@ export function createAuroraLayer({
     if (documentRef?.hidden) request?.abort();
     else if (enabled && !destroyed) void layer.update(viewer);
   };
+  function supplements() {
+    const kp = snapshot?.kp,
+      geo = snapshot?.geomagnetic;
+    const currentKp =
+      kp?.current && Date.parse(kp.current.validUntil) > now()
+        ? kp.current
+        : null;
+    const alert =
+      geo?.active && Date.parse(geo.active.validUntil) > now()
+        ? geo.active
+        : null;
+    return {
+      kpText: `${currentKp ? `${currentKp.value.toFixed(2)} ${Date.parse(currentKp.time) > now() ? 'upcoming predicted' : 'predicted'} · ${utc(currentKp.time)}${kp.stale ? ' · stale' : ''}` : 'Unavailable'}`,
+      geomagneticText: `${geo?.unavailable || !geo ? 'Unavailable' : alert ? `${alert.scale} ${alert.kind} · until ${utc(alert.validUntil)}${geo.stale ? ' · stale' : ''}` : `No active G-level notice${geo.stale ? ' · stale' : ''}`}`,
+    };
+  }
   const layer = {
     id: 'aurora',
     name: 'Aurora Forecast',
@@ -48,6 +72,7 @@ export function createAuroraLayer({
     init(nextViewer) {
       viewer = nextViewer;
       rendering = createRendering({ viewer, cesium });
+      rendering.setOpacity?.(opacity);
     },
     enable() {
       if (destroyed || enabled) return;
@@ -62,6 +87,8 @@ export function createAuroraLayer({
       loading = false;
       error = null;
       snapshot = null;
+      grid = null;
+      reading = null;
       rendering?.clear();
       notify();
     },
@@ -82,6 +109,9 @@ export function createAuroraLayer({
         if (!enabled || controller.signal.aborted || request !== controller)
           return false;
         snapshot = next;
+        grid =
+          next.unavailable || expired() ? null : createAuroraGrid(next.cells);
+        reading = null;
         if (next.unavailable || expired()) {
           rendering.clear();
           error = next.reason || 'Aurora forecast expired';
@@ -98,6 +128,8 @@ export function createAuroraLayer({
         // Only the server may offer a bounded last-good snapshot.
         rendering?.clear();
         snapshot = null;
+        grid = null;
+        reading = null;
         error = cause?.message || 'Aurora forecast unavailable';
         return true;
       } finally {
@@ -109,17 +141,73 @@ export function createAuroraLayer({
         }
       }
     },
+    getParams() {
+      return { opacity };
+    },
+    setParams(params = {}) {
+      if (
+        Number.isFinite(params.opacity) &&
+        params.opacity >= 0 &&
+        params.opacity <= 1
+      ) {
+        opacity = params.opacity;
+        rendering?.setOpacity?.(opacity);
+      }
+      if (params.inspect === true && enabled) {
+        reading = inspectAuroraAtCenter(
+          expired() ? null : grid,
+          viewer,
+          cesium,
+        );
+        reading.sourceTime = snapshot?.sourceTime ?? null;
+        reading.forecastTime = snapshot?.forecastTime ?? null;
+      }
+      notify();
+    },
+    subscribeReadout(callback) {
+      readoutListeners.add(callback);
+      return () => readoutListeners.delete(callback);
+    },
+    getReadout() {
+      const { kpText, geomagneticText } = supplements();
+      return {
+        enabled,
+        status: loading
+          ? snapshot
+            ? 'Refreshing'
+            : 'Loading'
+          : error ||
+            (expired() || snapshot?.unavailable || !snapshot
+              ? 'Unavailable'
+              : stale()
+                ? 'Stale / delayed'
+                : 'Latest forecast'),
+        provider: 'NOAA SWPC · OVATION',
+        forecastTime: snapshot?.forecastTime ?? null,
+        sourceTime: snapshot?.sourceTime ?? null,
+        leadMinutes:
+          snapshot && !snapshot.unavailable
+            ? Math.round(
+                (Date.parse(snapshot.forecastTime) -
+                  Date.parse(snapshot.sourceTime)) /
+                  60_000,
+              )
+            : null,
+        kp: kpText,
+        geomagnetic: geomagneticText,
+        reading,
+        opacity,
+        available: !!grid && !expired(),
+      };
+    },
+    getAnimationIndex(options) {
+      return feed.getAnimationIndex(options);
+    },
+    getAnimationFrame(url, options) {
+      return feed.getAnimationFrame(url, options);
+    },
     getRowControls() {
-      const kp = snapshot?.kp,
-        geo = snapshot?.geomagnetic;
-      const currentKp =
-        kp?.current && Date.parse(kp.current.validUntil) > now()
-          ? kp.current
-          : null;
-      const alert =
-        geo?.active && Date.parse(geo.active.validUntil) > now()
-          ? geo.active
-          : null;
+      const { kpText, geomagneticText } = supplements();
       const status =
         error ||
         (loading
@@ -132,15 +220,36 @@ export function createAuroraLayer({
                 ? 'Unavailable'
                 : 'Latest forecast');
       return {
-        chips: [],
+        chips: [
+          {
+            id: 'inspect',
+            label: 'Read map center',
+            params: { inspect: true },
+            disabled: !grid || expired(),
+            title: 'Read the nearest NOAA 1° grid cell at the map center',
+          },
+          ...[
+            [0.45, 'Subtle'],
+            [0.9, 'Clear'],
+            [1, 'Strong'],
+          ].map(([value, label]) => ({
+            id: `opacity-${label}`,
+            label,
+            active: opacity === value,
+            params: { opacity: value },
+            title: 'Visual opacity; NOAA values stay unchanged',
+          })),
+        ],
         legend:
           snapshot && !snapshot.unavailable && !expired()
             ? [
-                { label: 'OVATION 5–50', color: '#72c77d' },
-                { label: '50–100', color: '#d7cd5a' },
+                { label: '5–20', color: '#28d714' },
+                { label: '20–50', color: '#1eff00' },
+                { label: '50–75', color: '#ebff00' },
+                { label: '75–100', color: '#ff9600' },
               ]
             : [],
-        info: `NOAA SWPC · OVATION · ${status}\nForecast: ${utc(snapshot?.forecastTime)} · Source: ${utc(snapshot?.sourceTime)}\nKp: ${currentKp ? `${currentKp.value.toFixed(2)} ${Date.parse(currentKp.time) > now() ? 'upcoming predicted' : 'predicted'} · ${utc(currentKp.time)}${kp.stale ? ' · stale' : ''}` : 'Unavailable'}\nGeomagnetic: ${geo?.unavailable || !geo ? 'Unavailable' : alert ? `${alert.scale} ${alert.kind} · until ${utc(alert.validUntil)}${geo.stale ? ' · stale' : ''}` : `No active G-level notice${geo.stale ? ' · stale' : ''}`}`,
+        info: `NOAA SWPC · OVATION · ${status}\nForecast: ${utc(snapshot?.forecastTime)} · Source: ${utc(snapshot?.sourceTime)}\nKp: ${kpText}\nGeomagnetic: ${geomagneticText}`,
         infoTitle: DESCRIPTION,
       };
     },
@@ -178,6 +287,7 @@ export function createAuroraLayer({
         stale: stale(),
         unavailable: !!layer.getStats().unavailable,
         timerActive: false,
+        inspection: reading,
       };
     },
     destroy() {
@@ -188,6 +298,7 @@ export function createAuroraLayer({
       rendering = null;
       viewer = null;
       listener = null;
+      readoutListeners.clear();
     },
   };
   return layer;

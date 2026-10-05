@@ -258,7 +258,8 @@ test('raster keeps hemispheres and clips polar cells, wraps seam and skips zero 
       [0, 1, 4],
     ]).pixels.every((value) => value === 0),
   );
-  assert.ok(auroraColor(100)[3] < 90);
+  assert.ok(auroraColor(100)[3] < 220);
+  assert.ok(auroraColor(20)[3] >= 150);
 });
 function rendererFixture() {
   class Resource {
@@ -359,5 +360,31 @@ test('a future Kp interval is explicitly labelled upcoming', async () => {
   f.layer.enable();
   await f.layer.update();
   assert.match(f.layer.getRowControls().info, /upcoming predicted/);
+  f.layer.destroy();
+});
+
+test('workspace readout subscribers coexist with the data row and report source-preserving contrast changes', async () => {
+  const f = layerFixture();
+  let row = 0,
+    workspace = 0;
+  f.layer.setRowControlsListener(() => row++);
+  const unsubscribe = f.layer.subscribeReadout(() => workspace++);
+  f.layer.enable();
+  await f.layer.update();
+  const value = f.layer.getReadout();
+  assert.equal(value.available, true);
+  assert.equal(value.leadMinutes, 45);
+  assert.match(value.kp, /4.33 predicted/);
+  assert.equal(value.reading, null);
+  f.layer.setParams({ opacity: 0.45 });
+  assert.equal(f.layer.getReadout().opacity, 0.45);
+  assert.equal(f.frames[0].cells[0][2], 60);
+  assert.ok(row > 0 && workspace > 0);
+  unsubscribe();
+  const before = workspace;
+  f.layer.disable();
+  assert.equal(workspace, before);
+  assert.equal(f.layer.getReadout().available, false);
+  assert.equal(f.layer.getReadout().reading, null);
   f.layer.destroy();
 });

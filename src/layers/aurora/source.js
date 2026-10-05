@@ -1,3 +1,4 @@
+import { createAuroraAnimationSource } from './animationSource.js';
 import { readResponseJsonCapped } from '../../sources/httpBody.js';
 
 export const AURORA_RESPONSE_LIMIT = 2 * 1024 * 1024;
@@ -112,6 +113,7 @@ export function createAuroraSource({
   timeoutMs = 15_000,
 } = {}) {
   return {
+    ...createAuroraAnimationSource({ fetchImpl, timeoutMs }),
     async getSnapshot({ signal } = {}) {
       signal?.throwIfAborted();
       const controller = new AbortController();

@@ -269,6 +269,102 @@ try {
     combined ? 'norwegian-sea-combination' : 'norwegian-sea-aurora',
     true,
   );
+  assert.equal(
+    await page.$eval(
+      '.norsaga-aurora-readout',
+      (el) => !el.hidden && !!el.offsetHeight,
+    ),
+    true,
+    'Forecast readout stays visible outside Data Layers',
+  );
+  await page.locator('[data-aurora-action="inspect"]').click();
+  const reading = await page.$eval(
+    '.norsaga-aurora-reading',
+    (el) => el.textContent,
+  );
+  assert.match(reading, /\d+ \/ 100.*nearest 1° cell/);
+  report.locationReading = reading;
+  await capture('aurora-visible-readout', true);
+  if (!fixtures) {
+    await page.locator('[data-aurora-action="history"]').click();
+    await page.waitForFunction(
+      () => {
+        const image = document.querySelector('.norsaga-aurora-dialog img');
+        return (
+          image && !image.hidden && image.complete && image.naturalWidth > 0
+        );
+      },
+      { timeout: 60_000 },
+    );
+    console.log('Aurora QA: NOAA north loaded');
+    const latestTime = await page.$eval(
+      '.norsaga-aurora-frame-time',
+      (el) => el.textContent,
+    );
+    await page.screenshot({ path: path.join(out, 'noaa-north-latest.png') });
+    await page.locator('[data-aurora-action="play"]').click();
+    await page.waitForFunction(
+      (previous) =>
+        document.querySelector('.norsaga-aurora-frame-time').textContent !==
+        previous,
+      { timeout: 30_000 },
+      latestTime,
+    );
+    await sleep(2500);
+    await page.locator('[data-aurora-action="play"]').click();
+    console.log('Aurora QA: NOAA playback paused');
+    const paused = await page.$eval(
+      '.norsaga-aurora-frame-time',
+      (el) => el.textContent,
+    );
+    await sleep(1200);
+    assert.equal(
+      await page.$eval('.norsaga-aurora-frame-time', (el) => el.textContent),
+      paused,
+    );
+    await page.screenshot({ path: path.join(out, 'noaa-north-playback.png') });
+    await page.select('[aria-label="Aurora history duration"]', '1440');
+    await page.waitForFunction(
+      () =>
+        Number(
+          document.querySelector('[aria-label="NOAA image history timeline"]')
+            .max,
+        ) > 200,
+      { timeout: 30_000 },
+    );
+    await page.select('[aria-label="Aurora hemisphere"]', 'south');
+    await page.waitForFunction(
+      () => {
+        const image = document.querySelector('.norsaga-aurora-dialog img');
+        return (
+          !image.hidden &&
+          image.complete &&
+          image.naturalWidth > 0 &&
+          image.alt.includes('south')
+        );
+      },
+      { timeout: 60_000 },
+    );
+    await page.screenshot({ path: path.join(out, 'noaa-south-latest.png') });
+    console.log('Aurora QA: NOAA south loaded');
+    report.playback = {
+      verified: true,
+      latestTime,
+      paused,
+      northAndSouth: true,
+      full24Hours: true,
+    };
+    await page
+      .locator('.norsaga-aurora-dialog .norsaga-dialog-header button')
+      .click();
+    await page.waitForFunction(
+      () =>
+        !document
+          .querySelector('.norsaga-aurora-dialog img')
+          .hasAttribute('src'),
+      { timeout: 2000 },
+    );
+  }
   await page.click('[data-collapse-target="data-panel"]');
   await page.evaluate(() =>
     document

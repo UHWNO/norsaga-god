@@ -1,3 +1,4 @@
+import { initAuroraExperience } from './auroraExperience.js';
 import { REGIONS, MISSIONS, MARITIME_LAYERS, runMission } from './profile.js';
 import { navigateRegion } from './camera.js';
 import {
@@ -60,10 +61,16 @@ export function initNorSagaExperience({
   for (const region of REGIONS)
     select.append(new Option(region.label, region.id));
   toolbar.append(selectLabel, select);
+  const auroraExperience = initAuroraExperience({
+    dataManager,
+    parent: toolbar,
+    documentRef: doc,
+    notifyLayout: notifyWorkspaceLayout,
+  });
   const details = make('details', 'norsaga-layers');
   details.append(make('summary', '', 'Maritime layers'));
   const layerList = make('div', 'norsaga-layer-list');
-  for (const layer of MARITIME_LAYERS) {
+  for (const layer of MARITIME_LAYERS.filter((item) => item.id !== 'aurora')) {
     const label = make('label', 'norsaga-layer');
     const input = make('input');
     input.type = 'checkbox';
@@ -106,6 +113,7 @@ export function initNorSagaExperience({
       'Use Data Layers for all sources and their availability. An enabled layer is not proof of live coverage.',
     ),
   );
+  bind(details, 'toggle', notifyWorkspaceLayout);
   details.append(layerList);
   toolbar.append(details);
   const status = make('p', 'norsaga-status');
@@ -342,6 +350,7 @@ export function initNorSagaExperience({
     signal?.removeEventListener('abort', destroy);
     unsubscribe?.();
     for (const remove of removers) remove();
+    auroraExperience.destroy();
     toolbar.remove();
     dialog.remove();
     about.remove();

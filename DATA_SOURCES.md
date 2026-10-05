@@ -393,3 +393,29 @@ over coarse photorealistic tiles and weather; this is a display offset, not
 forecast auroral altitude. Values below 5 are transparent. No new credentials,
 framework or mobile-specific behavior is required. This is environmental context,
 not a navigation, voyage-planning or safety product.
+
+
+### Official NOAA image history
+
+The on-demand NOAA loop uses the official 24-hour manifests:
+
+- North: <https://services.swpc.noaa.gov/products/animations/ovation_north_24h.json>
+- South: <https://services.swpc.noaa.gov/products/animations/ovation_south_24h.json>
+
+Their timestamped JPEGs are the images published in the [Northern](https://services.swpc.noaa.gov/images/animations/ovation/north/) and [Southern](https://services.swpc.noaa.gov/images/animations/ovation/south/) directories. The static `latest.jpg` images are references; playback uses explicit frame times so a changing latest image cannot replace an earlier frame.
+
+`GET /api/aurora-animation/{north|south}` returns a validated same-origin frame
+list; `/frame/{canonical UTC time}` serves only JPEGs registered in that list.
+All browser requests stay on the application's origin. Manifest TTL is two
+minutes, with an explicitly labelled cached fallback capped at 15 minutes and
+30-second retry cooldown. There are at most 600 records per hemisphere, 128 KiB
+per manifest, 2 MiB per JPEG, ten concurrent upstream operations and an LRU image
+cache capped at both 32 frames and 16 MiB. The player loads one selected frame at
+a time and releases blob URLs on replacement, close and layer disable.
+
+The default window is the latest 30 minutes of image history; the full 24 hours
+are optional. These are historical model images, each carrying NOAA's embedded
+forecast time, lead time, HPI and probability legend. They are not a 30-minute
+future radar prediction. The globe remains the latest machine-readable OVATION
+grid: NOAA's linked JSON endpoint publishes only the latest grid. Image playback
+does not fabricate historical grid values or change the globe's clock.

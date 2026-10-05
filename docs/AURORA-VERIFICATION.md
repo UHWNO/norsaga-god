@@ -8,12 +8,68 @@ subsequent scope adjustment: Aurora is an optional standalone layer for the firs
 release. AIS/weather combinations are optional. No mission automatically enables
 Aurora; select its toggle in Data Layers or the NorSaga layer list.
 
+## Presentation revision — October 6, 2026
+
+The user requested delivery of the tested revision to GitHub on
+`norsaga-maritime-v1`. No merge or Plesk deployment is performed by this agent.
+The NorSaga workspace now features Aurora directly below the region selector,
+with source/forecast UTC times, lead minutes, predicted Kp and geomagnetic
+status outside the collapsed Data Layers panel. The NOAA-style green/yellow/red
+ramp is brighter, contrast is adjustable without changing NOAA values, and
+“Read map center” samples the nearest original 1° cell, distinguishing zero
+from missing data. The workspace scrolls on shorter screens.
+
+“NOAA loop” opens a centred official image viewer with north/south controls,
+play/pause, previous/next, a scrubber, latest-30-minute and full-24-hour windows.
+Frames retain NOAA's embedded forecast time, HPI and probability legend. The
+player labels the image's model timestamp separately. These are real historical
+NOAA JPEGs; the globe retains the latest JSON grid, and no historical or future
+grid sequence is invented. NOAA publishes only the latest machine-readable grid
+at the linked JSON endpoint. Playback never changes Cesium time or holds
+continuous globe rendering.
+
+New modules: `server/providers/auroraAnimation.js`,
+`src/layers/aurora/animationSource.js`, `src/layers/aurora/inspection.js`,
+`src/norsaga/auroraExperience.js`, `src/norsaga/auroraPlayback.js`.
+The provider validates fixed official manifests and exact timestamped JPEG paths,
+shares independently cancellable requests, caps stream sizes, limits concurrent
+upstream operations, and bounds its LRU cache. Image acquisition is lazy and
+same-origin. Replacement, close, disable and destroy release blob URLs; hidden
+pages pause playback. Reduced-motion preference changes pause playback; playback
+starts only after an explicit user action.
+
+Revision verification:
+
+- `npm run doctor`, `npm run format:check`, `npm run check:boundaries` and
+  `git diff --check`: passed.
+- `npm test` on Node 24.21.0: 5,115 passed, zero failed, one existing skip,
+  including both serialized allocation suites.
+- Production Node 26.9.0 focused Aurora/animation/player/profile tests:
+  48 passed, zero failed.
+- `npm run build` on Node 26.9.0: passed; existing large-chunk advisory.
+- `npm run test:track -- --url http://localhost:4174 --offline-imagery`:
+  109 passed, zero failed/skipped on the explicit keyless review server.
+- Enhanced real-NOAA `scripts/qa-aurora.mjs` on the explicit keyless review
+  server, Metal renderer and Esri fallback: passed. Confirms visible readout,
+  a real map-center cell value, changing genuine frame timestamps, pause,
+  north/south JPEGs, 24-hour timeline, blob release on close, six toggle cycles
+  restoring scene/listener counts, no browser-to-NOAA requests, no unhandled or
+  Aurora shader errors, and an idle render governor with no holds.
+
+Revision screenshots are in `qa-shots/aurora/standalone-live/`:
+`arctic-aurora-standalone.png`, `aurora-visible-readout.png`,
+`noaa-north-latest.png`, `noaa-north-playback.png`, `noaa-south-latest.png`.
+The run's `report.json` records timestamps, the inspected original cell and
+resource counters. Photorealistic map credentials remain unavailable; this run
+establishes Esri fallback acceptance, not Google photoreal acceptance.
+
 ## API and data semantics
 
 `GET /api/aurora` is registered through the existing local provider assembly
 for development, preview and the standalone server. Methods other than GET,
 unknown paths and all query parameters are rejected before upstream acquisition.
-Only the three fixed official NOAA endpoints in DATA_SOURCES.md can be fetched.
+For this latest-grid endpoint, only the three fixed official NOAA endpoints in
+DATA_SOURCES.md can be fetched. Image history uses its separate bounded provider.
 
 The internal schema has `schemaVersion: 1`, `provider: "NOAA SWPC"`,
 `product: "OVATION"`, `metric: "relative-intensity"`, `range: [0,100]`,
@@ -68,7 +124,7 @@ No access-gate runtime behavior changes. Package boundaries include the new
 layer's transitive modules. Installed dependency drift was resolved with
 `npm ci`; package.json and package-lock.json are unchanged.
 
-## Automated results
+## Initial-release automated results
 
 - `npm run doctor`: passed.
 - `npm run format:check`: passed (1,100 scoped source files).
@@ -90,7 +146,7 @@ cache/stale/expiry behavior, Kp and active/cancelled geomagnetic notices,
 empty/zero cells, both hemispheres, lifecycle races, hidden tabs, presentation,
 renderer ownership and cleanup.
 
-## Local acceptance and evidence
+## Initial-release local acceptance and evidence
 
 `node scripts/qa-aurora.mjs --url http://localhost:4180 --allow-map-fallback`
 checks the built production app with live NOAA and **Aurora as the only enabled

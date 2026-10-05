@@ -6,16 +6,22 @@ export const AURORA_MIN_VALUE = 5;
 export const AURORA_DISPLAY_HEIGHT = 80_000;
 const TYPE = 'AuroraForecast';
 
-/** Restrained relative-intensity ramp. Near-zero cells are transparent. */
+/** NOAA-style green/yellow/red ramp with enough contrast over satellite imagery. */
 export function auroraColor(value) {
   if (value < AURORA_MIN_VALUE) return [0, 0, 0, 0];
-  const t = value / 100;
-  return [
-    Math.round(65 + 150 * t),
-    Math.round(185 + 20 * t),
-    Math.round(155 - 65 * t),
-    Math.round(255 * (0.1 + 0.24 * t)),
+  const stops = [
+    [5, [40, 215, 20, 90]],
+    [20, [30, 255, 0, 160]],
+    [50, [235, 255, 0, 195]],
+    [75, [255, 150, 0, 205]],
+    [100, [255, 25, 0, 210]],
   ];
+  const upper = stops.findIndex(([at]) => at >= value);
+  if (upper <= 0) return [...stops[0][1]];
+  const [low, a] = stops[upper - 1],
+    [high, b] = stops[upper];
+  const t = (value - low) / (high - low);
+  return a.map((channel, i) => Math.round(channel + t * (b[i] - channel)));
 }
 
 /** Rasterize the one-degree samples with dateline wrapping and polar clipping. */
@@ -54,6 +60,7 @@ export function createAuroraRendering({
     canvas = null,
     destroyed = false;
   let counts = { count: 0, north: 0, south: 0 };
+  let opacity = 0.9;
   const render = () => {
     if (!viewer.isDestroyed?.()) viewer.scene.requestRender?.();
   };
@@ -92,13 +99,13 @@ export function createAuroraRendering({
           cache.addMaterial(TYPE, {
             fabric: {
               type: TYPE,
-              uniforms: { image: C.Material.DefaultImageId },
+              uniforms: { image: C.Material.DefaultImageId, opacity: 0.9 },
               source: `czm_material czm_getMaterial(czm_materialInput materialInput) {
               czm_material result = czm_getDefaultMaterial(materialInput);
               vec4 color = texture(image, materialInput.st);
-              result.diffuse = color.rgb;
+              result.diffuse = vec3(0.0);
               result.emission = color.rgb;
-              result.alpha = color.a * step(1.5, float(imageDimensions.x));
+              result.alpha = opacity * color.a * step(1.5, float(imageDimensions.x));
               return result;
             }`,
             },
@@ -132,6 +139,7 @@ export function createAuroraRendering({
       // A new identity triggers Cesium's upload and releases the old texture.
       canvas = nextCanvas;
       material.uniforms.image = canvas;
+      material.uniforms.opacity = opacity;
       counts = {
         count: raster.count,
         north: raster.north,
@@ -141,12 +149,18 @@ export function createAuroraRendering({
       return true;
     },
     clear,
+    setOpacity(value) {
+      opacity = value;
+      if (material) material.uniforms.opacity = opacity;
+      render();
+    },
     getDiagnostics() {
       return {
         ...counts,
         primitiveCount: primitive ? 1 : 0,
         canvasBytes: canvas ? WIDTH * HEIGHT * 4 : 0,
         displayHeight: AURORA_DISPLAY_HEIGHT,
+        opacity,
         timerActive: false,
       };
     },

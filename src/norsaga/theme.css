@@ -269,3 +269,36 @@
 @media (prefers-reduced-motion: reduce) {
   .norsaga-operations *, .norsaga-dialog * { transition: none !important; animation: none !important; }
 }
+
+/* Aurora is a standalone, visible workspace layer. Its history opens on demand. */
+.norsaga-aurora { border-block: 1px solid #284867; margin: 12px 0; padding: 4px 0 10px; }
+.norsaga-aurora-readout { font-size: 11px; line-height: 1.5; color: #bfd0df; }
+.norsaga-aurora-readout[hidden], .norsaga-aurora-dialog [hidden] { display: none; }
+.norsaga-aurora-readout p { margin: 5px 0; overflow-wrap: anywhere; }
+.norsaga-aurora-status { color: #82ff86; font-weight: 700; }
+.norsaga-aurora-ramp { height: 9px; border-radius: 4px; margin: 5px 0 2px; background: linear-gradient(90deg, #28d714, #1eff00 20%, #ebff00 50%, #ff9600 75%, #ff1900); }
+.norsaga-aurora-scale { display: block; word-spacing: 12px; font-size: 10px; }
+.norsaga-aurora-actions { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+.norsaga-aurora-actions button, .norsaga-aurora-actions select { font-size: 11px; padding: 6px; background: #172f4b; border: 1px solid #416582; border-radius: 5px; color: #e4f4ff; cursor: pointer; }
+.norsaga-aurora-reading { color: #efffed; }
+.norsaga-aurora-dialog { width: min(880px, 94vw); max-height: 94dvh; box-sizing: border-box; padding: 18px; border: 1px solid #416582; border-radius: 12px; background: #0a1728; color: #e4f4ff; overflow: auto; }
+.norsaga-aurora-dialog::backdrop { background: #000b; }
+.norsaga-aurora-dialog h2 { font-size: 20px; margin: 0; }
+.norsaga-aurora-dialog .norsaga-fineprint { margin: 7px 0 12px; }
+.norsaga-aurora-image-area { background: #000; min-height: 120px; text-align: center; position: relative; }
+.norsaga-aurora-image-area img { display: block; max-width: 100%; max-height: 65dvh; margin: auto; }
+.norsaga-aurora-image-area p { position: absolute; bottom: 8px; left: 10px; right: 10px; padding: 6px; background: #071322e8; font-size: 12px; }
+.norsaga-aurora-player-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 10px 0; }
+.norsaga-aurora-player-controls input { flex: 1; min-width: 120px; accent-color: #69ef58; }
+.norsaga-aurora-player-controls button, .norsaga-aurora-player-controls select, .norsaga-aurora-dialog header button { padding: 7px; color: #e4f4ff; background: #172f4b; border: 1px solid #416582; border-radius: 5px; }
+.norsaga-aurora-frame-time, .norsaga-aurora-dialog a { font-size: 12px; color: #b6d5e9; }
+.norsaga-operations { max-height: calc(100dvh - var(--norsaga-workspace-top) - 14px); overflow-y: auto; scrollbar-width: thin; }
+.norsaga-aurora-readout { font-size: 10px; line-height: 1.35; }
+.norsaga-aurora-readout p { margin: 4px 0; }
+.norsaga-aurora-actions button, .norsaga-aurora-actions select { min-height: 28px; padding: 4px 5px; font-size: 10px; }
+@media (max-height: 700px) { .norsaga-operations { max-height: calc(100dvh - 94px); } }
+.norsaga-operations .norsaga-layer-list { position: static; padding: 6px; margin-top: 8px; }
+.norsaga-aurora-dialog .norsaga-dialog-header { margin-bottom: 8px; }
+.norsaga-aurora-dialog .norsaga-dialog-header button { cursor: pointer; padding: 7px 12px; color: #e4f4ff; background: #172f4b; border: 1px solid #416582; border-radius: 5px; }
+.norsaga-aurora-dialog :focus-visible { outline: 2px solid #89c7da; outline-offset: 3px; }
+.norsaga-aurora-dialog { margin: auto; }

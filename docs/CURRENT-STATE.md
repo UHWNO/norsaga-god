@@ -5,20 +5,31 @@
 Data Layers > Space Weather contains Aurora Forecast, off by default and enabled
 independently. NorSaga also exposes its explicit layer toggle; mission presets
 do not automatically enable it. Aurora works with AIS and weather switched off.
-Its compact row shows NOAA SWPC / OVATION, observation and forecast UTC times, the
+Its always-visible workspace readout and Data Layers row show NOAA SWPC / OVATION, observation and forecast UTC times, the
 current or explicitly upcoming predicted planetary Kp interval, bounded active G-level notices and separate
 stale/unavailable source status. The source is `/api/aurora`; no browser request
 goes directly to NOAA. See DATA_SOURCES.md for data semantics and cache limits.
 
 The renderer updates a single translucent raster shell in place, supports both
 hemispheres and releases its primitive, material and canvas on disable/destroy.
-It adds no animation, continuous-render hold or private polling timer; the existing
+The globe adds no animation, continuous-render hold or private polling timer; the existing
 manager refreshes every two minutes. Hidden tabs abort/skip acquisition and refresh
 on return. Focused tests live in `src/data/auroraProxy.test.mjs` and
 `src/layers/aurora/aurora.test.mjs`; local standalone/resource evidence is generated
 by `node scripts/qa-aurora.mjs --allow-map-fallback` against the running dev server.
 `--combined` optionally checks AIS and weather together; photoreal verification
 remains separate and requires working existing map credentials.
+
+The presentation revision uses a brighter green/yellow/red ramp, adjustable
+contrast and deliberate map-center inspection of the nearest original NOAA 1°
+grid cell, including true zero and unavailable values. The workspace exposes an
+on-demand official NOAA image viewer with north/south controls, play/pause,
+scrubbing and latest-30-minute/full-24-hour history. Historical images are
+separate from the latest grid on the globe. They load lazily through the bounded
+`/api/aurora-animation` provider; playback pauses in hidden tabs, and close,
+disable and destroy cancel requests and release blob URLs. The tested revision
+is delivered on `norsaga-maritime-v1` at the user's request. Plesk deployment
+remains user-managed; no merge is performed.
 
 ## Cyber HUD — September 23, 2026
 
