@@ -25,6 +25,7 @@ import {
 } from './data/geoid.js';
 import { getBasemapLabelContext } from './voice/gevActions.js';
 import {
+  hasHudSummaryContext,
   hudSummaryMatchesProvenance,
   hudSummaryLayerContext,
   hudTelemetryProvenanceTag,
@@ -201,7 +202,7 @@ export class IntelHUD {
           <div class="hud-system">${this._missionId}  ${this._sensorId}</div>
           <div class="hud-mode" id="hud-mode">NORMAL</div>
           <div class="hud-summary-wrap">
-            <div class="hud-summary-label">SUMMARY</div>
+            <div class="hud-summary-label">VIEW SUMMARY</div>
             <div class="hud-summary" id="hud-summary">Awaiting telemetry...</div>
           </div>
         </div>
@@ -721,6 +722,12 @@ export class IntelHUD {
       return;
     }
     if (revision !== this._summaryRevision) return;
+    if (!hasHudSummaryContext(context)) {
+      this._summaryDirty = false;
+      this._lastSummarySignature = null;
+      this._setSummaryText(this._composeSummary(), animate);
+      return;
+    }
     const signature = JSON.stringify(context);
     if (!force && signature === this._lastSummarySignature) {
       this._summaryDirty = false;
@@ -774,6 +781,8 @@ export class IntelHUD {
       this._typeSummary(text);
       return;
     }
+    clearInterval(this._summaryTypingInterval);
+    this._summaryTypingInterval = null;
     const el = document.getElementById('hud-summary');
     if (el) el.textContent = text;
   }

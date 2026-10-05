@@ -77,10 +77,8 @@ export function initNorSagaExperience({
     input.dataset.norsagaLayer = layer.id;
     layerInputs.set(layer.id, input);
     const words = make('span');
-    words.append(
-      make('strong', '', layer.label),
-      make('small', '', layer.note),
-    );
+    words.append(make('strong', '', layer.label));
+    if (layer.note) words.append(make('small', '', layer.note));
     label.append(input, words);
     layerList.append(label);
     bind(input, 'change', async () => {

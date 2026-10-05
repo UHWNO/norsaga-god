@@ -27,7 +27,6 @@ export const MARITIME_LAYERS = Object.freeze([
   Object.freeze({
     id: 'ais-live-vessels',
     label: 'Vessels / AIS',
-    note: 'Provider key required',
   }),
   Object.freeze({
     id: 'wind',

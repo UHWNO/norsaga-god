@@ -48,13 +48,29 @@ export function isHudSummaryUnconfigured(status, data) {
  * nominal.
  */
 export const HUD_SUMMARY_INSTRUCTIONS = [
-  "Write one concise intelligence-HUD summary for God's Eye View.",
+  'Write one concise summary of the current map view.',
   'Use only the supplied place, street, nearby-place, enabled-layer labels, and feedProvenance.',
   'Prefer the clearest named place and include a relevant enabled layer only when useful.',
   'If any enabled layer is not nominal, the five words MUST include that feedState token (STALE, DEGRADED, FALLBACK, LOADING, or UNAVAILABLE) and must not present the view as live.',
   'Do not infer from coordinates or invent a place or feed state.',
+  'Missing place labels do not mean the map or application is unavailable. Describe a supplied enabled layer when no place is named.',
+  'Describe only the view and its layers; never describe the application or its availability.',
   'Output exactly five words with no title, punctuation, markdown, or introductory phrase.',
 ].join(' ');
+
+/** An AI description needs at least one supplied place or enabled-layer label. */
+export function hasHudSummaryContext(context) {
+  return [
+    'placeLabels',
+    'streetLabels',
+    'nearbyPlaceLabels',
+    'enabledLayerLabels',
+  ].some(
+    (key) =>
+      Array.isArray(context?.[key]) &&
+      context[key].some((label) => typeof label === 'string' && label.trim()),
+  );
+}
 
 /**
  * Stamp HUD summary context with the same layer snapshots voice tools use.
@@ -101,12 +117,25 @@ export function hudTelemetryProvenanceTag(layers = [], options) {
   return `${envelope.overall.toUpperCase()}${names.length ? ` ${names.join('/')}` : ''}`;
 }
 
-/** Require the supplied non-nominal state before showing an AI summary. */
+/** Reject invented feed states and require the supplied non-nominal state. */
 export function hudSummaryMatchesProvenance(summary, provenance) {
+  const words = String(summary || '')
+    .toLowerCase()
+    .split(/\W+/);
   const state = provenance?.overall;
+  const suppliedStates = new Set([
+    state,
+    ...(provenance?.layers || []).map((layer) => layer.feedState),
+  ]);
+  for (const token of [
+    'stale',
+    'degraded',
+    'fallback',
+    'loading',
+    'unavailable',
+  ]) {
+    if (words.includes(token) && !suppliedStates.has(token)) return false;
+  }
   if (!state || state === 'nominal' || state === 'off') return true;
-  return String(summary || '')
-    .toUpperCase()
-    .split(/\W+/)
-    .includes(String(state).toUpperCase());
+  return words.includes(String(state).toLowerCase());
 }
