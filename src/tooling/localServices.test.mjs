@@ -299,8 +299,11 @@ test('OpenAI routes answer generically when the upstream or the request fails', 
   );
   const summary = await request(
     install(openAiRealtimeProxy()).get('/api/openai/hud-summary'),
-    { method: 'POST', body: JSON.stringify({ context: {} }) },
+    // Empty views deliberately skip OpenAI; use a named view to exercise
+    // the upstream failure and verify its details are still redacted.
+    { method: 'POST', body: JSON.stringify({ placeLabels: ['Tromsø'] }) },
   );
+  assert.equal(summary.status, 429);
   assert.equal(summary.json().error, 'OpenAI HUD summary request failed');
   assert.equal(summary.body.includes('req_fixture_1234'), false);
   assert.equal(summary.body.includes('fixture-upstream-secret'), false);
