@@ -16,7 +16,7 @@
   --panel-radius: 10px;
   --btn-radius: 6px;
   --norsaga-control-left: max(64px, 4vw);
-  --norsaga-workspace-top: clamp(150px, calc(50vh - 135px), 560px);
+  --norsaga-workspace-top: calc(max(14vh, 136px) + 145px);
   --left-stack-x: var(--norsaga-control-left);
   --left-stack-top: 355px;
   --norsaga-primary: #1f2f6e;
@@ -292,7 +292,7 @@
 .norsaga-aurora-player-controls input { flex: 1; min-width: 120px; accent-color: #69ef58; }
 .norsaga-aurora-player-controls button, .norsaga-aurora-player-controls select, .norsaga-aurora-dialog header button { padding: 7px; color: #e4f4ff; background: #172f4b; border: 1px solid #416582; border-radius: 5px; }
 .norsaga-aurora-frame-time, .norsaga-aurora-dialog a { font-size: 12px; color: #b6d5e9; }
-.norsaga-operations { max-height: calc(100dvh - var(--norsaga-workspace-top) - 14px); overflow-y: auto; scrollbar-width: thin; }
+.norsaga-operations { max-height: calc(98dvh - var(--norsaga-workspace-top) - 294px); overflow-y: auto; scrollbar-width: thin; }
 .norsaga-aurora-readout { font-size: 10px; line-height: 1.35; }
 .norsaga-aurora-readout p { margin: 4px 0; }
 .norsaga-aurora-actions button, .norsaga-aurora-actions select { min-height: 28px; padding: 4px 5px; font-size: 10px; }
