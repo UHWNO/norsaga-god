@@ -1382,3 +1382,10 @@ body.recording-mode #right-context-rail > [data-panel-id] {
     width: 100%;
   }
 }
+
+/* Preserve the compact source/freshness lines supplied by the Aurora row. */
+[data-layer-id='aurora'] .data-toggle-controls-info {
+  white-space: pre-line;
+  font-size: 10px;
+  line-height: 1.4;
+}

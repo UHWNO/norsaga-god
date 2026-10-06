@@ -215,6 +215,40 @@ test('left corridor respects a lower obstacle but ignores an obstacle hidden by 
   assert.equal(Number(f.stack.dataset.safeBottomPct), 65.47);
 });
 
+test('left rail follows the live height of its workspace anchor', () => {
+  const f = fixture('left');
+  const workspace = element('norsaga-operations', {
+    top: 120,
+    height: 180,
+    left: 20,
+    width: 210,
+  });
+  f.options.topAnchor = workspace;
+  f.run();
+  const initialTop = Number(f.stack.dataset.safeTopPct);
+
+  workspace.rect.height = 240;
+  workspace.rect.bottom = workspace.rect.top + workspace.rect.height;
+  f.run();
+
+  assert.equal(initialTop, 34.53);
+  assert.equal(Number(f.stack.dataset.safeTopPct), 41.2);
+});
+
+test('an expanded left panel may use the safe viewport above the workspace anchor', () => {
+  const f = fixture('left');
+  f.expand(f.first, 360);
+  f.options.topAnchor = element('norsaga-operations', {
+    top: 120,
+    height: 240,
+    left: 20,
+    width: 210,
+  });
+  f.run();
+
+  assert.equal(Number(f.stack.dataset.safeTopPct), 26);
+});
+
 for (const side of ['left', 'right']) {
   test(`${side} mobile layout releases desktop height/position styles and labels`, () => {
     const f = fixture(side, { mobile: true });
@@ -330,6 +364,14 @@ test('right rail aligns to the current left rail and excludes hidden obstacles',
   f.options.obstacles = [hidden];
   f.run();
   assert.equal(f.stack.dataset.safeTop, '200.0');
+});
+
+test('right rail prefers an explicit top anchor over the left rail', () => {
+  const f = fixture('right');
+  f.options.leftStack.rect.top = 440;
+  f.options.topAnchor = element('workspace', { top: 180 });
+  f.run();
+  assert.equal(f.stack.dataset.safeTop, '180.0');
 });
 
 test('natural height includes visible content, margins and wrapper chrome, excluding hidden rows', () => {

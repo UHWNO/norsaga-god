@@ -672,3 +672,31 @@ body:has(.data-toggle-row[data-layer-id='alpr-cameras'] .data-toggle-btn.active)
   text-shadow: 0 0 20px var(--accent-glow);
   transition: var(--transition-smooth);
 }
+
+#style-indicator .indicator-pulse {
+  display: block;
+  width: 9px;
+  height: 9px;
+  margin: 10px auto 0;
+  border-radius: 50%;
+  background: #46e178;
+  box-shadow: 0 0 8px rgba(70, 225, 120, 0.65);
+  animation: active-style-blink 1.6s steps(1, end) infinite;
+}
+
+@keyframes active-style-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0.2;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #style-indicator .indicator-pulse {
+    animation: none;
+  }
+}

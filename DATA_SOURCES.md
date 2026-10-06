@@ -27,6 +27,8 @@ How to read this:
 | **adsb.lol**                                                          | Military flights + aircraft traces                                                                                                  | ODbL 1.0                                                                                                                                                                                                                                                                                                                                              | "adsb.lol" (ODbL)                                                                                                                           |
 | **adsbdb** (`api.adsbdb.com`) | Aircraft type, model name and registration by ICAO hex for enriched flights; airline and origin/destination airports for the tracked flight's callsign | No licence or rate limit is published for the service. Its own credits: aircraft data from PlaneBase, ICAO-to-N-number conversion by Guillaume Michel, and flight route data that "is the work of David Taylor, Edinburgh and Jim Mason, Glasgow, and may not be copied, published, or incorporated into other databases without the explicit permission of David J Taylor, Edinburgh" | "adsbdb — api.adsbdb.com" (courtesy); route data credited to David Taylor, Edinburgh, and Jim Mason, Glasgow |
 | **AISStream.io**                                                      | Live vessels (AIS)                                                                                                                  | Free, beta, no formal ToS; AIS is a public broadcast                                                                                                                                                                                                                                                                                                  | "AISStream.io" (courtesy)                                                                                                                   |
+| **BarentsWatch / Norwegian Coastal Administration**                   | Live and recent historic AIS in the Norwegian EEZ, Svalbard fisheries protection zone and Jan Mayen protection zone               | BarentsWatch API terms; NLOD where no other notice is given. Coverage excludes specified small fishing and leisure vessels; history is limited to 14 days. Confirm intended commercial use and downstream display obligations before release.                                                                                                         | BarentsWatch and the originating data owner                                                                                                  |
+| **Global Fishing Watch API v3**                                       | On-demand selected-vessel identity/registry enrichment plus apparent fishing, encounter, loitering, port-visit and AIS-gap events over a bounded lookback | Approved for NorSaga internal research, training and development of Maritime Domain Awareness capabilities; correlation with authorized official maritime sources is permitted. Raw data is not resold or redistributed. Public/commercial deployment requires a new permission review. Modelled activity and AIS gaps are not proof of wrongdoing; GFW caveats apply. | "Global Fishing Watch" with source, dataset, retrieval time and caveat                                                                       |
 | **CelesTrak**                                                         | Satellite TLEs (SGP4)                                                                                                               | US-government-origin data, no license; citation requested                                                                                                                                                                                                                                                                                             | "CelesTrak (celestrak.org), Dr. T.S. Kelso"                                                                                                 |
 | **The Space Devs — Launch Library 2 v2.3**                            | Recent launch, payload, stage, and recovery metadata for Space Missions (30d)                                                       | [The Space Devs terms of use](https://github.com/TheSpaceDevs/Tutorials/blob/main/faqs/faq_TSD.md#terms-of-use): data may be used and shared in any form; avoid forwarding it without added value; attribution is encouraged (not mandatory). [Official API limits](https://ll.thespacedevs.com/docs/): 15 unauthenticated calls/hour; optional token | "Launch Library 2 — The Space Devs" (courtesy attribution)                                                                                  |
 | **Esri World Imagery** (ArcGIS Online tile service)                   | The keyless satellite basemap — the default landing when no Google/ion credential is configured, and the "Esri Satellite" map stack | [Esri Master Agreement](https://www.esri.com/en-us/legal/terms/full-master-agreement): the public World Imagery service is usable in public-facing apps with attribution; no key is required for this classic endpoint, but Esri governs and can change access — an app at scale should review current ArcGIS Location Platform terms                 | "Powered by Esri — Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community" (provider carries the service's own credit line) |
@@ -342,4 +344,79 @@ NOAA density imagery with the raw GLM product.
 
 ## In-app attribution
 
-The required Google Maps / Cesium credit renders on the on-globe credit line (`#cesium-credits`, bottom-left) and must stay visible — including in clean-view and recording modes (the whole line, logo + "Google Maps" + the "Data attribution" link, stays on screen; only the GEV panels/HUD fade). The layer-specific credits (adsb.lol, adsbdb, TeleGeography, OSM datacenters/dams/roads, NASA FIRMS, CelesTrak, USGS, City of Austin, Fintraffic, GBFS, Radio Browser, OpenSky, AISStream) are registered into the expandable **"Data attribution"** popover on that credit line via `viewer.creditDisplay.addStaticCredit(new Cesium.Credit(html, /* showOnScreen */ false))` — see `src/data/dataCredits.js`. When you add a new data source, add its license and attribution to this file **and** append an entry to `DATA_CREDITS` in `src/data/dataCredits.js` so it surfaces in the app.
+The required Google Maps / Cesium credit renders on the on-globe credit line (`#cesium-credits`, bottom-left) and must stay visible — including in clean-view and recording modes (the whole line, logo + "Google Maps" + the "Data attribution" link, stays on screen; only the GEV panels/HUD fade). The layer-specific credits (adsb.lol, adsbdb, TeleGeography, OSM datacenters/dams/roads, NASA FIRMS, CelesTrak, USGS, City of Austin, Fintraffic, GBFS, Radio Browser, OpenSky, AISStream, BarentsWatch) are registered into the expandable **"Data attribution"** popover on that credit line via `viewer.creditDisplay.addStaticCredit(new Cesium.Credit(html, /* showOnScreen */ false))` — see `src/data/dataCredits.js`. When you add a new data source, add its license and attribution to this file **and** append an entry to `DATA_CREDITS` in `src/data/dataCredits.js` so it surfaces in the app.
+
+
+## NOAA SWPC Aurora Forecast (OVATION)
+
+The keyless Space Weather layer fetches NOAA public environmental data at runtime,
+through the local server provider only:
+
+- OVATION: <https://services.swpc.noaa.gov/json/ovation_aurora_latest.json>
+- Planetary Kp forecast: <https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json>
+- Alerts: <https://services.swpc.noaa.gov/products/alerts.json>
+
+Attribution: **NOAA SWPC · OVATION**. NOAA public environmental data; no NOAA
+endorsement is implied. Existing third-party credits remain in the Cesium data
+attribution display. No AuroraWatch UK or other restricted feed is used.
+
+[NOAA's current product documentation](https://www.swpc.noaa.gov/products/aurora-30-minute-forecast)
+describes a short-term location/intensity forecast, normally 30–90 minutes from
+L1 solar-wind travel time; Kp-driven fallback can have no lead time. Its empirical
+intensity-to-viewing-probability relationship is not a calibrated local chance
+accounting for daylight, cloud cover, obstructions or viewing conditions.
+The JSON supplies integer `[Longitude, Latitude, Aurora]` samples on a 1° grid,
+with a 0–100 auroral value, explicit observation/forecast timestamps, and both
+hemispheres. The UI conservatively labels the unchanged values **OVATION relative
+intensity (0–100)**, not physical energy flux, auroral altitude, or a local
+percentage chance. NOAA-hosted supporting research describes the empirical
+conversion and its limits: [Case et al., 2016](https://repository.library.noaa.gov/view/noaa/15196/noaa_15196_DS1.pdf).
+
+Kp is the dimensionless planetary geomagnetic index (0–9), selected only from
+NOAA's `predicted` three-hour interval covering the current time, or the next
+interval within three hours labelled **upcoming predicted**. Observed and
+estimated rows are preserved server-side but never relabelled as forecasts.
+G1–G5 notices come from explicit NOAA geomagnetic scales and validity intervals;
+expired, cancelled, unrelated and unbounded notices are not shown as active.
+Missing supplemental data is reported independently of OVATION availability.
+
+The server shares a two-minute OVATION cache (five minutes for supplements),
+retries failures no more than every 30 seconds, and can return an explicitly
+stale last-good grid for at most 60 minutes from both forecast time and acquisition.
+Supplemental cache fallback is limited to 30 minutes; intervals are re-evaluated
+on every response. NOAA's normal 30–90 minute L1 observation lead time does not
+make a current forecast stale. Forecasts more than five minutes behind current
+time are marked delayed/stale. Expired data is
+unavailable, with no fabricated values.
+
+The static translucent globe shell sits 80 km above the ellipsoid for visibility
+over coarse photorealistic tiles and weather; this is a display offset, not
+forecast auroral altitude. Values below 5 are transparent. No new credentials,
+framework or mobile-specific behavior is required. This is environmental context,
+not a navigation, voyage-planning or safety product.
+
+
+### Official NOAA image history
+
+The on-demand NOAA loop uses the official 24-hour manifests:
+
+- North: <https://services.swpc.noaa.gov/products/animations/ovation_north_24h.json>
+- South: <https://services.swpc.noaa.gov/products/animations/ovation_south_24h.json>
+
+Their timestamped JPEGs are the images published in the [Northern](https://services.swpc.noaa.gov/images/animations/ovation/north/) and [Southern](https://services.swpc.noaa.gov/images/animations/ovation/south/) directories. The static `latest.jpg` images are references; playback uses explicit frame times so a changing latest image cannot replace an earlier frame.
+
+`GET /api/aurora-animation/{north|south}` returns a validated same-origin frame
+list; `/frame/{canonical UTC time}` serves only JPEGs registered in that list.
+All browser requests stay on the application's origin. Manifest TTL is two
+minutes, with an explicitly labelled cached fallback capped at 15 minutes and
+30-second retry cooldown. There are at most 600 records per hemisphere, 128 KiB
+per manifest, 2 MiB per JPEG, ten concurrent upstream operations and an LRU image
+cache capped at both 32 frames and 16 MiB. The player loads one selected frame at
+a time and releases blob URLs on replacement, close and layer disable.
+
+The default window is the latest 30 minutes of image history; the full 24 hours
+are optional. These are historical model images, each carrying NOAA's embedded
+forecast time, lead time, HPI and probability legend. They are not a 30-minute
+future radar prediction. The globe remains the latest machine-readable OVATION
+grid: NOAA's linked JSON endpoint publishes only the latest grid. Image playback
+does not fabricate historical grid values or change the globe's clock.

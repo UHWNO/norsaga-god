@@ -1,15 +1,18 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
+import { Readable } from 'node:stream';
 import {
   HUD_SUMMARY_INSTRUCTIONS,
   HUD_SUMMARY_UNCONFIGURED_CODE,
+  hasHudSummaryContext,
   hudSummaryLayerContext,
   hudTelemetryProvenanceTag,
   isHudSummaryUnconfigured,
   keylessHudSummaryResponse,
 } from './hudSummaryResponse.js';
 import { openAiRealtimeProxy } from '../vite.config.js';
+import { handleHudSummary } from '../server/providers/openai/hud-summary.js';
 
 const UNCONFIGURED_PAYLOAD = {
   configured: false,
@@ -176,4 +179,58 @@ test('AI summaries missing a non-nominal provenance token fall back deterministi
   assert.equal(hudSummaryMatchesProvenance('Austin flights operating normally today', { overall: 'stale' }), false);
   assert.equal(hudSummaryMatchesProvenance('Austin stale flights over downtown', { overall: 'stale' }), true);
   assert.equal(hudSummaryMatchesProvenance('Austin flights operating normally today', { overall: 'nominal' }), true);
+});
+
+test('AI descriptions require real place or enabled-layer labels', () => {
+  for (const context of [undefined, null, {}, {
+    placeLabels: [], streetLabels: [], nearbyPlaceLabels: [], enabledLayerLabels: [],
+  }, {
+    placeLabels: ['  ', null, 0], enabledLayerLabels: [],
+    feedProvenance: { overall: 'off', layers: [] },
+  }]) assert.equal(hasHudSummaryContext(context), false);
+  for (const key of ['placeLabels', 'streetLabels', 'nearbyPlaceLabels', 'enabledLayerLabels']) {
+    assert.equal(hasHudSummaryContext({ [key]: [' Tromsø '] }), true);
+  }
+});
+
+test('a configured server skips OpenAI entirely for empty view context', async (t) => {
+  const previousKey = process.env.OPENAI_API_KEY;
+  const previousLimit = process.env.GEV_RATELIMIT_OPENAI_PER_MIN;
+  process.env.OPENAI_API_KEY = 'test-key';
+  delete process.env.GEV_RATELIMIT_OPENAI_PER_MIN;
+  t.mock.method(globalThis, 'fetch', () => assert.fail('Empty context must not reach OpenAI'));
+  try {
+    const req = Readable.from([Buffer.from(JSON.stringify({
+      placeLabels: [], streetLabels: [], nearbyPlaceLabels: [], enabledLayerLabels: [],
+      feedProvenance: { overall: null, layers: [] },
+    }))]);
+    req.method = 'POST';
+    const headers = {};
+    let body;
+    const res = {
+      statusCode: 0,
+      setHeader(name, value) { headers[name] = value; },
+      end(value) { body = JSON.parse(value); },
+    };
+    await handleHudSummary(req, res);
+    assert.equal(res.statusCode, 200);
+    assert.equal(headers['Cache-Control'], 'no-store');
+    assert.deepEqual(body, { summary: null, error: null });
+  } finally {
+    if (previousKey === undefined) delete process.env.OPENAI_API_KEY;
+    else process.env.OPENAI_API_KEY = previousKey;
+    if (previousLimit === undefined) delete process.env.GEV_RATELIMIT_OPENAI_PER_MIN;
+    else process.env.GEV_RATELIMIT_OPENAI_PER_MIN = previousLimit;
+  }
+});
+
+test('invented unavailable or other feed states cannot replace a healthy view', async () => {
+  const { hudSummaryMatchesProvenance } = await import('./hudSummaryResponse.js');
+  for (const state of ['stale', 'degraded', 'fallback', 'loading', 'unavailable']) {
+    assert.equal(hudSummaryMatchesProvenance(`Arctic ${state} view over ocean`, { overall: 'nominal' }), false);
+  }
+  assert.equal(hudSummaryMatchesProvenance('God s Eye View unavailable', { overall: 'off' }), false);
+  assert.equal(hudSummaryMatchesProvenance('Arctic aurora unavailable over ocean', {
+    overall: 'unavailable', layers: [{ feedState: 'unavailable' }],
+  }), true);
 });

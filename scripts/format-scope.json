@@ -50,9 +50,13 @@
   "server/providers/aircraft/enrichment.js",
   "server/providers/aircraft/tracks.js",
   "server/providers/vessels/ais-store.js",
+  "server/providers/vessels/barentswatch.js",
+  "server/providers/vessels/global-fishing-watch.js",
   "server/providers/vessels/ais-live.js",
   "server/providers/live.js",
   "src/tooling/liveProviders.test.mjs",
+  "src/barentsWatchAis.test.mjs",
+  "src/globalFishingWatch.test.mjs",
   "src/data/adsbLolFallback.js",
   "src/data/aisStreamAdapter.js",
   "src/data/aisWatchdog.js",
@@ -837,5 +841,11 @@
   "src/ui/imageryBoxTool.test.mjs",
   "src/ui/recentImagery.test.mjs",
   "src/layers/recentImagery/testDoubles.mjs",
-  "scripts/qa-recent-imagery.mjs"
+  "scripts/qa-recent-imagery.mjs",
+  "src/data/auroraProxy.test.mjs",
+  "src/layers/aurora/aurora.test.mjs",
+  "scripts/qa-aurora.mjs",
+  "scripts/qa-norsaga-access.mjs",
+  "src/data/auroraAnimationProxy.test.mjs",
+  "src/norsaga/auroraPlayback.test.mjs"
 ]

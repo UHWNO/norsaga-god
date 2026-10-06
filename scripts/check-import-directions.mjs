@@ -9,8 +9,11 @@ const builtins = new Set(
   builtinModules.flatMap((name) => [name, `node:${name}`]),
 );
 const code = /\.[mc]?js$/;
+// NorSaga enters through the password gate before loading the main bootstrap.
 const entry = (file) =>
-  file === 'src/main.js' || file.startsWith('src/standalone/');
+  file === 'src/main.js' ||
+  file === 'src/passwordGate.js' ||
+  file.startsWith('src/standalone/');
 const tests = (file) =>
   file.endsWith('.test.mjs') ||
   file.startsWith('src/testSupport/') ||

@@ -1,5 +1,6 @@
 import {
   HUD_SUMMARY_INSTRUCTIONS,
+  hasHudSummaryContext,
   keylessHudSummaryResponse,
 } from '../../../src/hudSummaryResponse.js';
 import { enforceOptInRateLimit, openAiRateLimiter } from './rate-limit.js';
@@ -54,6 +55,13 @@ async function handleHudSummary(req, res) {
   try {
     const body = await readRequestBody(req, 64 * 1024);
     const context = JSON.parse(body || '{}');
+    if (!hasHudSummaryContext(context)) {
+      res.statusCode = 200;
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store');
+      res.end(JSON.stringify({ summary: null, error: null }));
+      return;
+    }
     const response = await fetch('https://api.openai.com/v1/responses', {
       method: 'POST',
       headers: {

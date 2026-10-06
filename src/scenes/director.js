@@ -187,10 +187,16 @@ export class SceneDirector {
     for (const scene of this._project.scenes) {
       for (const marker of [...(scene.appliedShotPacks || [])]) {
         const recipe = getSceneAppendRecipeById(marker.id);
+        const repairsMarkerVersion = Array.isArray(recipe?.repairFromVersions)
+          ? recipe.repairFromVersions
+              .map(Number)
+              .includes(Number(marker.version))
+          : false;
         if (
-          recipe?.expansionFromVersion &&
-          marker.version > 0 &&
-          marker.version <= recipe.expansionFromVersion
+          (recipe?.expansionFromVersion &&
+            marker.version > 0 &&
+            marker.version <= recipe.expansionFromVersion) ||
+          repairsMarkerVersion
         ) {
           this.appendShotPack(scene.id, marker.id, {
             render: false,
@@ -284,6 +290,25 @@ export class SceneDirector {
           project.scenes.splice(anchorIndex + 1, 0, recipeToScene(recipe));
         }
         installed.add(recipe.id);
+        migrated = true;
+      }
+      const flightsRecipe = SCENE_RECIPES.find(
+        (recipe) => recipe.id === 'flights-radar',
+      );
+      const flightsScene = project.scenes.find(
+        (scene) =>
+          scene.id === 'flights-radar' &&
+          scene.title === 'Global Flights Radar',
+      );
+      if (
+        flightsRecipe &&
+        flightsScene?.shots.length === 4 &&
+        flightsScene.shots.every(
+          (shot, index) => shot.title === `Shot ${index + 2}`,
+        )
+      ) {
+        const [missingShot] = recipeToScene(flightsRecipe).shots;
+        flightsScene.shots.unshift(missingShot);
         migrated = true;
       }
       if (migrated) {
@@ -626,6 +651,9 @@ export class SceneDirector {
     }
 
     const pack = recipeToScene(recipe);
+    const requiredShotTitles = Array.isArray(recipe.requiredShotTitles)
+      ? recipe.requiredShotTitles
+      : [];
     const existingPackShots = scene.shots.filter(
       (shot) => shot.sourcePackId === recipe.id,
     );
@@ -637,6 +665,26 @@ export class SceneDirector {
     const existingPackBeatIds = existingPackShots.map(
       (shot) => shot.layers?.[recipe.requiredSourcePackLayerId]?.params?.beatId,
     );
+    const repairFromVersions = Array.isArray(recipe.repairFromVersions)
+      ? recipe.repairFromVersions.map(Number)
+      : [];
+    const repairVariants = Array.isArray(recipe.repairMissingShotTitleVariants)
+      ? recipe.repairMissingShotTitleVariants
+      : [];
+    const missingBoundTitles = marker?.shotBindings
+      ? requiredShotTitles.filter(
+          (title) =>
+            !scene.shots.some(
+              (shot) => shot.id === marker.shotBindings?.[title],
+            ),
+        )
+      : [];
+    const repairing =
+      repairFromVersions.includes(Number(marker?.version)) &&
+      repairVariants.some(
+        (titles) =>
+          JSON.stringify(missingBoundTitles) === JSON.stringify(titles),
+      );
     const previousSourcePackVariants = Array.isArray(
       recipe.previousRequiredSourcePackBeatIdVariants,
     )
@@ -681,20 +729,39 @@ export class SceneDirector {
           adoptedShotIds.set(packShot.id, candidates[0].id);
       }
     }
-    const appendedShots = marker
-      ? expanding
-        ? pack.shots.filter(
-            (shot) =>
-              !existingPackShots.some(
-                (existing) =>
-                  existing.layers?.[recipe.requiredSourcePackLayerId]?.params
-                    ?.beatId ===
-                  shot.layers?.[recipe.requiredSourcePackLayerId]?.params
-                    ?.beatId,
-              ) && !adoptedShotIds.has(shot.id),
-          )
-        : []
-      : pack.shots;
+    const canonicalBaseShots = repairing
+      ? recipeToScene({
+          ...recipe,
+          id: null,
+          cameraPath: recipe.legacySceneBootstrap?.cameraPath || [],
+        }).shots
+      : [];
+    const repairShotsByTitle = new Map(
+      [...canonicalBaseShots, ...pack.shots].map((shot) => [shot.title, shot]),
+    );
+    const appendedShots = repairing
+      ? missingBoundTitles.map((title) => repairShotsByTitle.get(title))
+      : marker
+        ? expanding
+          ? pack.shots.filter(
+              (shot) =>
+                !existingPackShots.some(
+                  (existing) =>
+                    existing.layers?.[recipe.requiredSourcePackLayerId]?.params
+                      ?.beatId ===
+                    shot.layers?.[recipe.requiredSourcePackLayerId]?.params
+                      ?.beatId,
+                ) && !adoptedShotIds.has(shot.id),
+            )
+          : []
+        : pack.shots;
+    if (appendedShots.some((shot) => !shot)) {
+      return {
+        appended: false,
+        updated: false,
+        reason: 'repair-source-missing',
+      };
+    }
     const nextShots = deepClone([...scene.shots, ...appendedShots]);
     for (const [packShotId, existingShotId] of adoptedShotIds) {
       const existingShot = nextShots.find((shot) => shot.id === existingShotId);
@@ -728,9 +795,25 @@ export class SceneDirector {
         nextShots.splice(before < 0 ? nextShots.length : before, 0, shot);
       }
     }
-    const requiredShotTitles = Array.isArray(recipe.requiredShotTitles)
-      ? recipe.requiredShotTitles
-      : [];
+    if (repairing) {
+      const canonicalIds = new Map([
+        ...Object.entries(marker.shotBindings || {}),
+        ...appendedShots.map((shot) => [shot.title, shot.id]),
+      ]);
+      // Reinsert only the recovered records at their authored positions while
+      // preserving every surviving shot object, id, camera and relative order.
+      for (let i = requiredShotTitles.length - 1; i >= 0; i--) {
+        const added = appendedShots.find(
+          (shot) => shot.title === requiredShotTitles[i],
+        );
+        if (!added) continue;
+        const at = nextShots.findIndex((shot) => shot.id === added.id);
+        const [shot] = nextShots.splice(at, 1);
+        const nextId = canonicalIds.get(requiredShotTitles[i + 1]);
+        const before = nextShots.findIndex((item) => item.id === nextId);
+        nextShots.splice(before < 0 ? nextShots.length : before, 0, shot);
+      }
+    }
     const addedBindings = Object.fromEntries([
       ...appendedShots.map((shot) => [shot.title, shot.id]),
       ...[...adoptedShotIds]

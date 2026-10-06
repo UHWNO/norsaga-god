@@ -64,6 +64,8 @@ export function createVesselState({ source, services }) {
     /** Test-only key target paired with interactionHandlerFactory. */
     interactionKeyTarget: null,
     preRenderRemover: null,
+    /** Refresh viewport-prioritized rows after the camera settles. */
+    cameraMoveEndRemover: null,
     lastVisibilityUpdate: 0,
     lastFocusUpdate: 0,
     /** Sprites whose animated emphasis remains outside the 1.0 deadband. */
@@ -79,6 +81,9 @@ export function createVesselState({ source, services }) {
     /** @type {number} Monotonic token — invalidates in-flight backfill responses */
     trailBackfillToken: 0,
     trailAbort: null,
+    /** Selected-vessel Global Fishing Watch request ownership. */
+    intelligenceToken: 0,
+    intelligenceAbort: null,
   };
   return vesselState;
 }

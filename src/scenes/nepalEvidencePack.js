@@ -320,12 +320,25 @@ export function expandNepalEvidencePack(base) {
   const finalView = byBeat.get('final-view');
   return Object.freeze({
     ...base,
-    version: 18,
+    version: 19,
     cameraPath,
     runtimeControlsByBeat,
     // Clip trims must also replace older saved holds, not just lower a floor.
     runtimeHoldSecByBeat: { 'mailung-bazzar': 7 + 0.65 },
     expansionFromVersion: 17,
+    // Recover the exact incomplete live inventory reported after these five
+    // built-in shots were deleted. Keep this signature narrow so deliberately
+    // customized or partially edited scenes are never reset wholesale.
+    repairFromVersions: [18],
+    repairMissingShotTitleVariants: [
+      [
+        'Bhote Koshi Incident Corridor',
+        'Bhote Koshi Upper Valley',
+        'Dhunche',
+        'Dandagaun, Rasuwa',
+        'Bhainse',
+      ],
+    ],
     previousRequiredSourcePackBeatIds: EVIDENCE_ORDER.slice(0, -1),
     previousRequiredSourcePackBeatIdVariants: [
       base.requiredSourcePackBeatIds,

@@ -1,5 +1,15 @@
 # Changelog
 
+- Improve Aurora visibility with a brighter NOAA-style colour ramp, a workspace
+  forecast readout, contrast controls and nearest-grid-cell inspection. Add
+  on-demand official NOAA north/south image history with play/pause, a timeline
+  and 30-minute/24-hour windows. Globe values remain the latest NOAA grid.
+
+- Add the keyless NOAA SWPC Aurora Forecast layer, with shared validated server
+  data, bounded stale fallback, compact Kp/geomagnetic context, both hemispheres
+  and static translucent rendering. Aurora is selected independently through
+  Data Layers or the NorSaga layer toggle; mission presets do not enable it automatically.
+
 - Region scopes in voice analyst queries ("in the Gulf of Mexico", "over
   the Alps") work again in the dev server: the bundled Natural Earth and
   neighborhood packs are fetched as JSON in the browser

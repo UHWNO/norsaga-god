@@ -28,6 +28,7 @@ const pendingCollapseRetries = new WeakSet();
  * @param {HTMLElement} options.displayPanel Panel whose allocation owns its scroll.
  * @param {Function} options.readDisplayScrollTop Read the caller's scroll restoration value.
  * @param {Document} [options.documentRef] Document supplying current keyboard focus.
+ * @param {HTMLElement} [options.topAnchor] Optional control whose top edge aligns the rail.
  */
 export function layoutRightPanelRail({
   stack,
@@ -41,6 +42,7 @@ export function layoutRightPanelRail({
   displayPanel,
   readDisplayScrollTop,
   documentRef = stack?.ownerDocument,
+  topAnchor,
   getComputedStyle = (element) => windowRef.getComputedStyle(element),
 }) {
   if (!stack) return;
@@ -110,9 +112,9 @@ export function layoutRightPanelRail({
   const viewportHeight = Math.max(1, windowRef.innerHeight);
   const safeGap = Math.max(8, viewportHeight * 0.012);
   const stackRect = stack.getBoundingClientRect();
-  const leftStackTop = leftStack?.getBoundingClientRect().top;
-  const alignedTop = Number.isFinite(leftStackTop)
-    ? leftStackTop
+  const anchorTop = (topAnchor || leftStack)?.getBoundingClientRect().top;
+  const alignedTop = Number.isFinite(anchorTop)
+    ? anchorTop
     : viewportHeight * 0.26;
   const obstacleRects = [];
 

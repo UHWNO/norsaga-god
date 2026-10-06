@@ -7,17 +7,17 @@
     <div id="world-overlay-status" role="status" aria-live="polite" aria-atomic="true"></div>
   </div>
 
-  <!-- Title -->
+  <!-- NorSaga customer-facing identity; upstream credits remain in About. -->
   <div id="title-bar">
     <div class="title-glow"></div>
-    <h1><span class="title-logo brand-logo" data-logo-gaze data-logo-src="/logo.svg" aria-hidden="true"><img src="/logo.svg" alt="" /></span> <span>GOD'S EYE <span class="title-accent">VIEW</span></span></h1>
-    <p class="subtitle">NO PLACE LEFT BEHIND</p>
+    <img class="norsaga-brand-logo norsaga-title-logo" src="https://intra.norsaga.com/logos/nor_saga.png" alt="NorSaga Maritime Intelligence" />
   </div>
 
   <!-- Style indicator -->
   <div id="style-indicator">
     <span class="indicator-label">ACTIVE STYLE</span>
     <span class="indicator-value" id="active-style-name">NORMAL</span>
+    <span class="indicator-pulse" aria-hidden="true"></span>
   </div>
 
   <!-- Top-center camera and share actions -->
@@ -38,6 +38,7 @@
     <button id="reset-globe-view" type="button" aria-label="Reset to full globe view" title="Reset camera and return to full globe view">
       <span class="material-symbols-outlined" aria-hidden="true">public</span>
     </button>
+    <button id="logout-button" class="top-logout-button" type="button" aria-label="Log out of NorSaga" title="Return to the password screen">LOG OUT</button>
   </nav>
   <div id="global-loading-status" role="status" aria-live="polite" aria-atomic="true" hidden>
     <span id="global-loading-label">LOADING LIVE DATA</span>

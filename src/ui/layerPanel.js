@@ -59,6 +59,10 @@ const PANEL_GROUPS = [
     ],
   },
   {
+    label: 'Space Weather',
+    ids: ['aurora'],
+  },
+  {
     label: 'Utilities',
     ids: ['directions', 'radio'],
   },

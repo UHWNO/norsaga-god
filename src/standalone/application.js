@@ -17,6 +17,7 @@ export function createStandaloneApplication({
   geospatial = {},
   voice = {},
   allowQaRegistration = false,
+  enableLocalKeySetup = true,
 }) {
   if (constructed)
     throw new Error('The standalone application already owns this page');
@@ -66,6 +67,12 @@ export function createStandaloneApplication({
     createData: (context) =>
       createStandaloneData({ ...context, allowQaRegistration, catalog }),
     createTools: (context) =>
-      createStandaloneTools({ ...context, loadingScreen, placeSearch, voice }),
+      createStandaloneTools({
+        ...context,
+        loadingScreen,
+        placeSearch,
+        voice,
+        enableLocalKeySetup,
+      }),
   });
 }
