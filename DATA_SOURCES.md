@@ -382,10 +382,11 @@ Missing supplemental data is reported independently of OVATION availability.
 
 The server shares a two-minute OVATION cache (five minutes for supplements),
 retries failures no more than every 30 seconds, and can return an explicitly
-stale last-good grid for at most 60 minutes from both observation and acquisition.
+stale last-good grid for at most 60 minutes from both forecast time and acquisition.
 Supplemental cache fallback is limited to 30 minutes; intervals are re-evaluated
-on every response. Observations older than 15 minutes, or forecasts more than
-five minutes behind current time, are marked delayed/stale. Expired data is
+on every response. NOAA's normal 30–90 minute L1 observation lead time does not
+make a current forecast stale. Forecasts more than five minutes behind current
+time are marked delayed/stale. Expired data is
 unavailable, with no fabricated values.
 
 The static translucent globe shell sits 80 km above the ellipsoid for visibility

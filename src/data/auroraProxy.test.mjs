@@ -125,7 +125,55 @@ test('OVATION rejects malformed shape, excessive cells, duplicates, bad ranges a
     { ...grid(), 'Forecast Time': '2026-10-06T00:00:00Z' },
   ])
     assert.throws(() => normalizeOvation(value, NOW));
-  assert.throws(() => normalizeOvation(grid(), NOW + 61 * 60_000));
+  assert.throws(() =>
+    normalizeOvation(grid(), Date.parse(grid()['Forecast Time']) + 61 * 60_000),
+  );
+});
+test('current OVATION forecasts accept normal 30–90 minute L1 observation lead times', async () => {
+  for (const leadMinutes of [30, 63, 90]) {
+    const raw = {
+      ...grid(),
+      'Observation Time': new Date(NOW - leadMinutes * 60_000).toISOString(),
+      'Forecast Time': new Date(NOW).toISOString(),
+    };
+    assert.equal(normalizeOvation(raw, NOW).cells.length, 3);
+    let broken = false;
+    const f = fixture({
+      fetchImpl: async (url) => {
+        if (broken) throw new Error('offline');
+        return response(
+          url === NOAA_AURORA_URLS.ovation
+            ? raw
+            : url === NOAA_AURORA_URLS.kp
+              ? kp
+              : [],
+        );
+      },
+    });
+    const { body } = await f.request().done;
+    assert.equal(body.unavailable, false);
+    assert.equal(body.stale, false);
+    assert.equal(body.delayed, false);
+    assert.equal(body.reason, null);
+    assert.equal(body.cells.length, 3);
+    broken = true;
+    f.setNow(NOW + 6 * 60_000);
+    const cached = (await f.request().done).body;
+    assert.equal(cached.unavailable, false);
+    assert.equal(cached.stale, true);
+    assert.equal(cached.fetchedAt, NOW);
+    assert.equal(cached.cells.length, 3);
+    f.setNow(NOW + 61 * 60_000);
+    const expired = (await f.request().done).body;
+    assert.equal(expired.unavailable, true);
+    assert.deepEqual(expired.cells, []);
+  }
+  assert.throws(() =>
+    normalizeOvation(
+      { ...grid(), 'Observation Time': '2026-10-05T21:00:00Z' },
+      NOW,
+    ),
+  );
 });
 test('Kp preserves interval provenance and never labels observed data as a forecast', async () => {
   const rows = normalizeKp(
@@ -244,12 +292,18 @@ test('shared cache coalesces clients, falls back stale and expires bounded snaps
   assert.equal(expired.unavailable, true);
   assert.deepEqual(expired.cells, []);
 });
-test('newly fetched old observations are clearly delayed and do not renew the source expiry', async () => {
+test('newly fetched old forecasts are delayed and acquisition cannot renew forecast expiry', async () => {
   const f = fixture();
-  f.setNow(NOW + 10 * 60_000);
+  const forecastAt = Date.parse(grid()['Forecast Time']);
+  f.setNow(forecastAt + 10 * 60_000);
   const { body } = await f.request().done;
   assert.equal(body.delayed, true);
   assert.equal(body.stale, true);
+  assert.equal(body.unavailable, false);
+  f.setNow(forecastAt + 61 * 60_000);
+  const expired = (await f.request().done).body;
+  assert.equal(expired.unavailable, true);
+  assert.deepEqual(expired.cells, []);
 });
 test('malformed, oversized streamed or declared bodies, bad status and content type never fabricate grids', async () => {
   const bodies = [

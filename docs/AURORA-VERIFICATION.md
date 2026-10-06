@@ -8,6 +8,32 @@ subsequent scope adjustment: Aurora is an optional standalone layer for the firs
 release. AIS/weather combinations are optional. No mission automatically enables
 Aurora; select its toggle in Data Layers or the NorSaga layer list.
 
+## Forecast availability correction — October 6, 2026
+
+The grid's original freshness checks incorrectly expired NOAA's L1 observations
+after one hour, even when their forecast was still current. NOAA documents a
+normal 30–90 minute solar-wind travel time between observations and forecast.
+Both the server and globe now use forecast time for delay and expiry, retaining
+the one-hour acquisition limit, bounded forecast lead and timestamp validation.
+Refreshing an expired forecast cannot renew its validity. The NOAA image popup
+remains an independent feed; its availability does not establish grid availability.
+
+Live NOAA verification accepted 65,160 grid cells with source time 17:22 UTC
+and forecast time 18:25 UTC. The globe rendered 9,967 cells above its existing
+display threshold across both hemispheres, with a truthful delayed status.
+Kp remained independently unavailable because nearby records were estimated;
+the next predicted interval was outside the existing three-hour display window.
+
+- Node 24 full suite: 5,126 passed, zero failed, one existing skip, including
+  both serialized allocation suites.
+- Focused grid, layer, animation and playback regressions: 37 passed on both
+  Node 24 and Node 26, including 63/90-minute lead times, bounded cache fallback,
+  delayed/expired forecasts and resource cleanup.
+- Production build, setup doctor, formatting and import/package boundaries passed.
+- Real NOAA browser acceptance passed on Esri fallback: map-center inspection,
+  both hemispheres, actual frame playback and six toggle cycles. No unhandled
+  browser errors; the globe returned to its idle rendering state.
+
 ## Presentation revision — October 6, 2026
 
 The user requested delivery of the tested revision to GitHub on
@@ -93,10 +119,11 @@ planetary 0–9 index, not local auroral probability. Display-shell height is
 80 km solely for map visibility, not a prediction of auroral altitude.
 
 The shared OVATION cache refreshes after two minutes and expires at 60 minutes
-from both observation and acquisition. Supplemental TTL is five minutes with
-30-minute fallback. Failed requests have 30-second backoff. Source observations
-over 15 minutes old or forecasts over five minutes behind are explicitly
-stale/delayed. No values are fabricated during outages.
+from both forecast time and acquisition. Supplemental TTL is five minutes with
+30-minute fallback. Failed requests have 30-second backoff. Forecasts over five
+minutes behind are explicitly stale/delayed. NOAA's normal 30–90 minute lead
+between L1 observations and forecast time is not itself a delay or outage.
+No values are fabricated during outages.
 
 ## Files changed
 

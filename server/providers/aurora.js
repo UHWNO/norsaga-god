@@ -42,7 +42,9 @@ export function normalizeOvation(value, nowMs = Date.now()) {
     forecastMs = Date.parse(forecastTime);
   if (
     sourceMs > nowMs + 5 * MINUTE ||
-    nowMs - sourceMs > 60 * MINUTE ||
+    // L1 observations precede the forecast by the solar-wind travel time.
+    // A current forecast can legitimately use observations over an hour old.
+    nowMs - forecastMs > 60 * MINUTE ||
     forecastMs < sourceMs ||
     forecastMs - sourceMs > 120 * MINUTE
   )
@@ -235,7 +237,7 @@ export function auroraProxy({
     value &&
     now() - value.fetchedAt <= maxAge(key) &&
     (key !== 'ovation' ||
-      now() - Date.parse(value.data.sourceTime) <= 60 * MINUTE);
+      now() - Date.parse(value.data.forecastTime) <= 60 * MINUTE);
   async function acquire(key, signal) {
     signal.throwIfAborted();
     const old = cache.get(key);
@@ -328,9 +330,7 @@ export function auroraProxy({
     );
     signal.throwIfAborted();
     const delayed =
-      !!grid.data &&
-      (now() - Date.parse(grid.data.sourceTime) > 15 * MINUTE ||
-        now() - Date.parse(grid.data.forecastTime) > 5 * MINUTE);
+      !!grid.data && now() - Date.parse(grid.data.forecastTime) > 5 * MINUTE;
     const currentKp =
       kp.data?.find(
         (row) =>

@@ -37,12 +37,11 @@ export function createAuroraLayer({
   const expired = () =>
     snapshot &&
     !snapshot.unavailable &&
-    now() - Date.parse(snapshot.sourceTime) > 60 * 60_000;
+    (now() - Date.parse(snapshot.forecastTime) > 60 * 60_000 ||
+      now() - snapshot.fetchedAt > 60 * 60_000);
   const stale = () =>
     !!snapshot &&
-    (snapshot.stale ||
-      now() - Date.parse(snapshot.sourceTime) > 15 * 60_000 ||
-      now() - Date.parse(snapshot.forecastTime) > 5 * 60_000);
+    (snapshot.stale || now() - Date.parse(snapshot.forecastTime) > 5 * 60_000);
   const visibility = () => {
     if (documentRef?.hidden) request?.abort();
     else if (enabled && !destroyed) void layer.update(viewer);

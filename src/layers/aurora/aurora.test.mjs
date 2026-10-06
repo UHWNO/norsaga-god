@@ -115,7 +115,10 @@ test('source timeout, pre-abort, active abort and cancelled body reads settle cl
   });
   await assert.rejects(slowBody.getSnapshot(), /timed out/);
 });
-function layerFixture(feed = { getSnapshot: async () => snapshot() }) {
+function layerFixture(
+  feed = { getSnapshot: async () => snapshot() },
+  now = () => NOW,
+) {
   const listeners = new Set(),
     frames = [];
   let count = 0;
@@ -142,7 +145,7 @@ function layerFixture(feed = { getSnapshot: async () => snapshot() }) {
   };
   const layer = createAuroraLayer({
     feed,
-    now: () => NOW,
+    now,
     documentRef: doc,
     createRendering: () => renderer,
   });
@@ -231,10 +234,46 @@ test('stale, partial and unavailable readouts are honest and failed fetches clea
   await f.layer.update();
   assert.equal(f.layer.getStats().unavailable, true);
   assert.equal(f.layer.getDiagnostics().primitiveCount, 0);
-  value = snapshot({ sourceTime: '2026-10-05T20:00:00.000Z' });
+  value = snapshot({
+    sourceTime: '2026-10-05T20:00:00.000Z',
+    forecastTime: '2026-10-05T21:00:00.000Z',
+  });
   await f.layer.update();
   assert.equal(f.layer.getDiagnostics().primitiveCount, 0);
   assert.equal(f.layer.getStats().unavailable, true);
+  f.layer.destroy();
+});
+test('globe readout accepts a current forecast with 90-minute observations and expires by forecast or cache age', async () => {
+  let now = NOW;
+  let value = snapshot({
+    sourceTime: new Date(NOW - 90 * 60_000).toISOString(),
+    forecastTime: new Date(NOW).toISOString(),
+  });
+  const f = layerFixture({ getSnapshot: async () => value }, () => now);
+  f.layer.enable();
+  await f.layer.update();
+  assert.equal(f.layer.getReadout().status, 'Latest forecast');
+  assert.equal(f.layer.getReadout().leadMinutes, 90);
+  assert.equal(f.layer.getReadout().available, true);
+  assert.equal(f.layer.getStats().unavailable, false);
+  assert.equal(f.layer.getStats().stale, false);
+  assert.equal(f.layer.getDiagnostics().primitiveCount, 1);
+  now += 6 * 60_000;
+  assert.equal(f.layer.getReadout().status, 'Stale / delayed');
+  assert.equal(f.layer.getReadout().available, true);
+  now = NOW + 61 * 60_000;
+  value = { ...value, fetchedAt: now };
+  await f.layer.update();
+  assert.equal(f.layer.getReadout().available, false);
+  assert.equal(f.layer.getStats().unavailable, true);
+  assert.equal(f.layer.getDiagnostics().primitiveCount, 0);
+  value = snapshot({
+    fetchedAt: NOW,
+    forecastTime: new Date(now).toISOString(),
+  });
+  await f.layer.update();
+  assert.equal(f.layer.getReadout().available, false);
+  assert.equal(f.layer.getDiagnostics().primitiveCount, 0);
   f.layer.destroy();
 });
 test('raster keeps hemispheres and clips polar cells, wraps seam and skips zero activity', () => {
