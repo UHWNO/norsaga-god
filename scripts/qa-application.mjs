@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 /** Prove standalone startup and terminal resource ownership in a real browser. */
+import { unlockNorSaga } from './qa-norsaga-access.mjs';
 import assert from 'node:assert/strict';
 import puppeteer from 'puppeteer';
 
@@ -25,14 +26,16 @@ try {
   });
   page.on('pageerror', (error) => errors.push(error.stack || error.message));
   await page.goto(`${url}/?welcome=1`, { waitUntil: 'domcontentloaded' });
+  await unlockNorSaga(page);
   await page.waitForFunction(() => window.__godsEyeView?.voiceCommands, {
     timeout: 60_000,
   });
+  await page.waitForSelector('#norsaga-region option', { timeout: 15_000 });
   const before = await page.evaluate(async () => {
-    const entry = [...document.scripts].find((script) =>
-      /\/src\/main\.js(?:\?|$)/.test(script.src),
+    // NorSaga starts main through the password gate's dynamic import.
+    const { application } = await import(
+      new URL('/src/main.js', document.baseURI).href
     );
-    const { application } = await import(entry.src);
     window.__qaApplication = application;
     const app = window.__godsEyeView;
     window.__qaComponents = app;
@@ -49,6 +52,14 @@ try {
     ]);
     return {
       status: application.getState().status,
+      branding: document.title,
+      regions: document.querySelectorAll('#norsaga-region option').length,
+      workspace: Boolean(document.getElementById('norsaga-operations')),
+      aurora: Boolean(document.querySelector('.norsaga-aurora-readout')),
+      streetLevel: app.dataManager.layers.has('street-level'),
+      accessFormHidden: document.getElementById('access-gate-form').hidden,
+      logout: Boolean(document.getElementById('logout-button')),
+      guide: Boolean(document.getElementById('user-guide-link')),
       enabled,
       layers: app.dataManager.layers.size,
       annotationCount: annotation.drawn,
@@ -57,6 +68,17 @@ try {
     };
   });
   assert.equal(before.status, 'ready');
+  assert.match(before.branding, /NorSaga/);
+  assert.equal(before.regions, 13);
+  for (const field of [
+    'workspace',
+    'aurora',
+    'streetLevel',
+    'accessFormHidden',
+    'logout',
+    'guide',
+  ])
+    assert.equal(before[field], true, field);
   assert.equal(before.enabled, true);
   assert.ok(before.layers >= 16);
   assert.equal(before.annotationCount, 1);

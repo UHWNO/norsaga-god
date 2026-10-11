@@ -356,7 +356,7 @@ case "${OPENSKY_AUTH_MODE}" in
     echo "OpenSky auth: disabled (anonymous mode)"
     ;;
 esac
-[[ -n "${OPENAI_API_KEY}" ]] && echo "OpenAI key (voice + HUD summary): configured" || echo "OpenAI key (voice + HUD summary): not set — GEV MIC disabled"
+[[ -n "${OPENAI_API_KEY}" ]] && echo "OpenAI key (voice + HUD summary): configured" || echo "OpenAI key (voice + HUD summary): not set — GEV MIC off unless a Codex ChatGPT sign-in is selected in Provider Settings (experimental)"
 [[ -n "${AISSTREAM_API_KEY}" ]] && echo "AISStream key (live vessels): configured" || echo "AISStream key (live vessels): not set — ships layer empty"
 if [[ -n "${BARENTSWATCH_AIS_CLIENT_ID}" && -n "${BARENTSWATCH_AIS_CLIENT_SECRET}" ]]; then
   echo "BarentsWatch AIS OAuth: configured"

@@ -49,6 +49,7 @@ export const CREDENTIALS = Object.freeze([
     )),
   },
   { name: 'LL2_API_TOKEN', label: 'Launch Library 2', keychain: [] },
+  { name: 'MAPILLARY_CLIENT_TOKEN', label: 'Mapillary street level', keychain: [['mapillary', 'client-token'], ['mapillary', 'token']] },
 ]);
 
 export function isConfiguredValue(value) {
@@ -190,7 +191,9 @@ export function buildCapabilitySummary(
         ? 'Google Photorealistic 3D Tiles through Cesium ion; Bing and world-terrain stacks available'
         : 'Esri World Imagery (keyless satellite basemap) with keyless terrain',
     flights,
-    voice: configured('OPENAI_API_KEY') ? 'available' : 'off until an OpenAI key is added',
+    voice: configured('OPENAI_API_KEY')
+      ? 'available'
+      : 'off until an OpenAI key is added, or a Codex ChatGPT sign-in is selected in Provider Settings (experimental)',
     vessels:
       configured('AISSTREAM_API_KEY') &&
       configured('BARENTSWATCH_AIS_CLIENT_ID') &&

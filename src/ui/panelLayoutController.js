@@ -99,6 +99,7 @@ export class PanelLayoutController {
     this._cctvPanel = document.getElementById('cctv-panel');
     this._weatherPanel = document.getElementById('weather-panel');
     this._recentImageryPanel = document.getElementById('recent-imagery-panel');
+    this._streetLevelPanel = document.getElementById('street-level-panel');
     this._sliderPanel = document.getElementById('param-slider-panel');
     this._detectionBtn = document.getElementById('detection-toggle');
   }
@@ -203,11 +204,15 @@ export class PanelLayoutController {
       this._cctvPanel,
       this._weatherPanel,
       this._recentImageryPanel,
+      this._streetLevelPanel,
     ]) {
       if (!panel) continue;
-      for (const property of ['top', 'right', 'bottom', 'left', 'z-index'])
-        panel.style.removeProperty(property);
-      panel.classList.remove('panel-draggable', 'panel-dragging');
+      // A floating window keeps its restored place and size.
+      if (!panel.classList.contains('panel-floating')) {
+        for (const property of ['top', 'right', 'bottom', 'left', 'z-index'])
+          panel.style.removeProperty(property);
+        panel.classList.remove('panel-draggable', 'panel-dragging');
+      }
       stack.insertBefore(panel, globalContextPanel);
       this._syncPanelCollapseButton(panel);
     }
@@ -231,6 +236,7 @@ export class PanelLayoutController {
         this._cctvPanel,
         this._weatherPanel,
         this._recentImageryPanel,
+        this._streetLevelPanel,
         globalContextPanel,
         document.getElementById('radio-panel'),
       ]) {

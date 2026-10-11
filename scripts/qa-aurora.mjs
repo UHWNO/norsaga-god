@@ -100,7 +100,10 @@ try {
       const now = Date.now(),
         cells = [];
       for (let lon = -180; lon < 180; lon++)
-        for (const lat of [64, 65, 66, 67, 68, -64, -65, -66, -67, -68])
+        for (const lat of [
+          64, 65, 66, 67, 68, 69, 70, 71, -64, -65, -66, -67, -68, -69, -70,
+          -71,
+        ])
           cells.push([lon, lat, 50 + Math.round(25 * Math.sin(lon / 20))]);
       await request.respond({
         status: 200,
