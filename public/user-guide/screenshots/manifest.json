@@ -1,0 +1,261 @@
+{
+  "capturedOn": "2026-10-12",
+  "source": "Local current checkout; real provider responses",
+  "viewport": {
+    "width": 1600,
+    "height": 1000
+  },
+  "screenshots": [
+    {
+      "file": "01-workspace.webp",
+      "numberedTargets": [
+        "#norsaga-operations",
+        "#data-panel",
+        "#scene-panel",
+        "#right-context-rail",
+        "#command-dock",
+        "#top-center-actions"
+      ],
+      "pixels": {
+        "width": 1600,
+        "height": 1000
+      }
+    },
+    {
+      "file": "03-maritime.webp",
+      "numberedTargets": [
+        "#norsaga-region",
+        ".norsaga-layer-list",
+        ".norsaga-aurora"
+      ],
+      "pixels": {
+        "width": 500,
+        "height": 520
+      }
+    },
+    {
+      "file": "04-location.webp",
+      "numberedTargets": [
+        "#location-search",
+        "#location-pills",
+        "#north-up-view",
+        "#reset-globe-view"
+      ],
+      "pixels": {
+        "width": 1600,
+        "height": 1000
+      }
+    },
+    {
+      "file": "05-data-layers.webp",
+      "numberedTargets": [
+        "#data-toggles",
+        "#clear-selected-layers"
+      ],
+      "pixels": {
+        "width": 1156,
+        "height": 753
+      }
+    },
+    {
+      "file": "06-aurora.webp",
+      "numberedTargets": [
+        ".norsaga-aurora-readout",
+        "[data-aurora-action=\"inspect\"]",
+        "[data-aurora-action=\"history\"]"
+      ],
+      "pixels": {
+        "width": 500,
+        "height": 350
+      }
+    },
+    {
+      "file": "08-scenes.webp",
+      "numberedTargets": [
+        "#scene-new-btn",
+        "#scene-capture-btn",
+        "#scene-shot-list",
+        "#scene-export-btn"
+      ],
+      "pixels": {
+        "width": 1153,
+        "height": 350
+      }
+    },
+    {
+      "file": "09-sharing.webp",
+      "numberedTargets": [
+        "#share-btn",
+        "#north-up-view",
+        "#tilt-map-view"
+      ],
+      "pixels": {
+        "width": 500,
+        "height": 350
+      }
+    },
+    {
+      "file": "10-map-and-style.webp",
+      "numberedTargets": [
+        "#style-buttons",
+        "#map-stack-chips",
+        "[data-pin-target=\"control-panel\"]"
+      ],
+      "pixels": {
+        "width": 617,
+        "height": 350
+      }
+    },
+    {
+      "file": "11-display.webp",
+      "numberedTargets": [
+        "#hud-toggle",
+        "#detection-toggle",
+        "#scope-toggle",
+        "#draw-toggle"
+      ],
+      "pixels": {
+        "width": 500,
+        "height": 518
+      }
+    },
+    {
+      "file": "12-cctv.webp",
+      "numberedTargets": [
+        "#cctv-enable-btn",
+        "#cctv-nearest-btn",
+        "#cctv-camera-select",
+        "#cctv-focus-btn"
+      ],
+      "pixels": {
+        "width": 500,
+        "height": 350
+      }
+    },
+    {
+      "file": "14-context.webp",
+      "numberedTargets": [
+        "#global-context-flights-btn",
+        "#global-context-missions-btn",
+        "#context-radio-toggle-btn"
+      ],
+      "pixels": {
+        "width": 500,
+        "height": 350
+      }
+    },
+    {
+      "file": "15-ai-agent.webp",
+      "numberedTargets": [
+        "#gev-voice-button",
+        "#gev-voice-status",
+        "#gev-voice-tier",
+        "#gev-voice-cost-value"
+      ],
+      "pixels": {
+        "width": 500,
+        "height": 350
+      }
+    },
+    {
+      "file": "16-cctv-enabled.webp",
+      "numberedTargets": [
+        "#cctv-frame-wrap",
+        "#cctv-source-badge",
+        "#cctv-camera-select",
+        "#cctv-focus-btn"
+      ],
+      "pixels": {
+        "width": 500,
+        "height": 427
+      }
+    },
+    {
+      "file": "17-street-level-enabled.webp",
+      "numberedTargets": [
+        "#sl-provider-chips",
+        "#sl-controls"
+      ],
+      "pixels": {
+        "width": 500,
+        "height": 350
+      }
+    },
+    {
+      "file": "18-recent-imagery.webp",
+      "numberedTargets": [
+        "#recent-imagery-panel"
+      ],
+      "pixels": {
+        "width": 500,
+        "height": 529
+      }
+    },
+    {
+      "file": "19-vessel-inspection.webp",
+      "numberedTargets": [
+        "#hud-ais-vessel"
+      ],
+      "pixels": {
+        "width": 1600,
+        "height": 1000
+      }
+    },
+    {
+      "file": "20-share-scene.webp",
+      "numberedTargets": [
+        ".director-sharing-dialog"
+      ],
+      "pixels": {
+        "width": 790,
+        "height": 472
+      }
+    },
+    {
+      "file": "21-import-review.webp",
+      "numberedTargets": [
+        ".director-sharing-dialog"
+      ],
+      "pixels": {
+        "width": 790,
+        "height": 393
+      }
+    },
+    {
+      "file": "22-scene-details.webp",
+      "numberedTargets": [
+        ".director-sharing-dialog"
+      ],
+      "pixels": {
+        "width": 790,
+        "height": 778
+      }
+    },
+    {
+      "file": "02-starting-views.webp",
+      "numberedTargets": [
+        ".norsaga-missions",
+        ".norsaga-suppress"
+      ],
+      "pixels": {
+        "width": 730,
+        "height": 714
+      }
+    },
+    {
+      "file": "07-aurora-history.webp",
+      "numberedTargets": [
+        ".norsaga-aurora-dialog [aria-label=\"Aurora hemisphere\"]",
+        ".norsaga-aurora-dialog [aria-label=\"Aurora history duration\"]",
+        ".norsaga-aurora-dialog [data-aurora-action=\"play\"]",
+        ".norsaga-aurora-dialog [aria-label=\"NOAA image history timeline\"]",
+        ".norsaga-aurora-frame-time"
+      ],
+      "pixels": {
+        "width": 950,
+        "height": 989
+      }
+    }
+  ],
+  "activeMap": "esri-imagery"
+}

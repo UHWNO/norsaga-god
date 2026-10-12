@@ -10,6 +10,9 @@ dist
 !.env.example
 *.log
 screenshots/
+# User-guide screenshots are shipped documentation, rather than QA output.
+!public/user-guide/screenshots/
+!public/user-guide/screenshots/**
 qa-shots/
 output/
 .gev-logs/
