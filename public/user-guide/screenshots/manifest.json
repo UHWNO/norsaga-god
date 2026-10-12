@@ -255,6 +255,46 @@
         "width": 950,
         "height": 989
       }
+    },
+    {
+      "file": "22-personal-login.webp",
+      "targets": [],
+      "pixels": {
+        "width": 520,
+        "height": 679
+      },
+      "source": "Isolated browser test of real authentication UI; virtual WebAuthn authenticator; no live email sent",
+      "context": "Personal email login"
+    },
+    {
+      "file": "23-confirm-login.webp",
+      "targets": [],
+      "pixels": {
+        "width": 520,
+        "height": 654
+      },
+      "source": "Isolated browser test of real authentication UI; virtual WebAuthn authenticator; no live email sent",
+      "context": "Explicit single-use link confirmation"
+    },
+    {
+      "file": "24-passkey-setup.webp",
+      "targets": [],
+      "pixels": {
+        "width": 1000,
+        "height": 534
+      },
+      "source": "Isolated browser test of real authentication UI; virtual WebAuthn authenticator; no live email sent",
+      "context": "First administrator passkey setup"
+    },
+    {
+      "file": "25-user-administration.webp",
+      "targets": [],
+      "pixels": {
+        "width": 1000,
+        "height": 641
+      },
+      "source": "Isolated browser test of real authentication UI; virtual WebAuthn authenticator; no live email sent",
+      "context": "Passkey-approved administrator and example user"
     }
   ],
   "activeMap": "esri-imagery"

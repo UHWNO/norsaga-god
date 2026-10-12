@@ -5,6 +5,10 @@ import connect from 'connect';
 import sirv from 'sirv';
 import { localProviderPlugins } from '../providers/local.js';
 import { apiNotFoundPlugin } from './api-not-found.js';
+import { BROWSER_HEADERS } from '../../build/browser-security.js';
+import { readAuthConfig } from '../auth/config.js';
+import { createAccessService } from '../auth/service.js';
+import { createAccessMiddleware } from '../auth/middleware.js';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 process.chdir(root);
@@ -13,17 +17,14 @@ if (!existsSync('dist/index.html')) throw new Error('Run npm run build first.');
 
 const app = connect();
 const server = http.createServer(app);
+const access = await createAccessService(readAuthConfig());
 
 app.use((_req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
-  res.setHeader('X-Frame-Options', 'DENY');
-  res.setHeader('Content-Security-Policy', "frame-ancestors 'none'");
+  for (const [name, value] of Object.entries(BROWSER_HEADERS))
+    res.setHeader(name, value);
   next();
 });
-app.use('/healthz', (_req, res) => {
-  res.setHeader('Content-Type', 'application/json');
-  res.end(JSON.stringify({ status: 'ok', node: process.versions.node }));
-});
+app.use(createAccessMiddleware(access));
 
 // Provider routes only. Local credential-writing endpoints remain unavailable
 // on the hosted application.
@@ -41,4 +42,7 @@ server.listen(process.env.PORT || 4174, '127.0.0.1', () => {
   console.log(
     `NorSaga production server ready (Node ${process.versions.node})`,
   );
+});
+server.once('close', () => {
+  void access.close();
 });

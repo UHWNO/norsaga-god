@@ -29,15 +29,17 @@ files plus the prebuilt `dist/`. Exclude credentials, `.git`, local caches and
 `node_modules`. Preserve the previous application directory as a rollback copy
 until the new `/healthz`, application shell and provider routes are verified.
 
-The production server serves only `dist/` and mounts the existing provider
-middleware. Local credential-writing endpoints are deliberately excluded.
-`/healthz` reports readiness and the active Node version. Unknown API routes
-return JSON 404.
+The production server authenticates requests before serving `dist/` or mounting
+provider routes. Local credential-writing endpoints are deliberately excluded.
+`/healthz` reports minimal readiness without runtime details. Unknown API routes
+return JSON 404 after login. Missing authentication configuration stops startup;
+there is no shared-password fallback. Follow [personal access setup](docs/AUTHENTICATION.md),
+including persistent SQLite storage and ensuring Plesk does not serve protected
+static files directly around Passenger.
 
 ## Staging access and edge controls
 
-The Plesk deployment is a protected staging service, not a public release.
-Plesk protects `/` with HTTP Basic authentication using the realm
+The September 2026 staging setup used HTTP Basic authentication with the realm
 `NorSaga staging`. The staging username is `norsaga`; its generated password is
 stored in the deployer's macOS Keychain under the service
 `godseye.norsaga.com staging access`. Retrieve or rotate it through Keychain

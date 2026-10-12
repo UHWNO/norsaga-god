@@ -19,6 +19,16 @@ const qa = path.resolve('qa-artifacts/user-guide');
 await fs.mkdir(qa, { recursive: true });
 try {
   const page = await browser.newPage();
+  if (process.env.QA_SESSION_COOKIE) {
+    const [name, ...value] = process.env.QA_SESSION_COOKIE.split('=');
+    await page.setCookie({
+      name,
+      value: value.join('='),
+      url: base,
+      httpOnly: true,
+      secure: base.startsWith('https:'),
+    });
+  }
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => {
@@ -79,7 +89,7 @@ try {
       alt: node.alt,
     })),
   );
-  assert.equal(images.length, 21);
+  assert.equal(images.length, 25);
   const manifest = JSON.parse(
     await fs.readFile('public/user-guide/screenshots/manifest.json', 'utf8'),
   );

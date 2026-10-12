@@ -5,25 +5,26 @@ static build with a secured, operational hosted intelligence service.
 
 ## Access and secrets
 
-- [x] Protect the current Plesk staging deployment with server-enforced authentication.
-- [ ] Add required account management, logout and session expiry.
+- [ ] Verify the new personal authentication release on Plesk, including API and static-file routing. Unauthenticated live checks on 12 October returned 200 for `/` and `/api/vessels`; the historical Basic Auth evidence below no longer establishes current protection.
+- [x] Implement account management, real logout, server inactivity/absolute expiry, Mailjet links and passkey-required owner administration; see [authentication setup](AUTHENTICATION.md).
+- [ ] Configure valid Mailjet credentials and verified `no-reply@norsaga.com`, then verify actual login-email delivery and owner passkey enrollment in production.
 - [x] Restrict hosted provider configuration to Plesk administrators; the
-  production bundle does not expose the local key-setup surface.
+      production bundle does not expose the local key-setup surface.
 - [x] Keep server secrets outside Git, browser bundles and application logs.
 - [ ] Restrict browser-visible map credentials by allowed origin and provider permissions.
 - [x] Check repository history and generated assets for accidentally committed credentials.
 - [x] Retain the upstream local-only setup restrictions; do not expose a development
-  server or credential-writing endpoint by weakening its loopback checks.
+      server or credential-writing endpoint by weakening its loopback checks.
 
 ## Hosting
 
 - [x] Confirm the existing deployment architecture and preserve its working configuration.
 - [x] Provide an appropriate production server for API/provider routes, not just `dist/`.
 - [ ] Configure HTTPS, proxy trust, WebSocket handling, request limits, caching,
-  health checks, supervised processes and graceful restart.
+      health checks, supervised processes and graceful restart.
 - [ ] Review rate limits, provider costs, quotas, reconnect behavior and stale-data states.
 - [x] Do not use `vite preview` as a production server. Vite's documentation states
-  that it is a local preview tool: https://vite.dev/guide/static-deploy.html
+      that it is a local preview tool: https://vite.dev/guide/static-deploy.html
 - [x] Preserve the last known working deployment and a documented rollback procedure.
 
 ## Data governance
@@ -45,7 +46,7 @@ static build with a secured, operational hosted intelligence service.
 - [ ] Test original aircraft, satellite, CCTV, scene, voice and visual-effect functions.
 - [ ] Test keyboard-only use, focus restoration, zoomed text and reduced motion.
 - [ ] Test on actual supported iPhone/iPad Safari, Android Chrome, macOS Safari/Chrome
-  and Windows Edge/Chrome; publish minimum browser/OS requirements from results.
+      and Windows Edge/Chrome; publish minimum browser/OS requirements from results.
 - [ ] Test WebGL/GPU constraints, rotation, narrow portrait screens and landscape mode.
 - [ ] Verify required provider attribution stays visible in normal and recording modes.
 
@@ -72,8 +73,9 @@ necessary before making compatibility claims.
   passed for the staging release. Browser/device and provider-contract gates
   below remain release blockers where unchecked.
 
-Server authentication is only a staging perimeter. It does not supply product
-accounts, logout, session expiry or role-based access. The source review also
+The September perimeter check is historical. The new code supplies personal
+accounts, logout, session expiry and passkey-protected owner administration;
+production activation and verification remain pending. The source review also
 remains unresolved: the TeleGeography and Bhote Koshi non-commercial assets are
 still present in generated artifacts, so this build is not cleared for public
 commercial distribution.

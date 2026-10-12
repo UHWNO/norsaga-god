@@ -30,6 +30,7 @@
     "exports": ["./build/vite", "./build/html"],
     "modules": [
       "build/vite.js",
+      "build/browser-security.js",
       "build/application-html.js",
       "build/allowedHosts.js",
       "build/embed-framing.js",

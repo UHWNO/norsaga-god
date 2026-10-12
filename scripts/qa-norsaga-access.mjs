@@ -1,14 +1,18 @@
-import { NORSAGA_ACCESS_PASSWORD } from '../src/passwordGateCore.js';
-
-/** Enter the existing client access gate through its normal form, if present. */
+/** QA uses a real pre-authenticated session; there is no password/backdoor. */
 export async function unlockNorSaga(page) {
-  const gated = await page.evaluate(() => {
-    const form = document.getElementById('access-gate-form');
-    return !!form && !form.hidden;
+  if (!new URL(page.url()).pathname.endsWith('/login.html')) return;
+  if (!process.env.QA_SESSION_COOKIE)
+    throw new Error('Browser QA requires QA_SESSION_COOKIE from a real login');
+  const origin = new URL(page.url()).origin;
+  const [name, ...value] = process.env.QA_SESSION_COOKIE.split('=');
+  await page.setCookie({
+    name,
+    value: value.join('='),
+    url: origin,
+    httpOnly: true,
+    secure: origin.startsWith('https:'),
   });
-  if (!gated) return;
-  await page.type('#access-gate-password', NORSAGA_ACCESS_PASSWORD);
-  await page.click('#access-gate-form button[type="submit"]');
+  await page.goto(`${origin}/?welcome=0`, { waitUntil: 'domcontentloaded' });
 }
 
 /** Keep provider query credentials out of browser QA diagnostics. */

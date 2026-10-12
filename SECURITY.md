@@ -1,5 +1,17 @@
 # Security
 
+## NorSaga hosted authentication
+
+NorSaga's standalone servers now authenticate both application documents and
+provider APIs before routing them. The former client-side shared password is
+removed. Approved users receive single-use Mailjet email links or use passkeys;
+the owner must authenticate with a recently verified passkey to administer
+users. Roles and membership are server-owned, sessions expire and can be
+revoked, and there is no public sign-up or email-only owner passkey recovery.
+See [authentication deployment and recovery](docs/AUTHENTICATION.md). This code
+does not establish that Plesk is configured or the release is deployed; verify
+the target and static-file routing before claiming production protection.
+
 God's Eye View is a local-first client for **public** data. It is built for exploration, demos, and learning — not as a hardened production service. This document explains the security model so you can run it safely and report issues responsibly.
 
 ## Reporting a vulnerability
@@ -15,13 +27,13 @@ Include repro steps and impact. We'll acknowledge, investigate, and credit you (
 
 The golden rule: **secret-bearing API keys stay on the server side.** The dev/preview server (middleware under `server/providers/`) brokers every request that needs a private credential, so the browser never receives one.
 
-| Key | Where it lives | How the browser uses it |
-|-----|----------------|--------------------------|
-| `OPENAI_API_KEY` | Server only | Browser fetches a short-lived **ephemeral** Realtime session token from `/api/realtime/token`; the real key never ships |
+| Key                                                    | Where it lives                                                                                                        | How the browser uses it                                                                                                                                                        |
+| ------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `OPENAI_API_KEY`                                       | Server only                                                                                                           | Browser fetches a short-lived **ephemeral** Realtime session token from `/api/realtime/token`; the real key never ships                                                        |
 | ChatGPT sign-in through Codex (optional, experimental) | Codex's own `auth.json` (`CODEX_HOME`, default `~/.codex`); GEV reads it server-side and never writes or refreshes it | Only after **USE CHATGPT OAUTH** is selected in Provider Settings: the server mints the same ephemeral Realtime token with the ChatGPT access token, for loopback clients only |
-| `AISSTREAM_API_KEY` | Server only | Server holds the AISStream websocket; browser polls the same-origin `/api/vessels` cache |
-| OpenSky OAuth (`OPENSKY_CLIENT_ID/SECRET`) | Server only | Server mints + refreshes the token behind `/api/flights` |
-| `GOOGLE_MAPS_SERVER_API_KEY` (optional, #33) | Server only | Server calls Places (`/api/google/nearby-places`, `/api/google/text-search`) and the Street View fallback with this key; falls back to `GOOGLE_MAPS_API_KEY` when unset |
+| `AISSTREAM_API_KEY`                                    | Server only                                                                                                           | Server holds the AISStream websocket; browser polls the same-origin `/api/vessels` cache                                                                                       |
+| OpenSky OAuth (`OPENSKY_CLIENT_ID/SECRET`)             | Server only                                                                                                           | Server mints + refreshes the token behind `/api/flights`                                                                                                                       |
+| `GOOGLE_MAPS_SERVER_API_KEY` (optional, #33)           | Server only                                                                                                           | Server calls Places (`/api/google/nearby-places`, `/api/google/text-search`) and the Street View fallback with this key; falls back to `GOOGLE_MAPS_API_KEY` when unset        |
 
 ### Three deliberately client-side keys — restrict them
 

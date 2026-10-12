@@ -26,6 +26,7 @@ export function panelBuildConfig(config) {
       cssCodeSplit: false,
       rollupOptions: {
         ...config.build?.rollupOptions,
+        input: 'index.html',
         output: { inlineDynamicImports: true },
       },
     },

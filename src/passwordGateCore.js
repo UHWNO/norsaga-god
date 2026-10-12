@@ -1,6 +1,4 @@
-// This is an intentionally lightweight client-side gate, not authentication.
-// Anyone with access to the built JavaScript can discover this value.
-export const NORSAGA_ACCESS_PASSWORD = '2026Oslo*';
+// Presentation and idle reminder only. Authentication is enforced by the server.
 export const INACTIVITY_LOGOUT_MS = 30 * 60 * 1000;
 export const MINIMUM_VIEWPORT_WIDTH = 1280;
 export const MINIMUM_VIEWPORT_HEIGHT = 720;
@@ -14,15 +12,6 @@ const ACTIVITY_EVENTS = Object.freeze([
   'wheel',
   'focus',
 ]);
-
-export function isPasswordAccepted(candidate) {
-  return candidate === NORSAGA_ACCESS_PASSWORD;
-}
-
-/** Return the current browser session to the password gate. */
-export function logoutToAccessGate(location = globalThis.location) {
-  location?.reload?.();
-}
 
 export function meetsMinimumViewport(width, height) {
   return width >= MINIMUM_VIEWPORT_WIDTH && height >= MINIMUM_VIEWPORT_HEIGHT;

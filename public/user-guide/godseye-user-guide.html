@@ -876,6 +876,9 @@
           break-inside: avoid;
         }
       }
+      .email-address {
+        white-space: nowrap;
+      }
     </style>
   </head>
   <body>
@@ -981,10 +984,17 @@
                 and data feeds.
               </p>
               <p>
-                Open the app address supplied by your administrator. If a
-                password screen appears, enter the password they supplied and
-                submit the form. Wait for the globe and the
-                <strong>MARITIME WORKSPACE</strong> box to appear.
+                Open the app address supplied by your administrator. Your exact
+                email address must be approved first. Enter it on the login page
+                and click <strong>Send innloggingslenke</strong>. Open the email
+                from
+                <strong class="email-address">no-reply@norsaga.com</strong>
+                (sender name: <strong>NorSaga God´s Eye Access</strong>) within
+                ten minutes. Click the link, then
+                <strong>Bekreft innlogging</strong>. On
+                <strong>Min tilgang</strong>, choose
+                <strong>Åpne God’s Eye</strong>. Wait for the globe and
+                <strong>MARITIME WORKSPACE</strong> to appear.
               </p>
             </div>
             <p>
@@ -999,6 +1009,115 @@
               and technology evaluation. Use it to explore and learn. It is not
               a navigation system or a source for safety-critical decisions.
             </div>
+
+            <h3>Your personal login</h3>
+            <p>
+              There is no shared password. The email link is personal, works
+              once and expires after ten minutes. Do not forward it. The page
+              always says a link will be sent if the address is approved; this
+              does not mean an unregistered address has access. If no email
+              arrives, check your spam folder and ask the administrator to check
+              your address.
+            </p>
+            <figure>
+              <a
+                href="screenshots/22-personal-login.webp"
+                target="_blank"
+                rel="noopener"
+                ><img
+                  src="screenshots/22-personal-login.webp"
+                  alt="Personal login page with an email field and a passkey login button"
+                  width="520"
+                  height="679"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                Enter your approved address and choose
+                <strong>Send innloggingslenke</strong>. If you have already set
+                up a passkey, choose <strong>Logg inn med passkey</strong>.
+              </figcaption>
+            </figure>
+            <figure>
+              <a
+                href="screenshots/23-confirm-login.webp"
+                target="_blank"
+                rel="noopener"
+                ><img
+                  src="screenshots/23-confirm-login.webp"
+                  alt="Email link confirmation page with the Confirm login button"
+                  width="520"
+                  height="654"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                Choose <strong>Bekreft innlogging</strong> to use the email
+                link. Opening an email preview does not sign you in.
+              </figcaption>
+            </figure>
+            <h3>Passkeys and Min tilgang</h3>
+            <p>
+              A <strong>passkey</strong> is a login key protected by your
+              device, usually using Touch ID, Windows Hello or a security key.
+              Ordinary users may keep using email links or choose
+              <strong>Opprett passkey</strong> for quicker login. Follow your
+              browser’s instructions. A reserve passkey should be on a second
+              device or security key.
+            </p>
+            <figure>
+              <a
+                href="screenshots/24-passkey-setup.webp"
+                target="_blank"
+                rel="noopener"
+                ><img
+                  src="screenshots/24-passkey-setup.webp"
+                  alt="My access page showing the Create passkey and Verify with passkey controls"
+                  width="1000"
+                  height="534"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                <strong>Åpne God’s Eye</strong> opens the workspace.
+                <strong>Opprett passkey</strong> sets up a key. Administrators
+                must then choose <strong>Bekreft med passkey</strong> before
+                managing users.
+              </figcaption>
+            </figure>
+            <h3>For the administrator</h3>
+            <p>
+              After confirming with a passkey, enter each person’s name and
+              exact email under <strong>Godkjente brukere</strong>. Choose
+              <strong>Godkjenn bruker</strong>. They can now request their own
+              login email; an invitation is not sent automatically.
+              <strong>Sperr tilgang</strong> ends their active access too.
+              Confirm with a passkey again when administration expires after
+              fifteen minutes. Email alone cannot reset an existing
+              administrator passkey; contact the server operator if all keys are
+              lost.
+            </p>
+            <figure>
+              <a
+                href="screenshots/25-user-administration.webp"
+                target="_blank"
+                rel="noopener"
+                ><img
+                  src="screenshots/25-user-administration.webp"
+                  alt="Administrator user list with approval form and access blocking buttons"
+                  width="1000"
+                  height="641"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                The simple user list opens after passkey verification. The
+                addresses shown here are examples from an isolated test
+                installation, not approved production users.
+              </figcaption>
+            </figure>
+            <p>
+              Use <strong>MIN TILGANG</strong> at the top of the workspace to
+              return to your account. <strong>LOG OUT</strong> ends your server
+              session. You must sign in again after thirty minutes without
+              activity, or after eight hours even if you have been working.
+            </p>
             <h3>How to use this manual</h3>
             <p>
               Choose a chapter from the menu on the left, or use the Next button
@@ -1041,9 +1160,11 @@
             </figure>
             <p class="chapter-meta">
               Updated 12 October 2026. Screenshots show this version of the app
-              with real source responses. Map appearance, available objects and
-              source status can differ on your computer. The examples use the
-              Esri map; a configured installation may use Google 3D.
+              with real source responses. Login and administration screenshots
+              use an isolated test installation and example accounts. Map
+              appearance, available objects and source status can differ on your
+              computer. The examples use the Esri map; a configured installation
+              may use Google 3D.
             </p>
             <div class="next">
               <span></span
@@ -2222,8 +2343,8 @@
               If the notice says <strong>Copy failed</strong>, wait a moment
               after adjusting the view, then copy the full app address from your
               browser’s address bar, including the part after
-              <strong>#</strong>. A link does not supply a password or grant
-              access to a missing data provider.
+              <strong>#</strong>. A shared view link does not sign you in or
+              grant access to a missing data provider.
             </p>
             <div class="next">
               <button type="button" data-next="cameras">
@@ -2982,12 +3103,13 @@
             <p>
               Tell your administrator which function you used, the exact
               source/error text and what you expected. Include a screenshot if
-              useful. Do not include the password or provider credentials.
+              useful. Do not include login links, passkey details or provider
+              credentials.
             </p>
             <p>
               Click <strong>LOG OUT</strong> at the top of the app to return to
-              its password screen. Keep a preset export if you plan to clear
-              this browser’s stored data.
+              its personal login screen. Keep a preset export if you plan to
+              clear this browser’s stored data.
             </p>
             <div class="next">
               <button type="button" data-next="data">

@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="nb">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Min tilgang – NorSaga God’s Eye</title>
+    <link rel="icon" href="/norsaga/favicon.png" />
+  </head>
+  <body>
+    <main class="account-layout">
+      <header class="account-header">
+        <div class="brand">NOR SAGA <span>GOD’S EYE</span></div>
+        <button id="sign-out" class="secondary" type="button">Logg ut</button>
+      </header>
+      <section class="access-card">
+        <h1>Min tilgang</h1>
+        <p id="identity">Kontrollerer innlogging …</p>
+        <a class="button" href="/">Åpne God’s Eye</a>
+        <h2>Passkey</h2>
+        <p>
+          En passkey lar deg logge inn med Touch ID, Windows Hello eller en
+          sikkerhetsnøkkel. Opprett gjerne en ekstra passkey på en annen enhet
+          eller sikkerhetsnøkkel som reserve.
+        </p>
+        <p id="admin-help" hidden>
+          Administrator må bekrefte med passkey før brukerlisten åpnes. Første
+          gang: opprett en passkey, og trykk deretter «Bekreft med passkey».
+        </p>
+        <button id="add-passkey" type="button">Opprett passkey</button>
+        <button id="verify-passkey" class="secondary" type="button">
+          Bekreft med passkey
+        </button>
+        <ul id="passkey-list"></ul>
+        <p class="hint">
+          Hvis du mister alle passkeyene som administrator, må tilgangen
+          gjenopprettes av den som har tilgang til serveren. E-post alene kan
+          ikke tilbakestille administratorens passkey.
+        </p>
+      </section>
+      <section id="admin-section" class="access-card" hidden>
+        <h2>Godkjente brukere</h2>
+        <p>
+          Legg til hver adresse som skal ha tilgang. En sperret bruker mister
+          også aktive innlogginger. Nye brukere blir ikke varslet automatisk.
+        </p>
+        <form id="user-form" class="user-form">
+          <label for="user-name">Navn</label
+          ><input id="user-name" name="name" maxlength="100" required />
+          <label for="user-email">E-postadresse</label
+          ><input
+            id="user-email"
+            name="email"
+            type="email"
+            maxlength="254"
+            required
+          />
+          <button type="submit">Godkjenn bruker</button>
+        </form>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Navn</th>
+                <th>E-post</th>
+                <th>Status</th>
+                <th>Handling</th>
+              </tr>
+            </thead>
+            <tbody id="users"></tbody>
+          </table>
+        </div>
+        <details>
+          <summary>Siste sikkerhetshendelser</summary>
+          <ul id="audit-list"></ul>
+        </details>
+      </section>
+      <p id="status" role="status" aria-live="polite"></p>
+    </main>
+    <script type="module" src="/src/auth/account.js"></script>
+  </body>
+</html>

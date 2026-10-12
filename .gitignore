@@ -17,6 +17,10 @@ qa-shots/
 output/
 .gev-logs/
 .gev-cache/
+.norsaga-auth/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
 # Browser QA gate evidence (screenshots, console and network dumps).
 qa-artifacts/
 .DS_Store

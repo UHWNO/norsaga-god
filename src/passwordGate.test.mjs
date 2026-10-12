@@ -2,28 +2,17 @@ import assert from 'node:assert/strict';
 import {
   createInactivityLogout,
   INACTIVITY_LOGOUT_MS,
-  isPasswordAccepted,
-  logoutToAccessGate,
   meetsMinimumViewport,
   MINIMUM_VIEWPORT_HEIGHT,
   MINIMUM_VIEWPORT_WIDTH,
-  NORSAGA_ACCESS_PASSWORD,
 } from './passwordGateCore.js';
 
-assert.equal(isPasswordAccepted(NORSAGA_ACCESS_PASSWORD), true);
-assert.equal(isPasswordAccepted('NORSAGA'), false);
-assert.equal(isPasswordAccepted(` ${NORSAGA_ACCESS_PASSWORD} `), false);
-assert.equal(isPasswordAccepted(''), false);
 assert.equal(INACTIVITY_LOGOUT_MS, 1_800_000);
 assert.equal(MINIMUM_VIEWPORT_WIDTH, 1280);
 assert.equal(MINIMUM_VIEWPORT_HEIGHT, 720);
 assert.equal(meetsMinimumViewport(1280, 720), true);
 assert.equal(meetsMinimumViewport(1279, 720), false);
 assert.equal(meetsMinimumViewport(1280, 719), false);
-
-let manualLogoutCount = 0;
-logoutToAccessGate({ reload: () => manualLogoutCount++ });
-assert.equal(manualLogoutCount, 1, 'manual logout returns to the access gate');
 
 const listeners = new Map();
 const eventTarget = {

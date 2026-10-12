@@ -1,0 +1,27 @@
+:root { color-scheme: dark; font-family: Inter, system-ui, sans-serif; background: #07111f; color: #eaf2fa; }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; padding: 5vh 24px; background: radial-gradient(ellipse at top, #172f48 0, #07111f 65%); }
+.access-card { width: min(520px, 100%); margin: 3vh auto; border: 1px solid #30465e; border-radius: 18px; background: #0e1d2e; padding: 32px; box-shadow: 0 20px 60px #0005; }
+.brand { font-size: 22px; letter-spacing: .12em; font-weight: 750; color: #fff; }
+.brand span { display: block; color: #8dc9df; font-size: 11px; letter-spacing: .25em; margin: 6px 0 24px; }
+h1 { font-size: 28px; margin-top: 12px; } h2 { font-size: 20px; margin-top: 30px; }
+p, li { line-height: 1.6; } p { color: #c1cfdd; }
+label { display: block; font-weight: 600; margin: 20px 0 8px; }
+input { width: 100%; background: #07111f; border: 1px solid #496079; color: #fff; border-radius: 8px; padding: 13px; font: inherit; }
+button, .button { display: inline-block; cursor: pointer; border: 1px solid #489fc1; border-radius: 8px; background: #256181; color: #fff; padding: 12px 18px; font: inherit; font-weight: 600; text-decoration: none; }
+form button { width: 100%; margin-top: 18px; }
+.secondary { background: transparent; border-color: #567089; }
+button:hover, .button:hover { background: #337799; } button:disabled { opacity: .6; cursor: wait; }
+input:focus-visible, button:focus-visible, a:focus-visible, summary:focus-visible { outline: 3px solid #9fe1f6; outline-offset: 3px; }
+.hint, footer { font-size: 13px; color: #a0b4c9; line-height: 1.6; }
+.divider { margin: 22px 0; text-align: center; color: #7f96ad; }
+#passkey-login { width: 100%; }
+#status { min-height: 24px; color: #abe0ee; } #status.error { color: #ffb5b5; }
+footer { border-top: 1px solid #30465e; padding-top: 20px; margin-top: 24px; }
+.account-layout { max-width: 1000px; margin: auto; } .account-layout .access-card { width: 100%; }
+.account-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.account-header .brand span { margin-bottom: 0; }
+.table-scroll { overflow-x: auto; margin-top: 28px; } table { width: 100%; border-collapse: collapse; } th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #30465e; } th { font-size: 13px; color: #a0b4c9; } td button { font-size: 13px; padding: 8px 12px; }
+li button { margin: 8px 12px; padding: 6px 10px; font-size: 13px; } summary { cursor: pointer; margin-top: 20px; }
+[hidden] { display: none !important; }
+@media (max-width: 600px) { body { padding: 20px 12px; } .access-card { padding: 22px; } .brand { font-size: 18px; } }

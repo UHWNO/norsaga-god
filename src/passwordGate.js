@@ -1,95 +1,37 @@
-import {
-  createInactivityLogout,
-  isPasswordAccepted,
-  logoutToAccessGate,
-  meetsMinimumViewport,
-} from './passwordGateCore.js';
+import { meetsMinimumViewport } from './passwordGateCore.js';
 import { bindUserGuidePopup } from './userGuidePopup.js';
+import { accessFetch, signOut } from './auth/client.js';
+import { maintainSession } from './auth/session.js';
 
 const loadingScreen = document.getElementById('loading-screen');
-const form = document.getElementById('access-gate-form');
-const passwordInput = document.getElementById('access-gate-password');
 const status = document.getElementById('access-gate-status');
-const viewportNotice = document.getElementById('access-gate-viewport-notice');
-const submitButton = form?.querySelector('button[type="submit"]');
-const logoutButton = document.getElementById('logout-button');
+const notice = document.getElementById('access-gate-viewport-notice');
 bindUserGuidePopup();
-
-if (
-  !loadingScreen ||
-  !form ||
-  !passwordInput ||
-  !status ||
-  !viewportNotice ||
-  !submitButton
-) {
-  throw new Error('NorSaga access gate markup is incomplete');
-}
-
 function updateViewportNotice() {
-  viewportNotice.hidden = meetsMinimumViewport(
-    window.innerWidth,
-    window.innerHeight,
-  );
+  if (notice)
+    notice.hidden = meetsMinimumViewport(window.innerWidth, window.innerHeight);
 }
-
-function showRejectedState() {
-  loadingScreen.classList.remove('access-gate-rejected');
-  // Restart the short rejection animation even after consecutive attempts.
-  void loadingScreen.offsetWidth;
-  loadingScreen.classList.add('access-gate-rejected');
-  passwordInput.value = '';
-  passwordInput.setAttribute('aria-invalid', 'true');
-  status.textContent = 'Incorrect password. Try again.';
-  passwordInput.focus();
-}
-
-async function startApplication() {
-  form.hidden = true;
-  submitButton.disabled = true;
-  passwordInput.disabled = true;
-  passwordInput.removeAttribute('aria-invalid');
-  loadingScreen.classList.remove('access-gate', 'access-gate-rejected');
-  loadingScreen.classList.add('application-starting');
-  status.textContent = 'Initializing maritime intelligence...';
-
-  try {
-    await import('./main.js');
-    createInactivityLogout({
-      eventTarget: window,
-      onTimeout: () => logoutToAccessGate(window.location),
-    });
-  } catch (error) {
-    console.error('Unable to load NorSaga:', error);
-    loadingScreen.classList.add('access-gate');
-    loadingScreen.classList.remove('application-starting');
-    form.hidden = false;
-    submitButton.disabled = false;
-    passwordInput.disabled = false;
-    status.textContent = 'Unable to start the application. Please try again.';
-    passwordInput.focus();
-  }
-}
-
-form.addEventListener('submit', (event) => {
-  event.preventDefault();
-  if (!isPasswordAccepted(passwordInput.value)) {
-    showRejectedState();
-    return;
-  }
-  void startApplication();
+document.getElementById('logout-button')?.addEventListener('click', () => {
+  void signOut().catch((error) => {
+    if (status) status.textContent = error.message;
+    alert(error.message);
+  });
 });
-
-logoutButton?.addEventListener('click', () =>
-  logoutToAccessGate(window.location),
-);
-
-passwordInput.addEventListener('input', () => {
-  passwordInput.removeAttribute('aria-invalid');
-  loadingScreen.classList.remove('access-gate-rejected');
-  status.textContent = 'Enter your password to continue';
-});
-
 window.addEventListener('resize', updateViewportNotice, { passive: true });
 updateViewportNotice();
-passwordInput.focus();
+async function start() {
+  try {
+    await accessFetch('/api/access/status');
+    loadingScreen?.classList.remove('access-gate');
+    loadingScreen?.classList.add('application-starting');
+    if (status) status.textContent = 'Starter NorSaga …';
+    await import('./main.js');
+    maintainSession();
+  } catch (error) {
+    if (error.status === 401) location.replace('/login.html');
+    else if (status)
+      status.textContent =
+        'Appen kunne ikke starte. Last siden på nytt, eller kontakt administrator.';
+  }
+}
+void start();

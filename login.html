@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="nb">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Logg inn – NorSaga God’s Eye</title>
+    <link rel="icon" href="/norsaga/favicon.png" />
+  </head>
+  <body>
+    <main class="access-card">
+      <div class="brand">NOR SAGA <span>GOD’S EYE</span></div>
+      <h1>Logg inn</h1>
+      <p id="login-intro">
+        Bruk din godkjente e-postadresse. Vi sender deg en personlig
+        innloggingslenke.
+      </p>
+      <form id="login-form">
+        <label for="email">E-postadresse</label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          autocomplete="email webauthn"
+          maxlength="254"
+          placeholder="navn@firma.no"
+          required
+        />
+        <button type="submit">Send innloggingslenke</button>
+      </form>
+      <section id="confirm-section" hidden>
+        <p>
+          Trykk på knappen for å bruke lenken. Lenken kan brukes én gang og
+          varer i ti minutter.
+        </p>
+        <button id="confirm-login" type="button">Bekreft innlogging</button>
+      </section>
+      <div class="divider">eller</div>
+      <button id="passkey-login" class="secondary" type="button">
+        Logg inn med passkey
+      </button>
+      <p class="hint">
+        Har du allerede satt opp en passkey? Bruk Touch ID, Windows Hello,
+        telefonen eller en sikkerhetsnøkkel.
+      </p>
+      <p id="status" role="status" aria-live="polite"></p>
+      <footer>
+        Tilgang gis av administrator. Bruk en datamaskin med et nettleservindu
+        på minst 1280 × 720 piksler.
+      </footer>
+    </main>
+    <script type="module" src="/src/auth/login.js"></script>
+  </body>
+</html>

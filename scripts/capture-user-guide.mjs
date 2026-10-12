@@ -542,6 +542,17 @@ try {
   manifest.activeMap = await page.evaluate(() =>
     window.__godsEyeView.mapStackController.getActiveId(),
   );
+  // Authentication captures use a separate isolated WebAuthn harness. Preserve
+  // them when refreshing the real-data workspace screenshots.
+  const previousManifest = JSON.parse(
+    await fs.readFile(path.join(out, 'manifest.json'), 'utf8'),
+  );
+  manifest.screenshots.push(
+    ...previousManifest.screenshots.filter(
+      (item) => Number.parseInt(item.file, 10) >= 22,
+    ),
+  );
+  manifest.screenshots.sort((a, b) => a.file.localeCompare(b.file));
   await fs.writeFile(
     path.join(out, 'manifest.json'),
     JSON.stringify(manifest, null, 2) + '\n',
