@@ -131,3 +131,19 @@ or send live email. Browser QA can consume a real session through the temporary
 References: [Better Auth](https://better-auth.com/docs),
 [OWASP MFA](https://cheatsheetseries.owasp.org/cheatsheets/Multifactor_Authentication_Cheat_Sheet.html),
 [Mailjet Send API](https://dev.mailjet.com/docs/email-api/send-api-v31/send-basic-email).
+
+## User access history
+
+After verifying with a passkey, the owner can open **My Access** and scroll to
+**User Access Log**. It shows the latest 100 successful sessions from the past
+90 days: user name and email, sign-in time, email-link/passkey method, last
+activity and session status. **Refresh Log** loads the newest records. Times use
+the administrator's browser time zone, shown above the table.
+
+App/account page visits and user-activity heartbeats update last activity.
+Background data polling does not count as user activity. “Active session” means
+the session is still valid; it does not prove someone is currently looking at
+the screen. Sign-out and access revocation are retained after the session ends.
+History lives in the persistent authentication SQLite database. Existing sessions
+are included at upgrade; already-ended sessions from before this change cannot
+be reconstructed. The API returns no session IDs, cookies, tokens or IP addresses.

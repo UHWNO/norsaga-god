@@ -199,3 +199,16 @@ summary {
   max-width: 260px;
   margin: -20px 0;
 }
+
+.access-log-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 32px;
+}
+.access-log-header h2 { margin: 0; }
+.access-log-scroll { margin-top: 12px; }
+.access-log-scroll th { white-space: nowrap; }
+.access-log-scroll td { vertical-align: top; font-size: 13px; }

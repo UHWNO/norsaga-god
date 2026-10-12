@@ -218,11 +218,15 @@ export function createAccessMiddleware(service, { development = false } = {}) {
       ].includes(route);
       if (!publicAuth && !(await service.getSession(headers)))
         return json(res, 401, { error: 'Login required' });
+      const signingOut =
+        route === '/sign-out' ? await service.getSession(headers) : null;
       const body =
         req.method === 'POST' ? JSON.stringify(await readJSON(req)) : undefined;
       const response = await service.auth.handler(
         new Request(url, { method: req.method, headers, body }),
       );
+      if (signingOut && response.ok)
+        service.accessHistory.end(signingOut.session.id, 'signed_out');
       for (const [key, value] of response.headers) {
         if (!['set-cookie', 'cache-control'].includes(key))
           res.setHeader(key, value);
@@ -260,9 +264,7 @@ export function createAccessMiddleware(service, { development = false } = {}) {
       });
     }
     if (path === '/api/access/activity' && req.method === 'POST') {
-      service.db
-        .prepare('UPDATE session SET lastActivity = ? WHERE id = ?')
-        .run(Date.now(), current.session.id);
+      service.accessHistory.activity(current);
       return json(res, 200, { status: true });
     }
     if (path.startsWith('/api/access/admin/')) {
@@ -273,6 +275,8 @@ export function createAccessMiddleware(service, { development = false } = {}) {
         });
       if (path === '/api/access/admin/users' && req.method === 'GET')
         return json(res, 200, { users: service.users() });
+      if (path === '/api/access/admin/access-log' && req.method === 'GET')
+        return json(res, 200, { entries: service.accessHistory.entries() });
       if (path === '/api/access/admin/events' && req.method === 'GET')
         return json(res, 200, { events: service.events() });
       if (path === '/api/access/admin/users' && req.method === 'POST') {
@@ -288,6 +292,11 @@ export function createAccessMiddleware(service, { development = false } = {}) {
     }
     if (path.startsWith('/api/access/'))
       return json(res, 404, { error: 'Unknown access route' });
+    if (
+      req.method === 'GET' &&
+      ['/', '/index.html', '/account.html'].includes(path)
+    )
+      service.accessHistory.activity(current);
     return next();
   }
 }

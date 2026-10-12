@@ -162,6 +162,22 @@ try {
       .getElementById('users')
       .textContent.includes('example@example.org'),
   );
+  await page.waitForFunction(() =>
+    document.getElementById('access-log').textContent.includes('Passkey'),
+  );
+  const log = await page.evaluate(async () =>
+    (await fetch('/api/access/admin/access-log')).json(),
+  );
+  assert.ok(log.entries.some((row) => row.method === 'email_link'));
+  assert.ok(log.entries.some((row) => row.method === 'passkey'));
+  assert.ok(
+    log.entries.every((row) => !('sessionId' in row) && !('token' in row)),
+  );
+  await page.click('#refresh-access-log');
+  await page.waitForFunction(
+    () =>
+      document.getElementById('status').textContent === 'Access log refreshed.',
+  );
   await shot('25-user-administration', '#admin-section');
   const adminStatus = await page.evaluate(async () =>
     (await fetch('/api/access/status')).json(),
@@ -243,10 +259,11 @@ try {
   );
   const blocked = await page.evaluate(async () => ({
     admin: (await fetch('/api/access/admin/users')).status,
+    accessLog: (await fetch('/api/access/admin/access-log')).status,
     enrollment: (await fetch('/api/auth/passkey/generate-register-options'))
       .status,
   }));
-  assert.deepEqual(blocked, { admin: 403, enrollment: 403 });
+  assert.deepEqual(blocked, { admin: 403, accessLog: 403, enrollment: 403 });
 
   // Request an assertion without UV and override only the browser-facing
   // requirement. The server must still reject the signed, non-UV assertion.
@@ -326,6 +343,9 @@ try {
       'server logout',
       'email-only enrollment denied',
       'signed non-UV assertion rejected',
+      'access history includes email and real passkey sign-ins',
+      'access history denied to unverified admins',
+      'access log refresh UI',
     ],
     screenshots: 4,
     externalEmailsSent: 0,

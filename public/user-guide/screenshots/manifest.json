@@ -300,7 +300,7 @@
       "targets": [],
       "pixels": {
         "width": 1000,
-        "height": 642
+        "height": 942
       },
       "source": "Isolated browser test of real authentication UI; virtual WebAuthn authenticator; no live email sent",
       "context": "Passkey-approved administrator and example user"

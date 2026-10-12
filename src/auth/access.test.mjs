@@ -421,3 +421,152 @@ test('Mailjet links use URL fragments and disabled tracking; failures never incl
     /^Error: Mailjet did not confirm acceptance \(HTTP 401\)$/,
   );
 });
+
+test('access history records confirmed sessions, ignores background polling, and tracks activity and logout', async (t) => {
+  const f = await fixture(t);
+  await f.call('/api/auth/sign-in/magic-link', {
+    email: 'unknown@example.org',
+  });
+  assert.equal(f.service.accessHistory.entries().length, 0);
+  const { cookie } = await f.login();
+  const first = f.service.accessHistory.entries()[0];
+  assert.equal(first.email, f.config.adminEmail);
+  assert.equal(first.method, 'email_link');
+  assert.equal(first.status, 'active');
+  for (const path of [
+    '/api/vessels',
+    '/api/access/status',
+    '/api/auth/get-session',
+  ])
+    await f.call(path, undefined, cookie);
+  assert.equal(
+    f.service.accessHistory.entries()[0].lastSeenAt,
+    first.lastSeenAt,
+  );
+  await f.call('/api/access/activity', {}, cookie);
+  assert.ok(f.service.accessHistory.entries()[0].lastSeenAt > first.lastSeenAt);
+  await f.call('/account.html', undefined, cookie);
+  await f.call('/api/auth/sign-out', {}, cookie);
+  const last = f.service.accessHistory.entries()[0];
+  assert.equal(last.status, 'signed_out');
+  assert.ok(last.endedAt >= last.signedInAt);
+  assert.equal(f.service.accessHistory.entries().length, 1);
+  assert.deepEqual(Object.keys(last).sort(), [
+    'email',
+    'endedAt',
+    'lastSeenAt',
+    'method',
+    'name',
+    'signedInAt',
+    'status',
+  ]);
+});
+
+test('access history is restricted to verified admins and survives revocation and service restart', async (t) => {
+  const f = await fixture(t);
+  assert.equal((await f.call('/api/access/admin/access-log')).status, 401);
+  const admin = await f.login();
+  assert.equal(
+    (await f.call('/api/access/admin/access-log', undefined, admin.cookie))
+      .status,
+    403,
+  );
+  const owner = f.service.users()[0];
+  f.service.db
+    .prepare('UPDATE session SET passkeyVerified = 1 WHERE userId = ?')
+    .run(owner.id);
+  const response = await f.call(
+    '/api/access/admin/access-log',
+    undefined,
+    admin.cookie,
+  );
+  assert.equal(response.status, 200);
+  assert.match(response.headers.get('cache-control'), /no-store/);
+  assert.equal((await response.json()).entries[0].email, owner.email);
+  f.service.db
+    .prepare('UPDATE session SET createdAt = ? WHERE userId = ?')
+    .run(Date.now() - 16 * 60_000, owner.id);
+  assert.equal(
+    (await f.call('/api/access/admin/access-log', undefined, admin.cookie))
+      .status,
+    403,
+    'admin verification expires',
+  );
+  f.service.db
+    .prepare('UPDATE session SET createdAt = ? WHERE userId = ?')
+    .run(Date.now(), owner.id);
+  f.service.setUser(owner.id, { email: 'member@example.org', name: 'Member' });
+  const member = await f.login('member@example.org');
+  assert.equal(
+    (await f.call('/api/access/admin/access-log', undefined, member.cookie))
+      .status,
+    403,
+  );
+  f.service.setUser(owner.id, { email: 'member@example.org', active: false });
+  f.service.setUser(owner.id, { email: 'member@example.org', active: true });
+  assert.equal(f.service.accessHistory.entries()[0].status, 'revoked');
+  const reopened = await createAccessService(f.config, {
+    sendMail: async () => {},
+  });
+  try {
+    assert.equal(
+      reopened.accessHistory.entries().length,
+      2,
+      'initialization does not duplicate sessions',
+    );
+    assert.equal(reopened.accessHistory.entries()[0].status, 'revoked');
+  } finally {
+    await reopened.close();
+  }
+});
+
+test('access history shows expired sessions, removes records after 90 days and limits results to 100', async (t) => {
+  const f = await fixture(t);
+  const { cookie } = await f.login();
+  f.service.db
+    .prepare('UPDATE session SET lastActivity = ?')
+    .run(Date.now() - IDLE_MS - 1);
+  assert.equal(f.service.accessHistory.entries()[0].status, 'expired');
+  assert.equal(
+    (await f.call('/api/access/status', undefined, cookie)).status,
+    401,
+  );
+  assert.equal(f.service.accessHistory.entries()[0].status, 'expired');
+  const again = await f.login();
+  f.service.db.prepare('UPDATE session SET expiresAt = ?').run(Date.now() - 1);
+  assert.equal(
+    (await f.call('/api/access/status', undefined, again.cookie)).status,
+    401,
+  );
+  assert.equal(
+    f.service.accessHistory.entries()[0].status,
+    'expired',
+    'absolute expiry is retained after deletion',
+  );
+  const history = f.service.db.prepare('SELECT * FROM user_access').get();
+  for (let i = 0; i < 105; i++) {
+    f.service.accessHistory.record(
+      {
+        id: `retention-${i}`,
+        passkeyVerified: false,
+        createdAt: Date.now() - i * 1000,
+        lastActivity: Date.now(),
+        expiresAt: Date.now() + 100000,
+      },
+      { id: history.userId, name: 'Member', email: 'member@example.org' },
+    );
+  }
+  const list = f.service.accessHistory.entries();
+  assert.equal(list.length, 100);
+  assert.ok(list.every((r, i) => !i || r.signedInAt <= list[i - 1].signedInAt));
+  f.service.db
+    .prepare('UPDATE user_access SET signedInAt = ? WHERE sessionId = ?')
+    .run(Date.now() - 91 * 86400_000, 'retention-0');
+  f.service.accessHistory.entries();
+  assert.equal(
+    f.service.db
+      .prepare('SELECT sessionId FROM user_access WHERE sessionId = ?')
+      .get('retention-0'),
+    undefined,
+  );
+});

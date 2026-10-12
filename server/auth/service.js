@@ -14,6 +14,7 @@ import {
   normalizeEmail,
 } from './config.js';
 import { createMailjetSender } from './mailjet.js';
+import { createAccessHistory } from './access-history.js';
 import { OWNER_PASSKEY_TRIGGER } from './passkey-policy.js';
 
 export async function createAccessService(config, { sendMail } = {}) {
@@ -28,6 +29,7 @@ export async function createAccessService(config, { sendMail } = {}) {
   ); CREATE TABLE IF NOT EXISTS access_limit (
     key TEXT PRIMARY KEY, started INTEGER NOT NULL, count INTEGER NOT NULL
   );`);
+  const accessHistory = createAccessHistory(db);
   const audit = (event, actor = null, target = null) => {
     db.prepare('INSERT INTO access_audit VALUES (?, ?, ?, ?, ?)').run(
       randomUUID(),
@@ -194,13 +196,27 @@ export async function createAccessService(config, { sendMail } = {}) {
               },
             };
           },
-          after: async (session) => audit('login', session.userId),
+          after: async (session) => {
+            audit('login', session.userId);
+            accessHistory.record(session, userById(session.userId));
+          },
+        },
+        delete: {
+          after: async (session) =>
+            accessHistory.end(
+              session.id,
+              new Date(session.expiresAt).getTime() <= Date.now() ||
+                Date.now() - session.lastActivity >= IDLE_MS
+                ? 'expired'
+                : 'ended',
+            ),
         },
       },
     },
   });
   const { runMigrations } = await getMigrations(auth.options);
   await runMigrations();
+  accessHistory.backfill();
   db.exec(OWNER_PASSKEY_TRIGGER);
   // Only the configured owner is bootstrapped. Contacts and previous email
   // recipients do not acquire application access automatically.
@@ -242,7 +258,10 @@ export async function createAccessService(config, { sendMail } = {}) {
       Date.now() - record.lastActivity >= IDLE_MS ||
       record.expiresAt <= Date.now()
     ) {
-      if (record) db.prepare('DELETE FROM session WHERE id = ?').run(record.id);
+      if (record) {
+        accessHistory.end(record.id, !user?.active ? 'revoked' : 'expired');
+        db.prepare('DELETE FROM session WHERE id = ?').run(record.id);
+      }
       return null;
     }
     return {
@@ -296,6 +315,7 @@ export async function createAccessService(config, { sendMail } = {}) {
         'UPDATE user SET name = ?, active = ?, updatedAt = ? WHERE id = ?',
       ).run(name, Number(active), Date.now(), existing.id);
       // Revoke on every membership change, including deactivate/reactivate.
+      accessHistory.revoke(existing.id);
       db.prepare('DELETE FROM session WHERE userId = ?').run(existing.id);
       db.prepare(
         "DELETE FROM verification WHERE CASE WHEN json_valid(value) THEN json_extract(value, '$.email') END = ?",
@@ -313,6 +333,7 @@ export async function createAccessService(config, { sendMail } = {}) {
     auth,
     db,
     audit,
+    accessHistory,
     getSession,
     isFreshAdmin,
     passkeyCount,

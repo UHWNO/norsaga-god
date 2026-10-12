@@ -21,8 +21,41 @@ const labels = {
   user_approved: 'User approved',
   user_disabled: 'User blocked',
   login_email_accepted: 'Mailjet accepted the login email',
-  login_email_failed: 'Sign-insmelding kunne ikke bekreftes',
+  login_email_failed: 'Login email acceptance could not be confirmed',
 };
+const sessionLabels = {
+  active: 'Active session',
+  signed_out: 'Signed out',
+  expired: 'Expired',
+  revoked: 'Access revoked',
+  ended: 'Session ended',
+};
+const formatTime = (value) => new Date(value).toLocaleString('en-US');
+async function refreshAccessLog() {
+  const { entries } = await accessFetch('/api/access/admin/access-log');
+  const table = document.getElementById('access-log');
+  table.replaceChildren();
+  document.getElementById('access-log-empty').hidden = entries.length > 0;
+  document.getElementById('access-log-timezone').textContent =
+    `Times shown in ${Intl.DateTimeFormat().resolvedOptions().timeZone}.`;
+  for (const entry of entries) {
+    const row = document.createElement('tr');
+    for (const value of [
+      formatTime(entry.signedInAt),
+      `${entry.name} (${entry.email})`,
+      entry.method === 'passkey' ? 'Passkey' : 'Email link',
+      formatTime(entry.lastSeenAt),
+      sessionLabels[entry.status] || 'Session ended',
+    ]) {
+      const cell = document.createElement('td');
+      cell.textContent = value;
+      row.append(cell);
+    }
+    if (entry.endedAt)
+      row.lastChild.title = `Ended ${formatTime(entry.endedAt)}`;
+    table.append(row);
+  }
+}
 async function refresh() {
   const current = await accessFetch('/api/access/status');
   document.getElementById('identity').textContent =
@@ -95,6 +128,7 @@ async function refresh() {
       row.append(cell);
       table.append(row);
     }
+    await refreshAccessLog();
     const { events } = await accessFetch('/api/access/admin/events');
     const eventList = document.getElementById('audit-list');
     eventList.replaceChildren();
@@ -151,5 +185,13 @@ document.getElementById('user-form').addEventListener('submit', (event) => {
     status.textContent = 'User approved. They can now request a login link.';
   });
 });
+document.getElementById('refresh-access-log').addEventListener(
+  'click',
+  () =>
+    void action(async () => {
+      await refreshAccessLog();
+      status.textContent = 'Access log refreshed.';
+    }),
+);
 maintainSession();
 void action(refresh);

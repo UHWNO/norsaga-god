@@ -30,6 +30,23 @@ accounts and a virtual authenticator; no live email was sent during those tests.
 All access screens, messages and updated guide labels use US English. The login
 and account pages include the exact logo supplied by the owner.
 
+## Administrator access log
+
+The passkey-protected My Access page now includes **User Access Log** and
+**Refresh Log**. The persistent SQLite history records successful email-link and
+passkey sessions with user identity, sign-in time, last activity and session
+status. It retains 90 days and returns the newest 100 entries. Background
+provider polling does not update activity; sign-out, expiry, membership
+revocation and owner recovery preserve the session history. Existing sessions
+are included at upgrade, but previously ended sessions cannot be reconstructed.
+No session IDs, tokens, cookies or IP addresses are returned by the log API.
+
+The access-log update passed 13 focused authentication tests under Node 24 and
+Node 26, plus 12 browser flows including real WebAuthn authentication, log
+refresh, both sign-in methods and denial to unverified administrators. The guide
+text and administration screenshot were updated. Activation of this update
+requires a Plesk build and restart; the existing deployment remains protected.
+
 ## Verification
 
 - Full Node 24 test battery passed: 6,349 tests passed and one existing optional

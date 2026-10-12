@@ -77,6 +77,19 @@
             <tbody id="users"></tbody>
           </table>
         </div>
+        <div class="access-log-header">
+          <h2>User Access Log</h2>
+          <button id="refresh-access-log" class="secondary" type="button">Refresh Log</button>
+        </div>
+        <p class="hint">The latest 100 sign-ins from the past 90 days. Last activity updates when a user opens the app or interacts with it. An active session does not necessarily mean the user is currently viewing the app.</p>
+        <p id="access-log-timezone" class="hint"></p>
+        <div class="table-scroll access-log-scroll">
+          <table aria-label="User access history">
+            <thead><tr><th>Signed In</th><th>User</th><th>Method</th><th>Last Activity</th><th>Session Status</th></tr></thead>
+            <tbody id="access-log"></tbody>
+          </table>
+        </div>
+        <p id="access-log-empty" class="hint" hidden>No access records yet. Successful sign-ins will appear here.</p>
         <details>
           <summary>Latest Security Events</summary>
           <ul id="audit-list"></ul>
