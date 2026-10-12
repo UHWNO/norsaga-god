@@ -63,8 +63,12 @@ configured through Plesk environment variables.
 Live checks on 12 October confirmed that health responds with authentication
 required, anonymous application and guide requests redirect to sign-in, and the
 vessel API refuses anonymous access with HTTP 401. The owner exists and is active.
-Actual Mailjet acceptance and inbox delivery still need verification. The owner
-must enroll and verify a passkey on their own device before administering users.
+A live administrator login request returned the English confirmation message;
+the persistent audit recorded `login_email_accepted`, confirming Mailjet
+acceptance. Inbox delivery remains unconfirmed. The owner must enroll and verify
+a passkey on their own device before administering users. The deployed sign-in
+page was checked in Chrome for US English and a loaded logo; the public logo
+bytes match the supplied image exactly.
 Email-only user access relies on mailbox security; mailbox MFA is recommended.
 No full penetration test or security certification is claimed.
 
