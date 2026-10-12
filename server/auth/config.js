@@ -52,7 +52,7 @@ export function readAuthConfig(env = process.env) {
     rpID: url.hostname,
     local,
     secret: env.AUTH_SECRET,
-    adminEmail: normalizeEmail(env.AUTH_ADMIN_EMAIL || 'ulfhey@gmail.com'),
+    adminEmail: normalizeEmail(env.AUTH_ADMIN_EMAIL || 'ulfhwy@gmail.com'),
     databasePath: resolve(env.AUTH_DB_PATH || '.norsaga-auth/auth.sqlite'),
     trustProxy: env.AUTH_TRUST_PROXY === '1',
     mailjetKey: env.MAILJET_API_KEY,

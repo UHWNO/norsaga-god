@@ -14,7 +14,7 @@ server inactivity expiry, eight-hour absolute expiry and immediate membership
 revocation. Cross-origin writes and oversized authentication bodies are refused;
 login limits persist per IP and email address.
 
-The only bootstrapped owner is `ulfhey@gmail.com`. Sender configuration is
+The only bootstrapped owner is `ulfhwy@gmail.com`. Sender configuration is
 `no-reply@norsaga.com`, display name `NorSaga God´s Eye Access`. No previous email
 recipients or contacts have been approved automatically. Owner administration
 requires a passkey login with signed biometric/PIN user verification and fifteen-

@@ -16,7 +16,7 @@ out. Configure these server environment variables:
 | Variable              | Value                                                                                                                                            |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `AUTH_BASE_URL`       | `https://godseye.norsaga.com`                                                                                                                    |
-| `AUTH_ADMIN_EMAIL`    | `ulfhey@gmail.com` (the one owner bootstrapped on first installation)                                                                            |
+| `AUTH_ADMIN_EMAIL`    | `ulfhwy@gmail.com` (the one owner bootstrapped on first installation)                                                                            |
 | `AUTH_DB_PATH`        | Absolute persistent path outside the application releases and document root, e.g. `/var/www/vhosts/norsaga.com/private/godseye-auth/auth.sqlite` |
 | `AUTH_MAIL_FROM`      | `no-reply@norsaga.com`; must be verified in the Mailjet account                                                                                  |
 | `AUTH_MAIL_FROM_NAME` | `NorSaga God´s Eye Access`                                                                                                                       |
@@ -70,7 +70,7 @@ passkey. If all owner passkeys are lost, an authorized server operator must
 perform explicit offline recovery:
 
 ```sh
-node scripts/auth-recover.mjs --reset-owner-passkeys ulfhey@gmail.com
+node scripts/auth-recover.mjs --reset-owner-passkeys ulfhwy@gmail.com
 ```
 
 This revokes the owner's sessions, clears their passkeys and invalidates
