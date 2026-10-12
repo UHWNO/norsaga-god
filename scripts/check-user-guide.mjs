@@ -90,7 +90,7 @@ try {
       alt: node.alt,
     })),
   );
-  assert.equal(images.length, 26);
+  assert.equal(images.length, 27);
   const manifest = JSON.parse(
     await fs.readFile('public/user-guide/screenshots/manifest.json', 'utf8'),
   );

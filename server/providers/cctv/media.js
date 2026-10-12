@@ -550,7 +550,17 @@ export async function fetchCctvImageFromUpstream(
     }
     const body = await readCappedResponseBytes(upstream, maxBytes);
     if (!body) return null;
-    return { ok: true, body, contentType };
+    const modified = Date.parse(upstream.headers.get('last-modified') || '');
+    const imageUpdatedAt =
+      Number.isFinite(modified) && modified <= Date.now() + 60_000
+        ? modified
+        : null;
+    return {
+      ok: true,
+      body,
+      contentType,
+      ...(imageUpdatedAt !== null ? { imageUpdatedAt } : {}),
+    };
   } catch {
     return null;
   } finally {

@@ -24,8 +24,8 @@ server-only recovery is documented and audited.
 
 The simple My Access page supports adding, approving and blocking exact email
 addresses, managing passkeys, and viewing recent security events. The beginner
-manual now covers these flows with four additional screenshots: 26 total, with
-38 PDF pages including a separate cover showing AIS and weather. Authentication screenshots use an isolated database, example
+manual now covers these flows with four additional screenshots: 27 total, with
+39 PDF pages including a separate cover showing AIS and weather. Authentication screenshots use an isolated database, example
 accounts and a virtual authenticator; no live email was sent during those tests.
 All access screens, messages and updated guide labels use US English. The login
 and account pages include the exact logo supplied by the owner.
@@ -63,7 +63,7 @@ requires a Plesk build and restart; the existing deployment remains protected.
 - Actual production entry point smoke-tested locally: eight document/API/login/
   health routes, including denial before vessel and paid-provider middleware.
 - Production build, formatting and package/import boundary checks passed.
-- Updated guide: one cover, 13 chapters, 26 images, navigation, print and narrow layouts
+- Updated guide: one cover, 13 chapters, 27 images, navigation, print and narrow layouts
   passed. PDF text checked and changed pages rendered and visually reviewed.
 - Dependency updates resolved the three previously reported advisories. Current
   npm audit reports zero known vulnerabilities, including production dependencies.

@@ -539,6 +539,14 @@ export function normalizeSourceItem(item) {
     // Per-camera attribution for feeds a partner supplies inside a pack
     // (DriveBC: TransLink, city cameras). Shown beside the provider.
     credit: String(item.credit || '').trim(),
+    sourcePageUrl: safeSourcePageUrl(item.sourcePageUrl),
+    refreshIntervalMs: Number.isFinite(item.refreshIntervalMs)
+      ? Math.max(60_000, Math.min(600_000, item.refreshIntervalMs))
+      : null,
+    snapshotMaxAgeMs: Number.isFinite(item.snapshotMaxAgeMs)
+      ? Math.max(60_000, item.snapshotMaxAgeMs)
+      : null,
+    locationNote: String(item.locationNote || '').slice(0, 250),
     // Unselected-label code: the pack's explicit short name, else the feed's
     // name, else the id.
     code: cameraDisplayCode(
@@ -552,4 +560,15 @@ export function normalizeSourceItem(item) {
     // Data, which never sets this field). Passed through as-is to the client.
     poseSource: item.poseSource === 'curated' ? 'curated' : undefined,
   };
+}
+
+function safeSourcePageUrl(value) {
+  try {
+    const url = new URL(value);
+    return url.protocol === 'https:' && !url.username && !url.password
+      ? url.href
+      : '';
+  } catch {
+    return '';
+  }
 }

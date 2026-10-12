@@ -75,3 +75,27 @@ credentials (`GOOGLE_MAPS_API_KEY`, `CESIUM_ION_TOKEN`) are compiled into the
 browser bundle and must be domain-restricted. A successful build does not
 complete the access-control, data-license or operational gates documented in
 `docs/NORSAGA_PRODUCTION_CHECKLIST.md`.
+
+## Public Oslofjord harbor webcams
+
+The normal CCTV catalog now includes 14 public snapshot views: three from
+[Port of Oslo](https://www.oslohavn.no/no/meny/webkamera/), eight from
+[Port of Drammen](https://drammenhavn.no/en/web-camera/), and three from
+[Oscarsborg Guest Harbor](https://oscarsborggjestehavn.no/?page_id=12).
+`CCTV_OSLOFJORD_ENABLED=0` disables this pack. Existing file/environment-only
+catalog overrides retain their existing behavior; the new pack follows the
+same default-catalog loading gate as other packs.
+
+Harbor frame requests are shared and paced on the server: at most once per
+minute for Oslo/Drammen and once per ten minutes for Oscarsborg. Failed refreshes
+retain the last available snapshot with degraded status and its original image
+update time. A 16 MiB cache budget bounds retained buffers. The timestamp comes
+from the provider's Last-Modified header, not the time NorSaga fetched the image.
+Sources more than 30 minutes old are marked outdated. Existing provider polling,
+video support and authentication guards are retained.
+
+Map anchors are approximate site locations. Mount heights, viewing directions,
+field of view and projected coverage are display priors, marked low confidence;
+no surveyed camera pose is claimed. The panel links to each operator's webcam
+page and credits that operator. No open reuse license or operator permission is
+claimed by this integration.

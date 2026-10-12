@@ -304,6 +304,15 @@
       },
       "source": "Isolated browser test of real authentication UI; virtual WebAuthn authenticator; no live email sent",
       "context": "Passkey-approved administrator and example user"
+    },
+    {
+      "file": "26-oslofjord-cctv.webp",
+      "pixels": {
+        "width": 330,
+        "height": 523
+      },
+      "numberedTargets": [],
+      "description": "Real Oslo Harbor Kavringen webcam with provider image-update time, attribution and approximate location note."
     }
   ],
   "activeMap": "esri-imagery"

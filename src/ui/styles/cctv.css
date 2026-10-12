@@ -365,3 +365,17 @@
   color: #a8f7ff;
   text-shadow: 0 0 10px rgba(0, 212, 255, 0.18);
 }
+
+.cctv-feed-details {
+  margin: 8px 0 12px;
+  font-size: 11px;
+  line-height: 1.55;
+  color: #a9bfce;
+}
+.cctv-feed-details[hidden] {
+  display: none;
+}
+.cctv-feed-details a {
+  color: #8ce2f0;
+  text-decoration: underline;
+}

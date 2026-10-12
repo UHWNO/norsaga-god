@@ -150,18 +150,50 @@ export function _renderCctvState(state) {
         ? ` · ${activeCamera.sourceMessage}`
         : '';
       // A partner-supplied feed inside a pack names its owner here.
-      const credit = activeCamera.credit ? ` · ${activeCamera.credit}` : '';
+      const credit =
+        activeCamera.credit && activeCamera.credit !== provider
+          ? ` · ${activeCamera.credit}`
+          : '';
       const calBadge = activeCamera.calBadge
         ? this._calBadgeLabel(activeCamera.calBadge)
         : '';
       const projLabel = state?.showProjection !== false ? 'MONITOR' : 'OFF';
-      this._cctvMeta.textContent = `${activeCamera.city} · HDG ${Math.round(activeCamera.headingDeg)}° · FOV ${Math.round(activeCamera.fovDeg)}° · RANGE ${Math.round(activeCamera.rangeM)}m · ${projLabel}${calBadge ? ` · ${calBadge}` : ''} · ${provider}${credit}${statusMsg}`;
+      this._cctvMeta.textContent = `${activeCamera.city} · HDG ${Math.round(activeCamera.headingDeg)}°${activeCamera.headingEstimated ? ' (ESTIMATED)' : ''} · FOV ${Math.round(activeCamera.fovDeg)}° · RANGE ${Math.round(activeCamera.rangeM)}m · ${projLabel}${calBadge ? ` · ${calBadge}` : ''} · ${provider}${credit}${statusMsg}`;
     } else if (cameras.length > 0) {
       this._cctvMeta.textContent = enabled
         ? `${cameras.length} cameras loaded · click a camera to activate`
         : `${cameras.length} cameras loaded · enable CCTV to activate`;
     } else {
       this._cctvMeta.textContent = 'Enable CCTV to load camera intersections';
+    }
+  }
+
+  if (this._cctvFeedDetails) {
+    let sourceUrl;
+    try {
+      const parsed = new URL(activeCamera?.sourcePageUrl);
+      if (parsed.protocol === 'https:' && !parsed.username && !parsed.password)
+        sourceUrl = parsed.href;
+    } catch {
+      /* No public source page for this camera. */
+    }
+    this._cctvFeedDetails.hidden = !enabled || !sourceUrl;
+    if (sourceUrl) {
+      this._cctvSourceLink.href = sourceUrl;
+      this._cctvLocationNote.textContent =
+        activeCamera.calBadge === 'calibrated'
+          ? 'Original catalog location is approximate. Your saved camera calibration is applied.'
+          : activeCamera.locationNote;
+      const updated = activeCamera.imageUpdatedAt;
+      const outdated =
+        updated &&
+        activeCamera.snapshotMaxAgeMs &&
+        Date.now() - updated > activeCamera.snapshotMaxAgeMs;
+      this._cctvImageTime.textContent = `${activeCamera.name} · Updated still image · ${updated ? `Image updated ${new Date(updated).toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' })} UTC${outdated ? ' · OUTDATED IMAGE' : ''}` : 'Image update time unavailable'}`;
+    } else {
+      this._cctvSourceLink.removeAttribute('href');
+      this._cctvLocationNote.textContent = '';
+      this._cctvImageTime.textContent = '';
     }
   }
 

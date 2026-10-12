@@ -30,6 +30,11 @@ export function createHealth({ state: layerState, services, parts, source }) {
           label: String(row.label || row.provider || ''),
           message: String(row.message || ''),
           updatedAt: parts.model.safeNumber(row.updatedAt, now),
+          imageUpdatedAt:
+            typeof row.imageUpdatedAt === 'number' &&
+            Number.isFinite(row.imageUpdatedAt)
+              ? row.imageUpdatedAt
+              : null,
         });
       }
       layerState._healthById = next;
