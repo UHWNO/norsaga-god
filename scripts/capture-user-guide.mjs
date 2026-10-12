@@ -549,7 +549,7 @@ try {
   );
   manifest.screenshots.push(
     ...previousManifest.screenshots.filter(
-      (item) => Number.parseInt(item.file, 10) >= 22,
+      (item) => item.file === '00-ais-weather-cover.webp' || Number.parseInt(item.file, 10) >= 22,
     ),
   );
   manifest.screenshots.sort((a, b) => a.file.localeCompare(b.file));

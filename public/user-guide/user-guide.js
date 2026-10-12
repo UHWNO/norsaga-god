@@ -1,4 +1,5 @@
 const labels = {
+  cover: 'Cover',
   overview: 'Start Here',
   quickstart: 'First 10 Minutes',
   interface: 'Navigation & Search',
@@ -21,7 +22,7 @@ function closeMenu() {
   toggle.setAttribute('aria-expanded', 'false');
 }
 function showPage(name) {
-  if (!labels[name]) name = 'overview';
+  if (!labels[name]) name = 'cover';
   pages.forEach((page) =>
     page.classList.toggle('active', page.id === 'page-' + name),
   );
@@ -99,4 +100,4 @@ document.getElementById('printGuide').addEventListener('click', async () => {
   await Promise.all(images.map((img) => img.decode().catch(() => {})));
   window.print();
 });
-showPage(location.hash.slice(1) || 'overview');
+showPage(location.hash.slice(1) || 'cover');

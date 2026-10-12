@@ -40,10 +40,11 @@ try {
     { waitUntil: 'networkidle0' },
   );
   assert.equal(response.status(), 200);
+  assert.equal(await page.$eval('.page.active', node => node.id), 'page-cover');
   const chapters = await page.$$eval('#guideNav button', (nodes) =>
     nodes.map((node) => node.dataset.page),
   );
-  assert.equal(chapters.length, 13);
+  assert.equal(chapters.length, 14);
   for (const chapter of chapters) {
     await page.click(`#guideNav button[data-page="${chapter}"]`);
     await page.waitForFunction(
@@ -89,7 +90,7 @@ try {
       alt: node.alt,
     })),
   );
-  assert.equal(images.length, 25);
+  assert.equal(images.length, 26);
   const manifest = JSON.parse(
     await fs.readFile('public/user-guide/screenshots/manifest.json', 'utf8'),
   );
@@ -185,7 +186,7 @@ try {
         nodes.filter((node) => getComputedStyle(node).display !== 'none')
           .length,
     ),
-    13,
+    14,
   );
   assert.equal(
     await page.$eval('.close-guide', (node) => getComputedStyle(node).display),
@@ -229,7 +230,8 @@ try {
     JSON.stringify(
       {
         passed: true,
-        chapters: chapters.length,
+        chapters: chapters.length - 1,
+        coverPages: 1,
         screenshots: images.length,
         screenshotPixels:
           'Workspace and focused control captures, checked against the manifest',
@@ -249,7 +251,7 @@ try {
     ) + '\n',
   );
   console.log(
-    `PASS: ${chapters.length} chapters; ${images.length} screenshots; navigation, images, print and narrow guide layout`,
+    `PASS: 1 cover + ${chapters.length - 1} chapters; ${images.length} screenshots; navigation, images, print and narrow guide layout`,
   );
 } finally {
   await browser.close();

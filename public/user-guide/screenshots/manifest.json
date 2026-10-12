@@ -7,6 +7,15 @@
   },
   "screenshots": [
     {
+      "file": "00-ais-weather-cover.webp",
+      "numberedTargets": [],
+      "pixels": {
+        "width": 1920,
+        "height": 1200
+      },
+      "description": "Real app over the North Sea with AIS vessels, wind and satellite weather enabled; existing local AIS receiver reused."
+    },
+    {
       "file": "01-workspace.webp",
       "numberedTargets": [
         "#norsaga-operations",

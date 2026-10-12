@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-US">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -734,6 +734,25 @@
         }
       }
 
+      .guide-cover {
+        padding: 40px 0 28px;
+      }
+      .guide-cover h2 {
+        margin: 12px 0 16px;
+        font-size: clamp(36px, 5vw, 64px);
+        line-height: 1.12;
+      }
+      .guide-cover .cover-subtitle {
+        font-size: 22px;
+        color: #91ddf4;
+      }
+      .guide-cover figure {
+        margin: 30px 0;
+      }
+      .guide-cover .cover-date {
+        margin-top: 30px;
+        font-size: 13px;
+      }
       @page {
         size: A4 portrait;
         margin: 14mm;
@@ -774,6 +793,24 @@
           display: block !important;
           animation: none;
           break-before: page;
+        }
+        .guide-cover {
+          padding-top: 14mm;
+          break-after: page;
+        }
+        .guide-cover h2 {
+          font-size: 34pt;
+        }
+        .guide-cover .cover-subtitle {
+          font-size: 17pt;
+          color: #176b89;
+        }
+        .guide-cover figure {
+          margin: 16mm 0 10mm;
+        }
+        .guide-cover figure img {
+          width: 100%;
+          max-height: none;
         }
         .page:first-child {
           break-before: auto;
@@ -897,12 +934,10 @@
         <div class="brand"><h1>Introduction &amp; User Guide</h1></div>
         <div class="nav-label">For first-time users</div>
         <nav class="nav" id="guideNav">
-          <button
-            type="button"
-            data-page="overview"
-            class="active"
-            aria-current="page"
-          >
+          <button type="button" data-page="cover" class="active" aria-current="page">
+            <span class="nav-num">●</span>Cover
+          </button>
+          <button type="button" data-page="overview">
             <span class="nav-num">01</span>Start Here</button
           ><button type="button" data-page="quickstart">
             <span class="nav-num">02</span>First 10 Minutes</button
@@ -948,7 +983,7 @@
           </button>
           <div class="mobile-title">User Guide</div>
           <div class="crumb">
-            User Guide / <strong id="crumbCurrent">Start Here</strong>
+            User Guide / <strong id="crumbCurrent">Cover</strong>
           </div>
           <div class="top-actions">
             <a class="top-button" href="godseye-user-guide.pdf" download
@@ -959,8 +994,22 @@
           </div>
         </header>
         <div class="content">
+          <section class="page guide-cover active" id="page-cover" aria-labelledby="heading-cover">
+            <div class="eyebrow">NorSaga Maritime Intelligence</div>
+            <h2 id="heading-cover">God’s Eye</h2>
+            <p class="cover-subtitle">Beginner User Guide</p>
+            <figure>
+              <a href="screenshots/00-ais-weather-cover.webp" target="_blank" rel="noopener" aria-label="Open full-size AIS and weather workspace screenshot">
+                <img src="screenshots/00-ais-weather-cover.webp" alt="NorSaga God’s Eye workspace over the North Sea with AIS vessels, wind forecasts and satellite weather imagery enabled" width="1920" height="1200" />
+              </a>
+              <figcaption>The app with <strong>Vessels / AIS</strong>, <strong>Wind forecast</strong> and <strong>Weather imagery</strong> enabled. AIS shows reported vessel positions; weather layers provide environmental context.<span>Click the screenshot to open it at full size.</span></figcaption>
+            </figure>
+            <p>New to God’s Eye? Start with <strong>Start Here</strong>, then follow <strong>First 10 Minutes</strong> for a guided practice session.</p>
+            <p class="cover-date">Updated October 12, 2026 · US English</p>
+            <div class="next"><button type="button" class="primary" data-next="overview">Start Here →</button></div>
+          </section>
           <section
-            class="page active"
+            class="page"
             id="page-overview"
             aria-labelledby="heading-overview"
           >
