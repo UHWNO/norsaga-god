@@ -1,4 +1,5 @@
 import { loadOslofjordSources } from './oslofjord.js';
+import { loadHarborSources } from './harbors.js';
 import fs from 'node:fs';
 import path from 'node:path';
 import { DEFAULT_CCTV_SOURCE_FILE, CCTV_SOURCE_CACHE_MS } from './constants.js';
@@ -33,6 +34,11 @@ const envEnabled = (name) => String(process.env[name] || '1').trim() !== '0';
  * kill switch.
  */
 const LIVE_PACKS = [
+  {
+    name: 'harbors',
+    enabled: () => envEnabled('CCTV_HARBORS_ENABLED'),
+    load: loadHarborSources,
+  },
   {
     name: 'oslofjord',
     enabled: () => envEnabled('CCTV_OSLOFJORD_ENABLED'),

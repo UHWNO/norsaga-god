@@ -170,6 +170,7 @@
       "server/providers/cctv/groundHeights.js",
       "server/providers/cctv/catalog.js",
       "server/providers/cctv/oslofjord.js",
+      "server/providers/cctv/harbors.js",
       "server/providers/cctv/snapshot-cache.js",
       "server/providers/cctv/constants.js",
       "server/providers/cctv/media.js",
