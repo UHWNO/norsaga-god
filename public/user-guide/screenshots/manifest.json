@@ -261,7 +261,7 @@
       "targets": [],
       "pixels": {
         "width": 520,
-        "height": 679
+        "height": 791
       },
       "source": "Isolated browser test of real authentication UI; virtual WebAuthn authenticator; no live email sent",
       "context": "Personal email login"
@@ -271,7 +271,7 @@
       "targets": [],
       "pixels": {
         "width": 520,
-        "height": 654
+        "height": 740
       },
       "source": "Isolated browser test of real authentication UI; virtual WebAuthn authenticator; no live email sent",
       "context": "Explicit single-use link confirmation"
@@ -281,7 +281,7 @@
       "targets": [],
       "pixels": {
         "width": 1000,
-        "height": 534
+        "height": 513
       },
       "source": "Isolated browser test of real authentication UI; virtual WebAuthn authenticator; no live email sent",
       "context": "First administrator passkey setup"
@@ -291,7 +291,7 @@
       "targets": [],
       "pixels": {
         "width": 1000,
-        "height": 641
+        "height": 642
       },
       "source": "Isolated browser test of real authentication UI; virtual WebAuthn authenticator; no live email sent",
       "context": "Passkey-approved administrator and example user"

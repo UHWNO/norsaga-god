@@ -12,7 +12,8 @@ export function accessPlugin() {
       // client-side password. Build itself does not initialize this plugin.
       server.middlewares.use((_req, res) =>
         json(res, 503, {
-          error: 'Innlogging må konfigureres. Se docs/AUTHENTICATION.md.',
+          error:
+            'Sign-in is not configured. Please contact your administrator.',
         }),
       );
       return;

@@ -24,14 +24,14 @@ async function start() {
     await accessFetch('/api/access/status');
     loadingScreen?.classList.remove('access-gate');
     loadingScreen?.classList.add('application-starting');
-    if (status) status.textContent = 'Starter NorSaga …';
+    if (status) status.textContent = 'Starting NorSaga …';
     await import('./main.js');
     maintainSession();
   } catch (error) {
     if (error.status === 401) location.replace('/login.html');
     else if (status)
       status.textContent =
-        'Appen kunne ikke starte. Last siden på nytt, eller kontakt administrator.';
+        'Unable to start the app. Reload the page or contact your administrator.';
   }
 }
 void start();

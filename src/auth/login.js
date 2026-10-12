@@ -13,10 +13,10 @@ function readToken() {
     token = nextToken;
     history.replaceState(null, '', '/login.html');
     form.hidden = true;
-    document.querySelector('h1').textContent = 'Bekreft innlogging';
+    document.querySelector('h1').textContent = 'Confirm Sign-In';
     document.getElementById('login-intro').textContent =
-      'Du har åpnet en personlig innloggingslenke til NorSaga God’s Eye.';
-    status.textContent = 'Bekreft bare hvis du selv ba om å logge inn.';
+      'You opened a personal sign-in link for NorSaga God’s Eye.';
+    status.textContent = 'Confirm only if you requested this sign-in.';
     document.getElementById('confirm-section').hidden = false;
   }
 }
@@ -25,7 +25,7 @@ window.addEventListener('hashchange', readToken);
 async function run(button, action) {
   button.disabled = true;
   status.classList.remove('error');
-  status.textContent = 'Vennligst vent …';
+  status.textContent = 'Please wait …';
   try {
     await action();
   } catch (error) {
@@ -59,7 +59,7 @@ passkey.addEventListener(
       const result = await authClient.signIn.passkey();
       if (result.error)
         throw new Error(
-          'Passkey-innloggingen ble ikke fullført. Prøv igjen, eller bruk e-postlenken.',
+          'Passkey sign-in was not completed. Try again or use your email link.',
         );
       window.location.replace('/account.html');
     }),

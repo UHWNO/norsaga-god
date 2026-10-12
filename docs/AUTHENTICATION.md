@@ -43,8 +43,10 @@ subdirectory of Application Root, instead of `/godseye.norsaga.com/app/dist`.
 Node continues to serve the built `dist` directory itself, after authentication.
 Do not copy application files into `web-root` or retain server aliases that
 serve `dist` directly. Run **NPM Install**, then the `auth:setup` package script
-before restarting the new release. If Plesk's script runner asks for an npm
-command rather than a script selection, use `run auth:setup`.
+before restarting the new release. Plesk's Node.js **Run script** field prefixes `npm run`; enter only the package
+script name, such as `auth:setup` or `auth:check`. The read-only `auth:check`
+script reports owner/database readiness and email acceptance without exposing
+credentials. Plesk's npm runner may not inherit Passenger's custom variables.
 Keep `.env` and the SQLite database outside anything the web server serves.
 Node binds only to loopback; protect the server and deployment credentials with
 MFA, patched software and restricted operator access. Retain HTTPS/HSTS and
@@ -54,16 +56,16 @@ of a live WAL database must include its WAL or use a consistent backup.
 ## Owner's first login and simple administration
 
 1. Open the app, enter the owner's approved email and request a login link.
-2. Open the email within ten minutes and click **Bekreft innlogging**. Email
+2. Open the email within ten minutes and click **Confirm Sign-In**. Email
    scanners and previews cannot consume it merely by opening the URL.
-3. On **Min tilgang**, click **Opprett passkey**. Save it using Touch ID, Windows
+3. On **My Access**, click **Create Passkey**. Save it using Touch ID, Windows
    Hello, your phone or a FIDO2 security key.
-4. Click **Bekreft med passkey**. The user list opens only after a server-verified
+4. Click **Verify with Passkey**. The user list opens only after a server-verified
    passkey login with biometric/PIN user verification. Add a second passkey as
    a reserve. Administrative authorization is fresh for fifteen minutes.
-5. Enter a person's name and exact email under **Godkjente brukere**. They can
+5. Enter a person's name and exact email under **Approved Users**. They can
    now request their own email login. This does not automatically send an
-   invitation. **Sperr tilgang** immediately revokes their server sessions and
+   invitation. **Block Access** immediately revokes their server sessions and
    pending login links. The owner cannot be disabled or promoted via this UI.
 
 Ordinary users can use a new email link on each login or register optional

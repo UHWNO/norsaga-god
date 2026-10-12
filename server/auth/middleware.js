@@ -75,7 +75,7 @@ export function createAccessMiddleware(service, { development = false } = {}) {
           error:
             error.status && error.status < 500
               ? error.message
-              : 'Tilgangen er midlertidig utilgjengelig. Prøv igjen senere.',
+              : 'Access is temporarily unavailable. Please try again later.',
         });
       else res.end();
     });
@@ -113,6 +113,7 @@ export function createAccessMiddleware(service, { development = false } = {}) {
       isRead &&
       (path === '/login.html' ||
         path === '/norsaga/favicon.png' ||
+        path === '/norsaga/access-logo.png' ||
         /^\/assets\/[a-zA-Z0-9_.-]+\.(js|css|woff2?|png|svg)$/.test(path) ||
         (development &&
           (path === '/@vite/client' ||
@@ -130,7 +131,7 @@ export function createAccessMiddleware(service, { development = false } = {}) {
       try {
         email = normalizeEmail(body.email);
       } catch {
-        return json(res, 400, { error: 'Skriv inn en gyldig e-postadresse.' });
+        return json(res, 400, { error: 'Enter a valid email address.' });
       }
       const ip = headers.get('x-real-ip');
       const ipAllowed = service.consumeLimit(`login-ip:${ip}`, 5, 60_000);
@@ -141,7 +142,7 @@ export function createAccessMiddleware(service, { development = false } = {}) {
       );
       if (!ipAllowed)
         return json(res, 429, {
-          error: 'For mange forsøk. Vent ett minutt.',
+          error: 'Too many attempts. Please wait one minute.',
           retryAfter: 60,
         });
       // Address limits return the same generic response, hiding membership and
@@ -162,7 +163,7 @@ export function createAccessMiddleware(service, { development = false } = {}) {
       return json(res, 200, {
         status: true,
         message:
-          'Hvis adressen er godkjent, får du en innloggingslenke på e-post. Lenken varer i 10 minutter.',
+          'If your address is approved, you’ll receive a login link by email. The link expires in 10 minutes.',
       });
     }
     if (path === '/api/access/redeem' && req.method === 'POST') {
@@ -170,12 +171,12 @@ export function createAccessMiddleware(service, { development = false } = {}) {
         !service.consumeLimit(`redeem:${headers.get('x-real-ip')}`, 10, 60_000)
       )
         return json(res, 429, {
-          error: 'Vent ett minutt før du prøver igjen.',
+          error: 'Please wait one minute before trying again.',
         });
       const body = await readJSON(req);
       if (typeof body.token !== 'string' || !/^[a-zA-Z]{32}$/.test(body.token))
         return json(res, 400, {
-          error: 'Lenken er ugyldig eller utløpt. Be om en ny lenke.',
+          error: 'This link is invalid or expired. Request a new link.',
         });
       const target = new URL('/api/auth/magic-link/verify', config.origin);
       target.searchParams.set('token', body.token);
@@ -196,7 +197,7 @@ export function createAccessMiddleware(service, { development = false } = {}) {
         success ? 200 : 400,
         success
           ? { status: true }
-          : { error: 'Lenken er ugyldig eller utløpt. Be om en ny lenke.' },
+          : { error: 'This link is invalid or expired. Request a new link.' },
       );
     }
     if (path.startsWith('/api/auth/')) {
@@ -267,7 +268,7 @@ export function createAccessMiddleware(service, { development = false } = {}) {
     if (path.startsWith('/api/access/admin/')) {
       if (!service.isFreshAdmin(current))
         return json(res, 403, {
-          error: 'Bekreft med passkey for å administrere brukere.',
+          error: 'Verify with a passkey to manage users.',
           passkeyRequired: true,
         });
       if (path === '/api/access/admin/users' && req.method === 'GET')

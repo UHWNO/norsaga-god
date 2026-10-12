@@ -1,53 +1,60 @@
 <!doctype html>
-<html lang="nb">
+<html lang="en-US">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
-    <title>Min tilgang – NorSaga God’s Eye</title>
+    <title>My Access – NorSaga God’s Eye</title>
     <link rel="icon" href="/norsaga/favicon.png" />
   </head>
   <body>
     <main class="account-layout">
       <header class="account-header">
-        <div class="brand">NOR SAGA <span>GOD’S EYE</span></div>
-        <button id="sign-out" class="secondary" type="button">Logg ut</button>
+        <div class="brand">
+          <img
+            class="brand-logo"
+            src="/norsaga/access-logo.png"
+            width="1672"
+            height="941"
+            alt="NorSaga Maritime Intelligence"
+          />
+        </div>
+        <button id="sign-out" class="secondary" type="button">Sign Out</button>
       </header>
       <section class="access-card">
-        <h1>Min tilgang</h1>
-        <p id="identity">Kontrollerer innlogging …</p>
-        <a class="button" href="/">Åpne God’s Eye</a>
-        <h2>Passkey</h2>
+        <h1>My Access</h1>
+        <p id="identity">Checking your sign-in …</p>
+        <a class="button" href="/">Open God’s Eye</a>
+        <h2>Passkeys</h2>
         <p>
-          En passkey lar deg logge inn med Touch ID, Windows Hello eller en
-          sikkerhetsnøkkel. Opprett gjerne en ekstra passkey på en annen enhet
-          eller sikkerhetsnøkkel som reserve.
+          A passkey lets you sign in with Touch ID, Windows Hello, or a security
+          key. Create a backup passkey on another device or security key.
         </p>
         <p id="admin-help" hidden>
-          Administrator må bekrefte med passkey før brukerlisten åpnes. Første
-          gang: opprett en passkey, og trykk deretter «Bekreft med passkey».
+          Administrators must verify with a passkey before managing users. First
+          time here? Create a passkey, then click “Verify with Passkey.”
         </p>
-        <button id="add-passkey" type="button">Opprett passkey</button>
+        <button id="add-passkey" type="button">Create Passkey</button>
         <button id="verify-passkey" class="secondary" type="button">
-          Bekreft med passkey
+          Verify with Passkey
         </button>
         <ul id="passkey-list"></ul>
         <p class="hint">
-          Hvis du mister alle passkeyene som administrator, må tilgangen
-          gjenopprettes av den som har tilgang til serveren. E-post alene kan
-          ikke tilbakestille administratorens passkey.
+          If you lose all administrator passkeys, contact your server
+          administrator to recover access. Email alone cannot reset an
+          administrator’s passkeys.
         </p>
       </section>
       <section id="admin-section" class="access-card" hidden>
-        <h2>Godkjente brukere</h2>
+        <h2>Approved Users</h2>
         <p>
-          Legg til hver adresse som skal ha tilgang. En sperret bruker mister
-          også aktive innlogginger. Nye brukere blir ikke varslet automatisk.
+          Add each email address that should have access. Blocking a user also
+          ends their active sessions. New users are not notified automatically.
         </p>
         <form id="user-form" class="user-form">
-          <label for="user-name">Navn</label
+          <label for="user-name">Name</label
           ><input id="user-name" name="name" maxlength="100" required />
-          <label for="user-email">E-postadresse</label
+          <label for="user-email">Email Address</label
           ><input
             id="user-email"
             name="email"
@@ -55,23 +62,23 @@
             maxlength="254"
             required
           />
-          <button type="submit">Godkjenn bruker</button>
+          <button type="submit">Approve User</button>
         </form>
         <div class="table-scroll">
           <table>
             <thead>
               <tr>
-                <th>Navn</th>
-                <th>E-post</th>
+                <th>Name</th>
+                <th>Email</th>
                 <th>Status</th>
-                <th>Handling</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody id="users"></tbody>
           </table>
         </div>
         <details>
-          <summary>Siste sikkerhetshendelser</summary>
+          <summary>Latest Security Events</summary>
           <ul id="audit-list"></ul>
         </details>
       </section>

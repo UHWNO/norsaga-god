@@ -5,7 +5,7 @@ import { maintainSession } from './session.js';
 const status = document.getElementById('status');
 async function action(callback) {
   status.classList.remove('error');
-  status.textContent = 'Vennligst vent …';
+  status.textContent = 'Please wait …';
   try {
     await callback();
   } catch (error) {
@@ -15,17 +15,18 @@ async function action(callback) {
   }
 }
 const labels = {
-  login: 'Innlogging',
-  admin_bootstrapped: 'Administrator opprettet',
-  user_approved: 'Bruker godkjent',
-  user_disabled: 'Bruker sperret',
-  login_email_accepted: 'Mailjet godtok innloggingsmelding',
-  login_email_failed: 'Innloggingsmelding kunne ikke bekreftes',
+  login: 'Sign-in',
+  owner_recovery: 'Administrator access recovered',
+  admin_bootstrapped: 'Administrator created',
+  user_approved: 'User approved',
+  user_disabled: 'User blocked',
+  login_email_accepted: 'Mailjet accepted the login email',
+  login_email_failed: 'Sign-insmelding kunne ikke bekreftes',
 };
 async function refresh() {
   const current = await accessFetch('/api/access/status');
   document.getElementById('identity').textContent =
-    `Innlogget som ${current.email}`;
+    `Signed in as ${current.email}`;
   document.getElementById('admin-help').hidden = current.role !== 'admin';
   document.getElementById('admin-section').hidden = !current.adminVerified;
   document.getElementById('add-passkey').disabled =
@@ -35,9 +36,9 @@ async function refresh() {
   list.replaceChildren();
   for (const key of passkeys.data || []) {
     const row = document.createElement('li');
-    row.textContent = key.name || 'Min passkey';
+    row.textContent = key.name || 'My passkey';
     const button = document.createElement('button');
-    button.textContent = 'Fjern';
+    button.textContent = 'Remove';
     button.disabled =
       current.role === 'admin' &&
       (!current.adminVerified || current.passkeys <= 1);
@@ -48,7 +49,7 @@ async function refresh() {
           const result = await authClient.passkey.deletePasskey({ id: key.id });
           if (result.error)
             throw new Error(
-              'Passkeyen kunne ikke fjernes. Bekreft innloggingen først.',
+              'Unable to remove the passkey. Verify your sign-in first.',
             );
           await refresh();
         }),
@@ -65,7 +66,7 @@ async function refresh() {
       for (const value of [
         user.name,
         user.email,
-        user.active ? 'Godkjent' : 'Sperret',
+        user.active ? 'Approved' : 'Blocked',
       ]) {
         const cell = document.createElement('td');
         cell.textContent = value;
@@ -75,7 +76,7 @@ async function refresh() {
       if (user.role === 'admin') cell.textContent = 'Administrator';
       else {
         const button = document.createElement('button');
-        button.textContent = user.active ? 'Sperr tilgang' : 'Gi tilgang';
+        button.textContent = user.active ? 'Block Access' : 'Grant Access';
         button.addEventListener(
           'click',
           () =>
@@ -86,7 +87,7 @@ async function refresh() {
                 active: !user.active,
               });
               await refresh();
-              status.textContent = 'Tilgangen er oppdatert.';
+              status.textContent = 'Access updated.';
             }),
         );
         cell.append(button);
@@ -99,13 +100,13 @@ async function refresh() {
     eventList.replaceChildren();
     for (const event of events) {
       const item = document.createElement('li');
-      item.textContent = `${new Date(event.time).toLocaleString('nb-NO')} – ${labels[event.event] || event.event}${event.target ? `: ${event.target}` : ''}`;
+      item.textContent = `${new Date(event.time).toLocaleString('en-US')} – ${labels[event.event] || event.event}${event.target ? `: ${event.target}` : ''}`;
       eventList.append(item);
     }
   }
   status.textContent =
     current.role === 'admin' && !current.adminVerified
-      ? 'Bekreft med passkey for å administrere brukere.'
+      ? 'Verify with a passkey to manage users.'
       : '';
 }
 document.getElementById('add-passkey').addEventListener(
@@ -113,15 +114,15 @@ document.getElementById('add-passkey').addEventListener(
   () =>
     void action(async () => {
       const result = await authClient.passkey.addPasskey({
-        name: 'Min passkey',
+        name: 'My passkey',
       });
       if (result.error)
         throw new Error(
-          'Passkeyen kunne ikke opprettes. Bruk en støttet nettleser og bekreft med PIN eller biometri.',
+          'Unable to create a passkey. Use a supported browser and verify with your PIN or biometrics.',
         );
       await refresh();
       status.textContent =
-        'Passkey opprettet. Du kan nå bekrefte innloggingen med den.';
+        'Passkey created. You can now verify your sign-in with it.';
     }),
 );
 document.getElementById('verify-passkey').addEventListener(
@@ -130,7 +131,7 @@ document.getElementById('verify-passkey').addEventListener(
     void action(async () => {
       const result = await authClient.signIn.passkey();
       if (result.error)
-        throw new Error('Bekreftelsen ble ikke fullført. Prøv igjen.');
+        throw new Error('Verification was not completed. Please try again.');
       await refresh();
     }),
 );
@@ -147,8 +148,7 @@ document.getElementById('user-form').addEventListener('submit', (event) => {
     });
     event.target.reset();
     await refresh();
-    status.textContent =
-      'Brukeren er godkjent. Vedkommende kan nå be om en innloggingslenke.';
+    status.textContent = 'User approved. They can now request a login link.';
   });
 });
 maintainSession();

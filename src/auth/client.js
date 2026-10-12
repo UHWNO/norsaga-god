@@ -17,7 +17,7 @@ export async function accessFetch(path, body) {
   const data = await response.json();
   if (!response.ok)
     throw Object.assign(
-      new Error(data.error || 'Forespørselen kunne ikke fullføres.'),
+      new Error(data.error || 'Unable to complete the request.'),
       { status: response.status },
     );
   return data;
@@ -25,6 +25,6 @@ export async function accessFetch(path, body) {
 export async function signOut() {
   const result = await authClient.signOut();
   if (result.error)
-    throw new Error('Utloggingen kunne ikke bekreftes. Prøv igjen.');
+    throw new Error('Unable to confirm sign-out. Please try again.');
   window.location.replace('/login.html');
 }

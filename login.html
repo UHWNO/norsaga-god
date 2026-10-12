@@ -1,53 +1,61 @@
 <!doctype html>
-<html lang="nb">
+<html lang="en-US">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="robots" content="noindex, nofollow" />
     <meta name="referrer" content="no-referrer" />
-    <title>Logg inn – NorSaga God’s Eye</title>
+    <title>Sign In – NorSaga God’s Eye</title>
     <link rel="icon" href="/norsaga/favicon.png" />
   </head>
   <body>
     <main class="access-card">
-      <div class="brand">NOR SAGA <span>GOD’S EYE</span></div>
-      <h1>Logg inn</h1>
+      <div class="brand">
+        <img
+          class="brand-logo"
+          src="/norsaga/access-logo.png"
+          width="1672"
+          height="941"
+          alt="NorSaga Maritime Intelligence"
+        />
+      </div>
+      <h1>Sign In</h1>
       <p id="login-intro">
-        Bruk din godkjente e-postadresse. Vi sender deg en personlig
-        innloggingslenke.
+        Enter your approved email address. We’ll send you a personal sign-in
+        link.
       </p>
       <form id="login-form">
-        <label for="email">E-postadresse</label>
+        <label for="email">Email Address</label>
         <input
           id="email"
           name="email"
           type="email"
           autocomplete="email webauthn"
           maxlength="254"
-          placeholder="navn@firma.no"
+          placeholder="name@example.com"
           required
         />
-        <button type="submit">Send innloggingslenke</button>
+        <button type="submit">Send Login Link</button>
       </form>
       <section id="confirm-section" hidden>
         <p>
-          Trykk på knappen for å bruke lenken. Lenken kan brukes én gang og
-          varer i ti minutter.
+          Click below to use your link. It works once and expires after ten
+          minutes.
         </p>
-        <button id="confirm-login" type="button">Bekreft innlogging</button>
+        <button id="confirm-login" type="button">Confirm Sign-In</button>
       </section>
-      <div class="divider">eller</div>
+      <div class="divider">or</div>
       <button id="passkey-login" class="secondary" type="button">
-        Logg inn med passkey
+        Sign In with a Passkey
       </button>
       <p class="hint">
-        Har du allerede satt opp en passkey? Bruk Touch ID, Windows Hello,
-        telefonen eller en sikkerhetsnøkkel.
+        Already have a passkey? Use Touch ID, Windows Hello, your phone, or a
+        security key.
       </p>
       <p id="status" role="status" aria-live="polite"></p>
       <footer>
-        Tilgang gis av administrator. Bruk en datamaskin med et nettleservindu
-        på minst 1280 × 720 piksler.
+        Your administrator approves access. Use a desktop or laptop with a
+        browser window of at least 1280 × 720 pixels.
       </footer>
     </main>
     <script type="module" src="/src/auth/login.js"></script>

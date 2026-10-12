@@ -104,7 +104,7 @@ try {
   await page.type('#email', config.adminEmail);
   await page.click('#login-form button');
   await page.waitForFunction(() =>
-    document.getElementById('status').textContent.includes('Hvis adressen'),
+    document.getElementById('status').textContent.includes('If your address'),
   );
   await access.waitForMail();
   assert.equal(messages.length, 1);
@@ -136,9 +136,7 @@ try {
   await page.click('#add-passkey');
   await page.waitForFunction(
     () =>
-      document
-        .getElementById('status')
-        .textContent.includes('Passkey opprettet'),
+      document.getElementById('status').textContent.includes('Passkey created'),
     { timeout: 15000, polling: 100 },
   );
   assert.equal(access.passkeyCount(access.users()[0].id), 1);
@@ -156,13 +154,13 @@ try {
     1,
   );
   // Approve a clearly labelled example account through the real admin UI.
-  await page.type('#user-name', 'Eksempelbruker');
-  await page.type('#user-email', 'eksempel@example.org');
+  await page.type('#user-name', 'Example User');
+  await page.type('#user-email', 'example@example.org');
   await page.click('#user-form button');
   await page.waitForFunction(() =>
     document
       .getElementById('users')
-      .textContent.includes('eksempel@example.org'),
+      .textContent.includes('example@example.org'),
   );
   await shot('25-user-administration', '#admin-section');
   const adminStatus = await page.evaluate(async () =>
@@ -222,7 +220,7 @@ try {
   await page.type('#email', config.adminEmail);
   await page.click('#login-form button');
   await page.waitForFunction(() =>
-    document.getElementById('status').textContent.includes('Hvis adressen'),
+    document.getElementById('status').textContent.includes('If your address'),
   );
   await access.waitForMail();
   await page.goto(`${origin}/login.html#token=${messages.at(-1).token}`);

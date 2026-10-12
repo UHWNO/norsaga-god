@@ -22,11 +22,13 @@ minute freshness. Email-only owner login cannot change existing passkeys. A
 SQLite trigger prevents concurrent removal of the final owner passkey. Explicit
 server-only recovery is documented and audited.
 
-The simple Min tilgang page supports adding, approving and blocking exact email
+The simple My Access page supports adding, approving and blocking exact email
 addresses, managing passkeys, and viewing recent security events. The beginner
 manual now covers these flows with four additional screenshots: 25 total, with
 37 PDF pages. Authentication screenshots use an isolated database, example
-accounts and a virtual authenticator; no live email was sent.
+accounts and a virtual authenticator; no live email was sent during those tests.
+All access screens, messages and updated guide labels use US English. The login
+and account pages include the exact logo supplied by the owner.
 
 ## Verification
 
@@ -49,19 +51,21 @@ accounts and a virtual authenticator; no live email was sent.
 - Dependency updates resolved the three previously reported advisories. Current
   npm audit reports zero known vulnerabilities, including production dependencies.
 
-## Production activation is pending
+## Production deployment
 
-This report does not claim that the live domain has changed. Read-only sender
-verification with the available older local Mailjet credentials returned HTTP
-401; those keys were not copied into this app. Valid Mailjet API credentials and
-verification of `no-reply@norsaga.com` are required.
+Authentication is active on `https://godseye.norsaga.com`. The Plesk document root
+is `/godseye.norsaga.com/app/web-root`, so Passenger enforces access before
+serving application and guide files. The persistent authentication database is
+outside the Git checkout at `/godseye.norsaga.com/auth-data/auth.sqlite`.
+A persistent secret, the owner address and Mailjet sender credentials are
+configured through Plesk environment variables.
 
-Configure a persistent authentication database and secret on Plesk and ensure
-nginx/Apache never serve protected static documents around Passenger. Then
-verify anonymous API/document denial, actual email delivery, owner passkey
-setup, logout and revocation on the deployed domain before announcing activation.
-The previously observed live 200 responses do not establish protection by this
-new release. Email-only user access still relies on mailbox security; recommend
-mailbox MFA. No full penetration test or security certification is claimed.
+Live checks on 12 October confirmed that health responds with authentication
+required, anonymous application and guide requests redirect to sign-in, and the
+vessel API refuses anonymous access with HTTP 401. The owner exists and is active.
+Actual Mailjet acceptance and inbox delivery still need verification. The owner
+must enroll and verify a passkey on their own device before administering users.
+Email-only user access relies on mailbox security; mailbox MFA is recommended.
+No full penetration test or security certification is claimed.
 
 See [setup, activation checks and recovery](AUTHENTICATION.md).

@@ -9,7 +9,7 @@ export function normalizeEmail(value) {
     .trim()
     .toLowerCase();
   if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    throw new Error('Ugyldig e-postadresse');
+    throw new Error('Invalid email address');
   }
   return email;
 }
