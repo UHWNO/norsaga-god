@@ -20,7 +20,7 @@ development server remains available through `npm run dev`.
 - Node.js: 26.9.0
 - Application mode: production
 - Application root: `/godseye.norsaga.com/app`
-- Document root: `/godseye.norsaga.com/app/dist`
+- Document root: `/godseye.norsaga.com/app/web-root` (empty; do not point it at `dist`)
 - Startup file: `app.cjs`
 - Install runtime dependencies: `npm ci --omit=dev`
 
@@ -36,6 +36,15 @@ return JSON 404 after login. Missing authentication configuration stops startup;
 there is no shared-password fallback. Follow [personal access setup](docs/AUTHENTICATION.md),
 including persistent SQLite storage and ensuring Plesk does not serve protected
 static files directly around Passenger.
+
+After updating the repository, run **NPM Install** in Plesk, then run the
+`auth:setup` package script to generate the persistent signing secret privately
+on the server. Set the correct owner, Mailjet and database variables before
+restarting. Leave `AUTH_LOCAL_DEV` disabled in production. Keep `web-root` empty:
+Node serves `dist` itself after the access middleware, so pointing Plesk at
+`dist` would let Apache/nginx serve protected HTML and PDFs without a session.
+Check the application log if startup still returns HTTP 500; do not publish
+environment values or credentials while troubleshooting.
 
 ## Staging access and edge controls
 

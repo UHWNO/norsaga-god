@@ -38,6 +38,13 @@ installation to create extra owners; use the configured account.
 In Plesk, ensure **every** request reaches Passenger/Node. Disable direct nginx
 and Apache static-file serving for this application's documents, JSON, media,
 PDFs and panel files. A document-root shortcut can bypass Node authentication.
+Set Plesk's Document Root to `/godseye.norsaga.com/app/web-root`, an empty
+subdirectory of Application Root, instead of `/godseye.norsaga.com/app/dist`.
+Node continues to serve the built `dist` directory itself, after authentication.
+Do not copy application files into `web-root` or retain server aliases that
+serve `dist` directly. Run **NPM Install**, then the `auth:setup` package script
+before restarting the new release. If Plesk's script runner asks for an npm
+command rather than a script selection, use `run auth:setup`.
 Keep `.env` and the SQLite database outside anything the web server serves.
 Node binds only to loopback; protect the server and deployment credentials with
 MFA, patched software and restricted operator access. Retain HTTPS/HSTS and
