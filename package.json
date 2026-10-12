@@ -54,6 +54,7 @@
     "qa:transit": "node scripts/qa-transit.mjs",
     "mcp": "node server/mcp/stdio.js",
     "auth:setup": "node scripts/auth-setup.mjs",
+    "auth:check": "node scripts/auth-check.mjs",
     "test:auth": "node --test src/auth/access.test.mjs"
   },
   "dependencies": {
