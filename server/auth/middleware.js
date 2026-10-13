@@ -282,11 +282,11 @@ export function createAccessMiddleware(service, { development = false } = {}) {
       if (path === '/api/access/admin/users' && req.method === 'POST') {
         const body = await readJSON(req);
         try {
-          service.setUser(current.user.id, body);
+          const notification = await service.setUser(current.user.id, body);
+          return json(res, 200, { status: true, notification });
         } catch (error) {
           return json(res, 400, { error: error.message });
         }
-        return json(res, 200, { status: true });
       }
       return json(res, 404, { error: 'Unknown administration route' });
     }

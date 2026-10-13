@@ -22,7 +22,21 @@ const labels = {
   user_disabled: 'User blocked',
   login_email_accepted: 'Mailjet accepted the login email',
   login_email_failed: 'Login email acceptance could not be confirmed',
+  approval_email_accepted: 'Mailjet accepted the approval email',
+  approval_email_failed: 'Approval email acceptance could not be confirmed',
 };
+function showApprovalResult(notification) {
+  if (notification === 'failed') {
+    status.textContent =
+      'User approved, but approval email acceptance could not be confirmed. Check the email configuration and access audit log.';
+    status.classList.add('error');
+  } else {
+    status.textContent =
+      notification === 'accepted'
+        ? 'User approved. Mailjet accepted the approval email.'
+        : 'User is already approved. They can request a sign-in link.';
+  }
+}
 const sessionLabels = {
   active: 'Active session',
   signed_out: 'Signed out',
@@ -114,13 +128,14 @@ async function refresh() {
           'click',
           () =>
             void action(async () => {
-              await accessFetch('/api/access/admin/users', {
+              const result = await accessFetch('/api/access/admin/users', {
                 email: user.email,
                 name: user.name,
                 active: !user.active,
               });
               await refresh();
-              status.textContent = 'Access updated.';
+              if (!user.active) showApprovalResult(result.notification);
+              else status.textContent = 'Access blocked.';
             }),
         );
         cell.append(button);
@@ -175,14 +190,14 @@ document
 document.getElementById('user-form').addEventListener('submit', (event) => {
   event.preventDefault();
   void action(async () => {
-    await accessFetch('/api/access/admin/users', {
+    const result = await accessFetch('/api/access/admin/users', {
       name: document.getElementById('user-name').value,
       email: document.getElementById('user-email').value,
       active: true,
     });
     event.target.reset();
     await refresh();
-    status.textContent = 'User approved. They can now request a login link.';
+    showApprovalResult(result.notification);
   });
 });
 document.getElementById('refresh-access-log').addEventListener(

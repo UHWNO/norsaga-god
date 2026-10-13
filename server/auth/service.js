@@ -52,17 +52,26 @@ export async function createAccessService(config, { sendMail } = {}) {
       .get(userId).count;
   const pendingMail = new Set();
   const deliver = sendMail || createMailjetSender(config);
-  const queueMail = (message) => {
+  const queueMail = (message, actor = null) => {
     // Keep response timing independent of whether the address is approved.
     // Tokens remain in memory only while delivering; failures require a new link.
+    const event =
+      message.kind === 'approval' ? 'approval_email' : 'login_email';
     const task = Promise.resolve()
       .then(() => deliver(message))
       .then(
-        () => audit('login_email_accepted', null, message.email),
-        () => audit('login_email_failed', null, message.email),
+        () => {
+          audit(`${event}_accepted`, actor, message.email);
+          return 'accepted';
+        },
+        () => {
+          audit(`${event}_failed`, actor, message.email);
+          return 'failed';
+        },
       )
       .finally(() => pendingMail.delete(task));
     pendingMail.add(task);
+    return task;
   };
   const auth = betterAuth({
     appName: 'NorSaga God’s Eye',
@@ -327,6 +336,11 @@ export async function createAccessService(config, { sendMail } = {}) {
       ).run(randomUUID(), name, email, Date.now(), Date.now(), Number(active));
     }
     audit(active ? 'user_approved' : 'user_disabled', actor, email);
+    // Notify only on a new grant or a blocked-to-approved transition.
+    // Profile edits and repeated approvals must not send duplicate notices.
+    return active && !existing?.active
+      ? queueMail({ kind: 'approval', email, name }, actor)
+      : null;
   }
   return {
     config,

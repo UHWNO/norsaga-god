@@ -13,7 +13,7 @@ import {
 } from '../../server/auth/middleware.js';
 import { createMailjetSender } from '../../server/auth/mailjet.js';
 
-async function fixture(t, { secure = false } = {}) {
+async function fixture(t, { secure = false, rejectApproval = false } = {}) {
   const directory = await mkdtemp(join(tmpdir(), 'norsaga-access-'));
   let middleware;
   let providerCalls = 0;
@@ -44,7 +44,11 @@ async function fixture(t, { secure = false } = {}) {
   });
   const messages = [];
   const service = await createAccessService(config, {
-    sendMail: async (message) => messages.push(message),
+    sendMail: async (message) => {
+      if (rejectApproval && message.kind === 'approval')
+        throw new Error('sensitive provider response');
+      messages.push(message);
+    },
   });
   middleware = createAccessMiddleware(service);
   t.after(async () => {
@@ -420,6 +424,151 @@ test('Mailjet links use URL fragments and disabled tracking; failures never incl
     failed({ email: 'member@example.org', token: 'testtoken' }),
     /^Error: Mailjet did not confirm acceptance \(HTTP 401\)$/,
   );
+});
+
+test('Mailjet approval notices link to the app and explain secure sign-in without issuing a token', async () => {
+  let payload;
+  const send = createMailjetSender(
+    {
+      origin: 'https://godseye.norsaga.com',
+      mailFrom: 'no-reply@norsaga.com',
+      mailFromName: 'NorSaga God´s Eye Access',
+      mailjetKey: 'fixture',
+      mailjetSecret: 'fixture',
+    },
+    async (_, options) => {
+      payload = JSON.parse(options.body);
+      return Response.json({ Messages: [{ Status: 'success' }] });
+    },
+  );
+  await send({
+    kind: 'approval',
+    email: 'member@example.org',
+    name: 'New Member',
+  });
+  const message = payload.Messages[0];
+  assert.deepEqual(message.From, {
+    Email: 'no-reply@norsaga.com',
+    Name: 'NorSaga God´s Eye Access',
+  });
+  assert.deepEqual(message.To, [{ Email: 'member@example.org' }]);
+  assert.match(message.Subject, /Access Has Been Approved/);
+  assert.match(message.TextPart, /Hello New Member/);
+  assert.match(message.TextPart, /https:\/\/godseye\.norsaga\.com\//);
+  assert.match(
+    message.TextPart,
+    /approved email address \(member@example.org\)/,
+  );
+  assert.match(message.TextPart, /request a sign-in link/);
+  assert.match(message.TextPart, /10 minutes/);
+  assert.doesNotMatch(message.TextPart, /#token=|undefined/);
+  assert.equal(message.TrackClicks, 'disabled');
+  assert.equal(message.TrackOpens, 'disabled');
+});
+
+test('admin approval sends once per grant, preserves authentication requirements, and audits acceptance', async (t) => {
+  const f = await fixture(t);
+  const owner = f.service.users()[0];
+  const { cookie } = await f.login();
+  const body = {
+    email: 'Member@Example.org',
+    name: 'New Member',
+    active: true,
+  };
+  assert.equal(
+    (await f.call('/api/access/admin/users', body, cookie)).status,
+    403,
+  );
+  assert.equal(f.messages.filter((m) => m.kind === 'approval').length, 0);
+  f.service.db
+    .prepare('UPDATE session SET passkeyVerified = 1 WHERE userId = ?')
+    .run(owner.id);
+  const sessionsBefore = f.service.db
+    .prepare('SELECT COUNT(*) AS count FROM session')
+    .get().count;
+  const response = await f.call('/api/access/admin/users', body, cookie);
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), {
+    status: true,
+    notification: 'accepted',
+  });
+  const approvals = () => f.messages.filter((m) => m.kind === 'approval');
+  assert.deepEqual(approvals(), [
+    { kind: 'approval', email: 'member@example.org', name: 'New Member' },
+  ]);
+  assert.equal(
+    f.service.db.prepare('SELECT COUNT(*) AS count FROM session').get().count,
+    sessionsBefore,
+  );
+  assert.ok(
+    f.service
+      .events()
+      .some(
+        (e) =>
+          e.event === 'approval_email_accepted' &&
+          e.actor === owner.id &&
+          e.target === 'member@example.org',
+      ),
+  );
+  const edited = await f.call(
+    '/api/access/admin/users',
+    { ...body, name: 'Updated Name' },
+    cookie,
+  );
+  assert.equal((await edited.json()).notification, null);
+  assert.equal(
+    approvals().length,
+    1,
+    'an already approved user is not notified again',
+  );
+  const disabled = await f.call(
+    '/api/access/admin/users',
+    { ...body, active: false },
+    cookie,
+  );
+  assert.equal((await disabled.json()).notification, null);
+  assert.equal(
+    approvals().length,
+    1,
+    'blocking access does not send an approval email',
+  );
+  const reactivated = await f.call('/api/access/admin/users', body, cookie);
+  assert.equal((await reactivated.json()).notification, 'accepted');
+  assert.equal(approvals().length, 2);
+  await f.login('member@example.org');
+});
+
+test('approval email failures retain approved access and report failure without exposing provider data', async (t) => {
+  const f = await fixture(t, { rejectApproval: true });
+  const owner = f.service.users()[0];
+  const { cookie } = await f.login();
+  f.service.db
+    .prepare('UPDATE session SET passkeyVerified = 1 WHERE userId = ?')
+    .run(owner.id);
+  const response = await f.call(
+    '/api/access/admin/users',
+    { email: 'member@example.org', active: true },
+    cookie,
+  );
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), {
+    status: true,
+    notification: 'failed',
+  });
+  assert.equal(
+    f.service.users().find((u) => u.email === 'member@example.org').active,
+    1,
+  );
+  const events = f.service.events();
+  assert.ok(
+    events.some(
+      (e) =>
+        e.event === 'approval_email_failed' &&
+        e.target === 'member@example.org',
+    ),
+  );
+  assert.doesNotMatch(JSON.stringify(events), /sensitive provider response/);
+  await f.login('member@example.org');
 });
 
 test('access history records confirmed sessions, ignores background polling, and tracks activity and logout', async (t) => {
