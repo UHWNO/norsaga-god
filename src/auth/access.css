@@ -164,6 +164,18 @@ td button {
   font-size: 13px;
   padding: 8px 12px;
 }
+.user-actions button {
+  margin: 3px;
+  white-space: nowrap;
+}
+.delete-user {
+  background: transparent;
+  border-color: #d77575;
+  color: #ffb5b5;
+}
+.delete-user:hover {
+  background: #632d37;
+}
 li button {
   margin: 8px 12px;
   padding: 6px 10px;

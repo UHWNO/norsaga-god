@@ -64,9 +64,14 @@ of a live WAL database must include its WAL or use a consistent backup.
    passkey login with biometric/PIN user verification. Add a second passkey as
    a reserve. Administrative authorization is fresh for fifteen minutes.
 5. Enter a person's name and exact email under **Approved Users**. They can
-   now request their own email login. This does not automatically send an
-   invitation. **Block Access** immediately revokes their server sessions and
-   pending login links. The owner cannot be disabled or promoted via this UI.
+   now request their own email login and receive an automatic approval email.
+   **Block Access** immediately revokes their server sessions and pending login
+   links while keeping the account. **Delete User** asks for confirmation, then
+   removes the account, sessions, passkeys, linked accounts and pending login
+   links in one transaction. A deleted address must be approved again before
+   signing in; its old credentials stay invalid after approval. Security history
+   remains under the existing ninety-day retention policy. The owner cannot be
+   disabled, deleted or promoted via this UI.
 
 Ordinary users can use a new email link on each login or register optional
 passkeys for faster, phishing-resistant login. Email-only login depends on the

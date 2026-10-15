@@ -20,6 +20,7 @@ const labels = {
   admin_bootstrapped: 'Administrator created',
   user_approved: 'User approved',
   user_disabled: 'User blocked',
+  user_deleted: 'User deleted',
   login_email_accepted: 'Mailjet accepted the login email',
   login_email_failed: 'Login email acceptance could not be confirmed',
   approval_email_accepted: 'Mailjet accepted the approval email',
@@ -138,7 +139,33 @@ async function refresh() {
               else status.textContent = 'Access blocked.';
             }),
         );
-        cell.append(button);
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete User';
+        deleteButton.className = 'delete-user';
+        deleteButton.addEventListener('click', () => {
+          if (
+            !window.confirm(
+              `Delete ${user.email}? This removes their account, passkeys, active sessions, and unused sign-in links. They will need approval again to regain access. Security history is retained for up to 90 days.`,
+            )
+          )
+            return;
+          button.disabled = true;
+          deleteButton.disabled = true;
+          void action(async () => {
+            try {
+              await accessFetch('/api/access/admin/users/delete', {
+                userId: user.id,
+              });
+              await refresh();
+              status.textContent = 'User deleted.';
+            } finally {
+              button.disabled = false;
+              deleteButton.disabled = false;
+            }
+          });
+        });
+        cell.classList.add('user-actions');
+        cell.append(button, deleteButton);
       }
       row.append(cell);
       table.append(row);

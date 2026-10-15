@@ -571,6 +571,271 @@ test('approval email failures retain approved access and report failure without 
   await f.login('member@example.org');
 });
 
+test('user deletion requires a recent administrator passkey and same-origin request', async (t) => {
+  const f = await fixture(t);
+  const owner = f.service.users()[0];
+  await f.service.setUser(owner.id, { email: 'member@example.org' });
+  const member = f.service
+    .users()
+    .find((u) => u.email === 'member@example.org');
+  const path = '/api/access/admin/users/delete';
+  const body = { userId: member.id };
+  assert.equal((await f.call(path, body)).status, 401);
+  const admin = await f.login();
+  assert.equal((await f.call(path, body, admin.cookie)).status, 403);
+  f.service.db
+    .prepare('UPDATE session SET passkeyVerified = 1 WHERE userId = ?')
+    .run(owner.id);
+  for (const origin of ['', 'https://evil.example'])
+    assert.equal(
+      (await f.call(path, body, admin.cookie, { origin })).status,
+      403,
+    );
+  f.service.db
+    .prepare('UPDATE session SET createdAt = ? WHERE userId = ?')
+    .run(Date.now() - 16 * 60_000, owner.id);
+  assert.equal((await f.call(path, body, admin.cookie)).status, 403);
+  const regular = await f.login(member.email);
+  f.service.db
+    .prepare('UPDATE session SET passkeyVerified = 1 WHERE userId = ?')
+    .run(member.id);
+  assert.equal(
+    (await f.call(path, { userId: owner.id, role: 'admin' }, regular.cookie))
+      .status,
+    403,
+  );
+  assert.equal(f.service.users().length, 2);
+});
+
+test('deletion protects the administrator and rejects invalid or missing user IDs', async (t) => {
+  const f = await fixture(t);
+  const owner = f.service.users()[0];
+  const { cookie } = await f.login();
+  f.service.db
+    .prepare('UPDATE session SET passkeyVerified = 1 WHERE userId = ?')
+    .run(owner.id);
+  const path = '/api/access/admin/users/delete';
+  for (const body of [
+    {},
+    { userId: null },
+    { userId: {} },
+    { userId: ' ' },
+    { userId: 'unknown' },
+  ])
+    assert.equal((await f.call(path, body, cookie)).status, 400);
+  const response = await f.call(
+    path,
+    { userId: owner.id, role: 'user', email: 'other@example.org' },
+    cookie,
+  );
+  assert.equal(response.status, 400);
+  assert.match(
+    (await response.json()).error,
+    /administrator account cannot be deleted/,
+  );
+  assert.equal(f.service.users()[0].id, owner.id);
+  assert.equal(
+    (await f.call('/api/access/admin/users', undefined, cookie)).status,
+    200,
+  );
+});
+
+test('deleting a user removes credentials and unused links, revokes sessions, and cannot revive old access after approval', async (t) => {
+  const f = await fixture(t);
+  const owner = f.service.users()[0];
+  const admin = await f.login();
+  f.service.db
+    .prepare('UPDATE session SET passkeyVerified = 1 WHERE userId = ?')
+    .run(owner.id);
+  const email = 'member@example.org';
+  await f.service.setUser(owner.id, { email, name: 'Member' });
+  await f.service.setUser(owner.id, { email: 'other@example.org' });
+  const member = f.service.users().find((u) => u.email === email);
+  const login = await f.login(email);
+  const other = await f.login('other@example.org');
+  const db = f.service.db;
+  db.prepare(
+    'INSERT INTO passkey (id,publicKey,userId,credentialID,counter,deviceType,backedUp,createdAt) VALUES (?,?,?,?,0,?,0,?)',
+  ).run(
+    'member-key',
+    'public-key',
+    member.id,
+    'member-credential',
+    'singleDevice',
+    Date.now(),
+  );
+  db.prepare(
+    'INSERT INTO account (id,accountId,providerId,userId,createdAt,updatedAt) VALUES (?,?,?,?,?,?)',
+  ).run(
+    'member-account',
+    'external-id',
+    'fixture',
+    member.id,
+    Date.now(),
+    Date.now(),
+  );
+  await f.call('/api/auth/sign-in/magic-link', { email });
+  await f.service.waitForMail();
+  const token = f.messages.at(-1).token;
+  const path = '/api/access/admin/users/delete';
+  const response = await f.call(path, { userId: member.id }, admin.cookie);
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { status: true });
+  const listed = await f.call(
+    '/api/access/admin/users',
+    undefined,
+    admin.cookie,
+  );
+  assert.ok((await listed.json()).users.every((u) => u.id !== member.id));
+  for (const table of ['user', 'session', 'passkey', 'account']) {
+    const key = table === 'user' ? 'id' : 'userId';
+    assert.equal(
+      db
+        .prepare(`SELECT COUNT(*) AS count FROM ${table} WHERE ${key} = ?`)
+        .get(member.id).count,
+      0,
+      table,
+    );
+  }
+  assert.equal(
+    db
+      .prepare(
+        "SELECT COUNT(*) AS count FROM verification WHERE json_extract(value, '$.email') = ?",
+      )
+      .get(email).count,
+    0,
+  );
+  assert.equal(
+    (await f.call('/api/vessels', undefined, login.cookie)).status,
+    401,
+  );
+  assert.equal(
+    (await f.call('/api/vessels', undefined, other.cookie)).status,
+    200,
+  );
+  assert.equal((await f.call('/api/access/redeem', { token })).status, 400);
+  const messagesBefore = f.messages.length;
+  assert.equal(
+    (await f.call('/api/auth/sign-in/magic-link', { email })).status,
+    200,
+  );
+  await f.service.waitForMail();
+  assert.equal(
+    f.messages.length,
+    messagesBefore,
+    'deleted addresses receive no login email',
+  );
+  assert.equal(
+    f.service.accessHistory.entries().find((entry) => entry.email === email)
+      .status,
+    'revoked',
+  );
+  assert.ok(
+    f.service
+      .events()
+      .some(
+        (e) =>
+          e.event === 'user_deleted' &&
+          e.actor === owner.id &&
+          e.target === email,
+      ),
+  );
+  await f.service.setUser(owner.id, { email });
+  const replacement = f.service.users().find((u) => u.email === email);
+  assert.notEqual(replacement.id, member.id);
+  assert.equal(
+    (await f.call(path, { userId: member.id }, admin.cookie)).status,
+    400,
+    'stale pages cannot delete a new account with the same email',
+  );
+  assert.ok(f.service.users().some((u) => u.id === replacement.id));
+  assert.equal((await f.call('/api/access/redeem', { token })).status, 400);
+  assert.equal(
+    (await f.call('/api/vessels', undefined, login.cookie)).status,
+    401,
+  );
+  assert.equal(f.service.passkeyCount(replacement.id), 0);
+  // This long lifecycle exceeds the real login throttles. Advance only the
+  // fixture's rate-limit windows before testing the newly approved account.
+  db.prepare('UPDATE access_limit SET started = ?').run(Date.now() - 601_000);
+  db.prepare('UPDATE rateLimit SET lastRequest = ?').run(Date.now() - 601_000);
+  await f.login(email);
+});
+
+test('blocked users can be deleted without approving them or sending email', async (t) => {
+  const f = await fixture(t);
+  const owner = f.service.users()[0];
+  const { cookie } = await f.login();
+  f.service.db
+    .prepare('UPDATE session SET passkeyVerified = 1 WHERE userId = ?')
+    .run(owner.id);
+  f.service.setUser(owner.id, { email: 'blocked@example.org', active: false });
+  const member = f.service
+    .users()
+    .find((u) => u.email === 'blocked@example.org');
+  const count = f.messages.length;
+  assert.equal(
+    (
+      await f.call(
+        '/api/access/admin/users/delete',
+        { userId: member.id },
+        cookie,
+      )
+    ).status,
+    200,
+  );
+  await f.service.waitForMail();
+  assert.equal(f.messages.length, count);
+  assert.equal(f.service.users().length, 1);
+});
+
+test('a failed deletion rolls back credentials, pending links, access history and its audit event together', async (t) => {
+  const f = await fixture(t);
+  const owner = f.service.users()[0];
+  const admin = await f.login();
+  f.service.db
+    .prepare('UPDATE session SET passkeyVerified = 1 WHERE userId = ?')
+    .run(owner.id);
+  await f.service.setUser(owner.id, { email: 'member@example.org' });
+  const member = f.service
+    .users()
+    .find((u) => u.email === 'member@example.org');
+  const login = await f.login(member.email);
+  await f.call('/api/auth/sign-in/magic-link', { email: member.email });
+  await f.service.waitForMail();
+  const token = f.messages.at(-1).token;
+  f.service.db.exec(
+    "CREATE TRIGGER fixture_abort_delete BEFORE DELETE ON user WHEN OLD.role = 'user' BEGIN SELECT RAISE(ABORT, 'Fixture deletion failure'); END;",
+  );
+  assert.equal(
+    (
+      await f.call(
+        '/api/access/admin/users/delete',
+        { userId: member.id },
+        admin.cookie,
+      )
+    ).status,
+    400,
+  );
+  assert.ok(f.service.users().some((u) => u.id === member.id));
+  assert.equal(
+    (await f.call('/api/vessels', undefined, login.cookie)).status,
+    200,
+  );
+  assert.equal(
+    f.service.accessHistory
+      .entries()
+      .find((entry) => entry.email === member.email).status,
+    'active',
+  );
+  assert.ok(f.service.events().every((e) => e.event !== 'user_deleted'));
+  assert.equal(
+    (await f.call('/api/access/redeem', { token })).status,
+    200,
+    'pending link survives the failed deletion',
+  );
+});
+
 test('access history records confirmed sessions, ignores background polling, and tracks activity and logout', async (t) => {
   const f = await fixture(t);
   await f.call('/api/auth/sign-in/magic-link', {

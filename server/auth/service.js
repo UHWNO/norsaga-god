@@ -342,6 +342,36 @@ export async function createAccessService(config, { sendMail } = {}) {
       ? queueMail({ kind: 'approval', email, name }, actor)
       : null;
   }
+  function deleteUser(actor, body) {
+    if (typeof body.userId !== 'string' || !body.userId.trim())
+      throw new Error('Select a user to delete.');
+    db.exec('BEGIN IMMEDIATE');
+    try {
+      // Use the account ID so a stale page cannot delete a newly approved
+      // account that happens to have the same email address.
+      const user = userById(body.userId);
+      if (!user)
+        throw new Error('This user no longer exists. Refresh the user list.');
+      if (
+        user.role === 'admin' ||
+        user.email === config.adminEmail ||
+        user.id === actor
+      )
+        throw new Error('The administrator account cannot be deleted.');
+      accessHistory.revoke(user.id);
+      db.prepare(
+        "DELETE FROM verification WHERE CASE WHEN json_valid(value) THEN json_extract(value, '$.email') END = ?",
+      ).run(user.email);
+      // Foreign keys cascade to sessions, passkeys and linked accounts.
+      // Historical access records remain under the existing 90-day policy.
+      db.prepare('DELETE FROM user WHERE id = ?').run(user.id);
+      audit('user_deleted', actor, user.email);
+      db.exec('COMMIT');
+    } catch (error) {
+      db.exec('ROLLBACK');
+      throw error;
+    }
+  }
   return {
     config,
     auth,
@@ -353,6 +383,7 @@ export async function createAccessService(config, { sendMail } = {}) {
     passkeyCount,
     consumeLimit,
     setUser,
+    deleteUser,
     users: () =>
       db
         .prepare(

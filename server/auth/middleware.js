@@ -288,6 +288,15 @@ export function createAccessMiddleware(service, { development = false } = {}) {
           return json(res, 400, { error: error.message });
         }
       }
+      if (path === '/api/access/admin/users/delete' && req.method === 'POST') {
+        const body = await readJSON(req);
+        try {
+          service.deleteUser(current.user.id, body);
+          return json(res, 200, { status: true });
+        } catch (error) {
+          return json(res, 400, { error: error.message });
+        }
+      }
       return json(res, 404, { error: 'Unknown administration route' });
     }
     if (path.startsWith('/api/access/'))
