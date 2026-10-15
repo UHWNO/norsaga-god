@@ -302,3 +302,17 @@
 .norsaga-aurora-dialog .norsaga-dialog-header button { cursor: pointer; padding: 7px 12px; color: #e4f4ff; background: #172f4b; border: 1px solid #416582; border-radius: 5px; }
 .norsaga-aurora-dialog :focus-visible { outline: 2px solid #89c7da; outline-offset: 3px; }
 .norsaga-aurora-dialog { margin: auto; }
+
+.norsaga-energy { padding: 8px 0; border-top: 1px solid #284867; font-size: 11px; line-height: 1.5; }
+.norsaga-energy summary { cursor: pointer; color: #c9edf4; }
+.norsaga-energy p { overflow-wrap: anywhere; margin: 7px 0; }
+.norsaga-energy input { width: 100%; box-sizing: border-box; min-height: 34px; padding: 6px; color: #e4f4ff; background: #091929; border: 1px solid #416582; border-radius: 5px; }
+.norsaga-energy-results { display: grid; gap: 5px; max-height: 150px; overflow: auto; }
+.norsaga-energy button { white-space: normal; text-align: left; padding: 7px; color: #e4f4ff; background: #172f4b; border: 1px solid #416582; border-radius: 5px; cursor: pointer; }
+.norsaga-energy-card { border-left: 2px solid #61e4cf; padding: 8px; margin-top: 9px; background: #071322; }
+.norsaga-energy-card[hidden] { display: none; }
+.norsaga-energy-card h3 { font-size: 13px; margin: 0 0 8px; }
+.norsaga-energy-card a { color: #a3d8ed; display: block; margin: 6px 0; }
+.norsaga-energy :focus-visible { outline: 2px solid #89c7da; outline-offset: 2px; }
+.norsaga-energy label { display: block; margin: 7px 0; }
+.norsaga-energy select { display: block; width: 100%; min-height: 32px; padding: 5px; color: #e4f4ff; background: #172f4b; border: 1px solid #416582; border-radius: 5px; }

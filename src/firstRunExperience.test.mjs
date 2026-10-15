@@ -673,11 +673,11 @@ test('the voice TOOL SCHEMA matches the pinned contract — the mission mapping 
   // referent-only track_entity alternative (kept out of the model-facing
   // schema, which may not carry top-level anyOf), and Contacts requested-radius
   // list descriptions; the missions still ride existing tools.
-  // Street Level and NorSaga Aurora add toggle enum values and generated alias hints.
-  assert.equal(block.length, 29860, 'serialized tool schema length drifted');
+  // Street Level, NorSaga Aurora and offshore energy add toggle enums and aliases.
+  assert.equal(block.length, 30017, 'serialized tool schema length drifted');
   assert.equal(
     crypto.createHash('sha256').update(block).digest('hex'),
-    'fcce79832fb2e266912c8f71abeb1b265721cd0beebfcca199ee7b8ed27f508f',
+    'aad2d84f80bf2479069571569e16bd1d05c5a271b711bbe79c673ecac088a0f9',
     'the first-run missions must ride EXISTING tools: no schema edit, no cache bust',
   );
   const instructions = fs.readFileSync(new URL('../server/providers/openai/instructions.js', import.meta.url), 'utf8');

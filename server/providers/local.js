@@ -28,6 +28,7 @@ import { cycloneProxy } from './cyclones.js';
 import { windProxy } from './wind.js';
 import { auroraProxy } from './aurora.js';
 import { auroraAnimationProxy } from './auroraAnimation.js';
+import { offshoreEnergyProxy } from './offshoreEnergy.js';
 
 /**
  * Construct the local provider plugins in their established order.
@@ -62,6 +63,7 @@ function localProviderPlugins({ realtime } = {}) {
     cycloneProxy(),
     auroraProxy(),
     auroraAnimationProxy(),
+    offshoreEnergyProxy(),
     mapillaryProxy(),
     firePerimetersProxy(),
     keySetupEndpoint(),

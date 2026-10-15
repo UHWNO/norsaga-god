@@ -92,6 +92,10 @@ export function hideOsmCredit(viewer, owner) {
 }
 
 export const DATA_CREDITS = [
+  {
+    key: 'offshore-energy',
+    html: 'Offshore energy: <a href="https://www.sodir.no/fakta/data-og-analyser/apne-data/" target="_blank" rel="noopener">Norwegian Offshore Directorate</a> (NLOD 2.0); <a href="https://www.nstauthority.co.uk/data-and-insights/data/themes/infrastructure/" target="_blank" rel="noopener">North Sea Transition Authority</a>; <a href="https://emodnet.ec.europa.eu/en/human-activities" target="_blank" rel="noopener">EMODnet Human Activities</a> / Cogea (oil and gas), CETMAR (wind farms), CC BY 4.0. Asset registers, not live operational monitoring.',
+  },
   // ── Live sources ────────────────────────────────────────────────
   {
     key: 'opensky',

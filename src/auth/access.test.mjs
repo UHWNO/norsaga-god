@@ -128,6 +128,7 @@ test('anonymous feeds, PDFs, panel and app are blocked before providers; public 
   for (const path of [
     '/api/vessels',
     '/api/openai/realtime/session',
+    '/api/offshore-energy?kind=oil',
     '/api/access/admin/users',
   ]) {
     assert.equal((await f.call(path)).status, 401, path);

@@ -20,6 +20,16 @@ export const REGIONS = Object.freeze(
 
 export const MARITIME_LAYERS = Object.freeze([
   Object.freeze({
+    id: 'offshore-oil-gas',
+    label: 'Oil & Gas Installations',
+    note: 'Northern Europe · asset registers',
+  }),
+  Object.freeze({
+    id: 'offshore-wind',
+    label: 'Offshore Wind Farms',
+    note: 'Farm locations and boundaries · EMODnet',
+  }),
+  Object.freeze({
     id: 'aurora',
     label: 'Aurora Forecast',
     note: 'NOAA SWPC environmental context',

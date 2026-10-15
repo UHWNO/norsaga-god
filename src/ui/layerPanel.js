@@ -38,6 +38,8 @@ const PANEL_GROUPS = [
     label: 'Infrastructure',
     ids: [
       'alpr-cameras',
+      'offshore-oil-gas',
+      'offshore-wind',
       'military-installations',
       'local-datacenters',
       'telegeography-submarine-cables',

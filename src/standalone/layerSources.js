@@ -18,6 +18,7 @@ import { createAlprTileSource } from '../layers/alpr/source.js';
 import { createWeatherSource } from '../layers/weather/source.js';
 import { createCycloneSource } from '../layers/cyclones/source.js';
 import { createAuroraSource } from '../layers/aurora/source.js';
+import { createOffshoreEnergySource } from '../layers/offshoreEnergy/source.js';
 import { createWindSource } from '../layers/wind/source.js';
 import { createFirmsSource } from '../layers/firms/source.js';
 import { createMapillarySource } from '../layers/streetLevel/providers/mapillary/source.js';
@@ -55,6 +56,7 @@ export function createStandaloneLayerSources(overrides = {}) {
     weather: createWeatherSource(),
     cyclones: createCycloneSource(),
     aurora: createAuroraSource(),
+    offshoreEnergy: createOffshoreEnergySource(),
     mapillary: createMapillarySource({
       token: import.meta.env?.MAPILLARY_CLIENT_TOKEN || '',
     }),

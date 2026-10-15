@@ -297,6 +297,25 @@ function imageryPinOption(key, token) {
 }
 
 const OPTION_GROUPS = Object.freeze({
+  'offshore-oil-gas': Object.freeze([
+    enumOption(
+      'status',
+      's',
+      'operational',
+      ['operational', 'planned', 'retired', 'all'],
+      { operational: 'o', planned: 'p', retired: 'r', all: 'a' },
+    ),
+    booleanOption('subsea', 'u', false),
+  ]),
+  'offshore-wind': Object.freeze([
+    enumOption(
+      'status',
+      's',
+      'operational',
+      ['operational', 'planned', 'retired', 'all'],
+      { operational: 'o', planned: 'p', retired: 'r', all: 'a' },
+    ),
+  ]),
   traffic: Object.freeze([
     enumOption('roadMode', 'r', null, ['tomtom', 'osm', 'hybrid'], {
       tomtom: 't',
@@ -634,6 +653,18 @@ export const LAYER_STATE_REGISTRY = Object.freeze([
     id: 'military-installations',
     token: 'i',
     disposition: 'enabled-only',
+  }),
+  Object.freeze({
+    id: 'offshore-oil-gas',
+    token: '4',
+    disposition: 'enabled+options',
+    optionOwner: 'offshore-oil-gas',
+  }),
+  Object.freeze({
+    id: 'offshore-wind',
+    token: '5',
+    disposition: 'enabled+options',
+    optionOwner: 'offshore-wind',
   }),
   Object.freeze({
     id: 'radio',

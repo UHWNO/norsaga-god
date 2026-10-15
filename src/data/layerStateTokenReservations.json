@@ -28,5 +28,7 @@
   ["weather-radar", "v"],
   ["weather-satellite", "o"],
   ["wind", "k"],
-  ["aurora", "3"]
+  ["aurora", "3"],
+  ["offshore-oil-gas", "4"],
+  ["offshore-wind", "5"]
 ]

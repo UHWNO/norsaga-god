@@ -3,6 +3,8 @@ import { createWeatherClock } from '../layers/weather/clock.js';
 import { createWeatherLayer } from '../layers/weather/index.js';
 import { createCyclonesLayer } from '../layers/cyclones/index.js';
 import { createAuroraLayer } from '../layers/aurora/index.js';
+import { createOffshoreEnergyLayer } from '../layers/offshoreEnergy/index.js';
+import * as energyPicking from '../data/pickRegistry.js';
 import { createWindLayer } from '../layers/wind/index.js';
 import { createLayerCatalog } from './catalog.js';
 import { LAYER_STATE_REGISTRY } from '../data/layerState.js';
@@ -162,6 +164,16 @@ export function createApplicationCatalog({
         }),
         createCyclonesLayer({ feed: sources.cyclones }),
         createAuroraLayer({ feed: sources.aurora }),
+        createOffshoreEnergyLayer({
+          kind: 'oil',
+          feed: sources.offshoreEnergy,
+          picking: energyPicking,
+        }),
+        createOffshoreEnergyLayer({
+          kind: 'wind',
+          feed: sources.offshoreEnergy,
+          picking: energyPicking,
+        }),
         ...createInfrastructureLayers(localGeoJsonServices),
         createApplicationCables({ source: sources.cables }),
         createApplicationFirms({

@@ -202,8 +202,8 @@ function encode(state) {
 
 test('production registry is exact, canonical, and rejects incomplete contracts', async () => {
   assert.equal(validateLayerStateRegistry(), true);
-  assert.equal(REGISTERED_LAYER_IDS.length, 30);
-  assert.equal(new Set(REGISTERED_LAYER_IDS).size, 30);
+  assert.equal(REGISTERED_LAYER_IDS.length, 32);
+  assert.equal(new Set(REGISTERED_LAYER_IDS).size, 32);
   assert.ok(REGISTERED_LAYER_IDS.includes('transit'));
   assert.deepEqual(REGISTERED_LAYER_IDS, [...REGISTERED_LAYER_IDS].sort());
   assert.deepEqual(LEGACY_LAYER_STATE_TOKENS, {
@@ -244,9 +244,11 @@ test('production registry is exact, canonical, and rejects incomplete contracts'
   }
   // Fixed upstream allocation scenarios keep their original pre-Aurora baseline.
   const allocationReservations = Object.fromEntries(
-    Object.entries(LAYER_STATE_TOKEN_RESERVATIONS).filter(([id]) => id !== 'aurora'),
+    Object.entries(LAYER_STATE_TOKEN_RESERVATIONS).filter(
+      ([id]) => !['aurora', 'offshore-oil-gas', 'offshore-wind'].includes(id),
+    ),
   );
-  assert.equal(nextLayerStateToken(), '4');
+  assert.equal(nextLayerStateToken(), '6');
   assert.equal(
     nextLayerStateToken({
       ...allocationReservations,

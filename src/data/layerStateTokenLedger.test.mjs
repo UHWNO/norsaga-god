@@ -29,7 +29,7 @@ import {
 // Synthetic allocation scenarios start before NorSaga reserved Aurora's token.
 const LAYER_STATE_TOKEN_RESERVATIONS = Object.fromEntries(
   Object.entries(PRODUCTION_TOKEN_RESERVATIONS).filter(
-    ([id]) => id !== 'aurora',
+    ([id]) => !['aurora', 'offshore-oil-gas', 'offshore-wind'].includes(id),
   ),
 );
 
@@ -51,7 +51,9 @@ const productionRows = JSON.parse(
   ),
 );
 
-const reservationRows = productionRows.filter(([id]) => id !== 'aurora');
+const reservationRows = productionRows.filter(
+  ([id]) => !['aurora', 'offshore-oil-gas', 'offshore-wind'].includes(id),
+);
 
 test('pre-ledger published ownership is independent of the candidate mapping', () => {
   assert.notStrictEqual(
@@ -114,7 +116,7 @@ function writeCodecFixture(cwd, rows, entries) {
     readFileSync(new URL('./idSwitches.js', import.meta.url)),
   );
   const source = readFileSync(CODEC_SOURCE_PATH, 'utf8').replace(
-    /  Object\.freeze\(\{\n    id: 'aurora',[\s\S]*?\n  \}\),\n/,
+    /  Object\.freeze\(\{\n    id: '(?:aurora|offshore-oil-gas|offshore-wind)',[\s\S]*?\n  \}\),\n/g,
     '',
   );
   const registryEnd = ']);\n\nexport const REGISTERED_LAYER_IDS';
@@ -140,10 +142,16 @@ test('reservation ledger is complete, pinned, and rejects duplicate or malformed
     { ...parseLayerStateTokenReservations(productionRows) },
     { ...PRODUCTION_TOKEN_RESERVATIONS },
   );
-  assert.equal(Object.keys(PRODUCTION_TOKEN_RESERVATIONS).length, 30);
+  assert.equal(Object.keys(PRODUCTION_TOKEN_RESERVATIONS).length, 32);
   assert.deepEqual(
     { ...PRODUCTION_TOKEN_RESERVATIONS },
-    { ...LEGACY_LAYER_STATE_TOKENS, 'street-level': '0', aurora: '3' },
+    {
+      ...LEGACY_LAYER_STATE_TOKENS,
+      'street-level': '0',
+      aurora: '3',
+      'offshore-oil-gas': '4',
+      'offshore-wind': '5',
+    },
   );
   assert.throws(
     () => parseLayerStateTokenReservations(reservationRows.slice(1)),

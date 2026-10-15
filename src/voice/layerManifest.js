@@ -231,6 +231,23 @@ const layers = [
     noQuery: 'NOAA forecast overlay; no countable records',
   },
   {
+    id: 'offshore-oil-gas',
+    aliases: [
+      'oil rigs',
+      'oil platforms',
+      'oil and gas installations',
+      'offshore installations',
+    ],
+    context: false,
+    noQuery: 'asset register; use offshore energy search and details',
+  },
+  {
+    id: 'offshore-wind',
+    aliases: ['offshore wind farms', 'wind farms', 'offshore wind turbines'],
+    context: false,
+    noQuery: 'asset register; use offshore energy search and details',
+  },
+  {
     id: 'wind',
     aliases: ['winds', 'wind map'],
     context: false,

@@ -1,4 +1,5 @@
 import { initAuroraExperience } from './auroraExperience.js';
+import { initEnergyExperience } from './energyExperience.js';
 import { REGIONS, MISSIONS, MARITIME_LAYERS, runMission } from './profile.js';
 import { navigateRegion } from './camera.js';
 import {
@@ -114,6 +115,12 @@ export function initNorSagaExperience({
   bind(details, 'toggle', notifyWorkspaceLayout);
   details.append(layerList);
   toolbar.append(details);
+  const energyExperience = initEnergyExperience({
+    dataManager,
+    parent: details,
+    documentRef: doc,
+    notifyLayout: notifyWorkspaceLayout,
+  });
   const status = make('p', 'norsaga-status');
   status.setAttribute('role', 'status');
   status.setAttribute('aria-live', 'polite');
@@ -349,6 +356,7 @@ export function initNorSagaExperience({
     unsubscribe?.();
     for (const remove of removers) remove();
     auroraExperience.destroy();
+    energyExperience.destroy();
     toolbar.remove();
     dialog.remove();
     about.remove();
