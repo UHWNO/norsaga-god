@@ -1,4 +1,5 @@
 import { enforceRateLimit, openAiRateLimiter } from './rate-limit.js';
+import { hasProxySignals } from '../../../src/localRequestGate.mjs';
 import {
   resolveVoiceModel,
   isKnownVoiceTier,
@@ -23,7 +24,13 @@ import {
 const LOOPBACK_ADDRESSES = new Set(['127.0.0.1', '::1', '::ffff:127.0.0.1']);
 
 function isLoopbackRequest(req) {
-  return LOOPBACK_ADDRESSES.has(String(req.socket?.remoteAddress || ''));
+  // Hosted proxy sockets are loopback too. They must never expose the server's
+  // local Codex credentials or start a local OAuth login for remote users.
+  return (
+    !req.norsagaPublicOrigin &&
+    !hasProxySignals(req.headers) &&
+    LOOPBACK_ADDRESSES.has(String(req.socket?.remoteAddress || ''))
+  );
 }
 
 function isSameOriginRequest(req) {

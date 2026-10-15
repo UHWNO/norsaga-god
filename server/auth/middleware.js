@@ -253,6 +253,9 @@ export function createAccessMiddleware(service, { development = false } = {}) {
       return res.end();
     }
     req.norsagaSession = current;
+    // A server-owned origin lets provider gates recognize authenticated hosted
+    // traffic after TLS terminates at Plesk. Never derive it from proxy headers.
+    if (!config.local) req.norsagaPublicOrigin = config.origin;
     if (path === '/api/access/status' && isRead) {
       return json(res, 200, {
         email: current.user.email,

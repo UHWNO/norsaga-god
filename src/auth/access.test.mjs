@@ -12,14 +12,19 @@ import {
   requestHeaders,
 } from '../../server/auth/middleware.js';
 import { createMailjetSender } from '../../server/auth/mailjet.js';
+import { openAiRealtimeProxy } from '../../server/providers/openai.js';
 
-async function fixture(t, { secure = false, rejectApproval = false } = {}) {
+async function fixture(
+  t,
+  { secure = false, rejectApproval = false, providerHandler } = {},
+) {
   const directory = await mkdtemp(join(tmpdir(), 'norsaga-access-'));
   let middleware;
   let providerCalls = 0;
   const server = http.createServer((req, res) =>
     middleware(req, res, () => {
       providerCalls++;
+      if (providerHandler) return providerHandler(req, res);
       res.setHeader(
         'Content-Type',
         req.url.endsWith('.html') ? 'text/html' : 'application/json',
@@ -638,6 +643,145 @@ test('deletion protects the administrator and rejects invalid or missing user ID
     (await f.call('/api/access/admin/users', undefined, cookie)).status,
     200,
   );
+});
+
+test('authenticated hosted voice works behind Plesk while cross-site, anonymous and local OAuth access remain blocked', async (t) => {
+  const routes = new Map();
+  let upstreamCalls = 0;
+  const plugin = openAiRealtimeProxy({
+    realtime: {
+      environment: {},
+      resolveApiKey: () => 'fixture-server-key',
+      resolveOAuthAccessToken: () =>
+        assert.fail('hosted requests cannot read local OAuth credentials'),
+      fetchImpl: async (_url, options) => {
+        upstreamCalls++;
+        assert.equal(
+          options.headers.Authorization,
+          'Bearer fixture-server-key',
+        );
+        return Response.json({ value: 'fixture-short-lived-key' });
+      },
+    },
+  });
+  plugin.configurePreviewServer({
+    middlewares: { use: (path, handler) => routes.set(path, handler) },
+  });
+  t.after(plugin.closeBundle);
+  const f = await fixture(t, {
+    secure: true,
+    providerHandler: (req, res) =>
+      routes.get(new URL(req.url, 'http://localhost').pathname)(req, res),
+  });
+  const path = '/api/realtime/token?tier=mini';
+  const proxy = {
+    'x-forwarded-for': '198.51.100.20',
+    'x-forwarded-host': 'godseye.norsaga.com',
+    'x-forwarded-proto': 'https',
+    'x-real-ip': '198.51.100.20',
+    'sec-fetch-site': 'same-origin',
+  };
+  assert.equal((await f.call(path, undefined, undefined, proxy)).status, 401);
+  await f.service.setUser('fixture', { email: 'member@example.org' });
+  const { cookie } = await f.login('member@example.org');
+  const response = await f.call(path, undefined, cookie, proxy);
+  assert.equal(response.status, 200, await response.clone().text());
+  assert.equal((await response.json()).value, 'fixture-short-lived-key');
+  assert.equal(upstreamCalls, 1);
+  // Browsers can omit Origin on same-origin GET requests. HTTPS terminates
+  // at the proxy; the Node fixture deliberately receives plain HTTP.
+  assert.equal(
+    (await f.call(path, undefined, cookie, { ...proxy, origin: '' })).status,
+    200,
+  );
+  // Forwarding headers must never choose the trusted application origin.
+  assert.equal(
+    (
+      await f.call(path, undefined, cookie, {
+        ...proxy,
+        'x-forwarded-host': 'evil.example',
+      })
+    ).status,
+    200,
+  );
+  const before = upstreamCalls;
+  for (const extra of [
+    { origin: 'https://evil.example', 'sec-fetch-site': 'same-origin' },
+    { origin: 'https://evil.example', 'x-forwarded-host': 'evil.example' },
+    { origin: 'null' },
+    { origin: '', 'sec-fetch-site': 'cross-site' },
+    { 'sec-fetch-site': 'same-site' },
+  ])
+    assert.equal(
+      (await f.call(path, undefined, cookie, { ...proxy, ...extra })).status,
+      403,
+    );
+  for (const headers of [proxy, {}]) {
+    assert.equal(
+      (
+        await f.call(
+          '/api/realtime/token?auth=oauth',
+          undefined,
+          cookie,
+          headers,
+        )
+      ).status,
+      403,
+    );
+    assert.equal(
+      (await f.call('/api/realtime/oauth-status', undefined, cookie, headers))
+        .status,
+      403,
+    );
+    assert.equal(
+      (await f.call('/api/realtime/oauth-login', {}, cookie, headers)).status,
+      403,
+    );
+  }
+  assert.equal(upstreamCalls, before, 'rejected requests never reach OpenAI');
+  f.service.setUser('fixture', { email: 'member@example.org', active: false });
+  assert.equal((await f.call(path, undefined, cookie, proxy)).status, 401);
+  assert.equal(
+    upstreamCalls,
+    before,
+    'revoked sessions cannot reach the provider',
+  );
+});
+
+test('authenticated local development still rejects proxy signals and client-supplied hosted context', async (t) => {
+  const routes = new Map();
+  let upstreamCalls = 0;
+  const plugin = openAiRealtimeProxy({
+    realtime: {
+      environment: {},
+      resolveApiKey: () => 'fixture-server-key',
+      fetchImpl: async () => {
+        upstreamCalls++;
+        return Response.json({ value: 'fixture-short-lived-key' });
+      },
+    },
+  });
+  plugin.configureServer({
+    middlewares: { use: (path, handler) => routes.set(path, handler) },
+  });
+  t.after(plugin.closeBundle);
+  const f = await fixture(t, {
+    providerHandler: routes.get('/api/realtime/token'),
+  });
+  const { cookie } = await f.login();
+  const path = '/api/realtime/token';
+  assert.equal((await f.call(path, undefined, cookie)).status, 200);
+  const response = await f.call(path, undefined, cookie, {
+    'x-forwarded-for': '198.51.100.20',
+    'norsaga-public-origin': f.origin,
+    'norsaga-session': JSON.stringify({ user: { active: true } }),
+  });
+  assert.equal(response.status, 403);
+  assert.match(
+    (await response.json()).error,
+    /Proxied requests are not accepted/,
+  );
+  assert.equal(upstreamCalls, 1);
 });
 
 test('deleting a user removes credentials and unused links, revokes sessions, and cannot revive old access after approval', async (t) => {

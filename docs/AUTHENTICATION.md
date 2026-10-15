@@ -107,6 +107,12 @@ email-only recovery bypass for owner passkeys.
 - Administration and passkey management: server-owned roles, no public signup,
   exact-origin CSRF checks, request body caps, recent passkey enforcement for
   the owner, escaped UI text, limited security log retained for ninety days.
+- Hosted provider requests (including voice token creation) use the configured
+  `AUTH_BASE_URL` after a live session has been verified. Plesk forwarding
+  headers are permitted on these authenticated requests but never determine
+  the trusted origin. Cross-site and opaque origins remain blocked. Direct
+  local/LAN provider gates still reject proxy headers, and local ChatGPT OAuth
+  credentials and sign-in endpoints remain unavailable to hosted users.
 - Server-side authentication covers `/api/*`, application HTML, the guide,
   PDF and panel documents. Only login assets and a minimal health response are
   public. Public frontend JavaScript has no shared authentication password.

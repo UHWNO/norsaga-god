@@ -5,20 +5,26 @@ import { admitSameSiteRequest } from '../../../src/localRequestGate.mjs';
  * request to the pure, unit-tested `admitSameSiteRequest` and answers 403
  * itself when the request is refused. Returns true when it has already
  * responded (the caller returns); false when the handler should continue.
- * Refuses cross-site browser requests (foreign or opaque Origin, a
- * Sec-Fetch-Site other than same-origin/none, or reverse-proxy headers) while
- * keeping loopback non-browser tools and the HOST=0.0.0.0 LAN opt-in working.
+ * Authenticated hosted requests use the public origin supplied by the access
+ * middleware, independently of proxy headers and the internal HTTP transport.
+ * The direct local/LAN policy continues to refuse forwarding headers. Both
+ * policies reject foreign/opaque origins and cross-site browser requests.
  * @param {import('node:http').IncomingMessage} req
  * @param {import('node:http').ServerResponse} res
  * @returns {boolean} True when a 403 was sent.
  */
 export function admitSameSite(req, res) {
+  const hostedOrigin =
+    req.norsagaSession?.user?.active && req.norsagaPublicOrigin
+      ? new URL(req.norsagaPublicOrigin)
+      : null;
   const verdict = admitSameSiteRequest({
-    hostHeader: req.headers?.host,
-    protocol: req.socket?.encrypted ? 'https:' : 'http:',
+    hostHeader: hostedOrigin?.host || req.headers?.host,
+    protocol:
+      hostedOrigin?.protocol || (req.socket?.encrypted ? 'https:' : 'http:'),
     origin: req.headers?.origin,
     secFetchSite: req.headers?.['sec-fetch-site'],
-    proxyHeaders: req.headers || {},
+    proxyHeaders: hostedOrigin ? {} : req.headers || {},
   });
   if (verdict.ok) return false;
   res.statusCode = verdict.status;
