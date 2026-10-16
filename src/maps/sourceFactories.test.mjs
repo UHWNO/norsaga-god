@@ -161,3 +161,28 @@ test('both Google 3D routes keep tiles drawing while draped imagery loads', asyn
   assert.equal(calls[1][1].asynchronouslyLoadImagery, true);
   assert.equal(calls[1][1].enableCollision, true);
 });
+
+test('City Map constructs a labeled street provider with credits and without an ion token', async () => {
+  const original = Cesium.ArcGisMapServerImageryProvider.fromUrl;
+  const calls = [];
+  try {
+    Cesium.ArcGisMapServerImageryProvider.fromUrl = async (url, options) => {
+      calls.push({ url, options });
+      return { cityLabels: true };
+    };
+    const source = createDefaultMapSources().sources.find(
+      (s) => s.descriptor.id === 'esri-streets',
+    );
+    assert.equal(source.available, true);
+    assert.equal(source.descriptor.requiresIon, false);
+    assert.equal(source.terrain.create, createKeylessTerrain);
+    assert.deepEqual(await source.imagery(), { cityLabels: true });
+    assert.match(calls[0].url, /World_Street_Map\/MapServer$/);
+    assert.match(calls[0].options.credit, /Powered by Esri/);
+    assert.match(calls[0].options.credit, /OpenStreetMap contributors/);
+    assert.equal(calls[0].options.enablePickFeatures, false);
+    assert.equal(source.constructionFallback.id, 'esri-imagery');
+  } finally {
+    Cesium.ArcGisMapServerImageryProvider.fromUrl = original;
+  }
+});

@@ -37,7 +37,7 @@ test('the complete Realtime tool payload pins the manifest-generated layer relea
     // omit top-level anyOf (OpenAI rejects it). Contacts list routing preserves
     // requested radius and center authority in descriptions only.
     // Street Level and offshore energy add toggle values and generated aliases.
-    'eedb8cceac8f8d47e25e82b4d4de9ab42508deaa92079d95601f022c3837e5df',
+    '108f5a33a7ec4290d40b40ce8cea61210ece1742f059f53baca37a5aa19bc235',
   );
 });
 
@@ -137,6 +137,10 @@ test('all legacy action arguments are byte-identical after removing the delibera
   // Cyber adds one HUD layout.
   const hud = property('set_hud').layout;
   hud.enum = hud.enum.filter((layout) => layout !== 'cyber');
+  // City Map adds a keyless labeled basemap.
+  property('set_map_stack').stack.enum = property(
+    'set_map_stack',
+  ).stack.enum.filter((id) => id !== 'esri-streets');
   // Derived by applying the same removals to the 4b56d0e9 actionSchemas.
   assert.equal(
     createHash('sha256').update(JSON.stringify(legacy)).digest('hex'),

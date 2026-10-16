@@ -31,6 +31,13 @@ export const MAP_STACKS = [
     requiresIon: false,
   },
   {
+    id: 'esri-streets',
+    label: 'City Map',
+    shortLabel: 'Cities',
+    kind: 'esri-streets',
+    requiresIon: false,
+  },
+  {
     id: 'osm',
     label: 'OSM',
     shortLabel: 'OSM',

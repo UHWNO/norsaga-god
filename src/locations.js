@@ -1132,6 +1132,7 @@ export function geocodeNavigationMode(types) {
     values.has('campus') ||
     values.has('university') ||
     values.has('airport') ||
+    values.has('harbor') ||
     values.has('stadium') ||
     values.has('amusement_park') ||
     values.has('zoo') ||

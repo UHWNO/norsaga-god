@@ -3885,3 +3885,28 @@ test('analyst-only lookup distinguishes duplicate names and uses canonical aircr
   assert.equal(plane.ok, true);
   assert.equal(plane.latitude, 36, 'canonical ID resolves the current position, not old coordinates');
 });
+
+
+test('voice navigation resolves Oslo, Copenhagen and their ports with external geocoders unavailable', async () => {
+  globalThis.window = globalThis.window || { clearTimeout, setTimeout, requestIdleCallback: null };
+  const placeSearch = createStandalonePlaceSearch({ fetchImpl: () => assert.fail('Known destinations must work without network access') });
+  for (const [query, mode] of [
+    ['Oslo, Norway', 'city-overview'],
+    ['Copenhagen, Denmark', 'city-overview'],
+    ['Port of Oslo', 'area-overview'],
+    ['Port of Copenhagen', 'area-overview'],
+  ]) {
+    const { viewer, styleManager } = createVoiceNavigationHarness();
+    const flights = [];
+    viewer.camera.flyTo = options => { flights.push(options); options.complete?.(); };
+    styleManager.runImmediateLocationNavigation = navigate => styleManager.runImmediateNavigation('location', navigate);
+    const runner = createGevActionRunner({ viewer, styleManager, placeSearch, dataManager: { layers: new Map(), getAll: () => [] } });
+    const result = await runner('fly_to_location', { query });
+    assert.equal(result.ok, true, query);
+    assert.equal(result.navigationMode, mode, query);
+    assert.equal(flights.length, 1, query);
+    assert.ok(flights[0].destination instanceof Cesium.Rectangle, query);
+  }
+  assert.equal(normalizeStackId('city map'), 'esri-streets');
+  assert.equal(normalizeStackId('street map'), 'esri-streets');
+});
