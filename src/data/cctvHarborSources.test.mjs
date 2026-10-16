@@ -38,7 +38,7 @@ test('new harbor sources merge with existing Oslofjord sources and can be disabl
       .filter((c) => c.pack === 'harbors')
       .every(
         (c) =>
-          c.feedType === 'image' &&
+          ['image', 'hls'].includes(c.feedType) &&
           c.sourceKind === 'public-harbor' &&
           c.headingConfidence === 'low',
       ),
@@ -66,5 +66,33 @@ test('new harbor sources merge with existing Oslofjord sources and can be disabl
   assert.deepEqual(
     (await createCctvCatalog({ sourceRoot: root })()).map((c) => c.id),
     ['custom-harbor'],
+  );
+});
+
+test('Riga and Hamburg add only the researched direct harbor media with honest source metadata', () => {
+  const riga = HARBOR_CAMERAS.filter((c) => c.city === 'Riga');
+  assert.equal(riga.length, 8);
+  assert.equal(new Set(riga.map((c) => c.url)).size, 8);
+  for (const [index, camera] of riga.entries()) {
+    assert.equal(camera.url, `https://rop.lv/hls/cam${index + 1}.m3u8`);
+    assert.equal(camera.feedType, 'hls');
+    assert.equal(camera.snapshotUrl, '');
+    assert.equal(camera.provider, 'Freeport of Riga Authority');
+    assert.equal(camera.credit, camera.provider);
+    assert.equal(camera.sourcePageUrl, 'https://rop.lv/en/port-webcams');
+    assert.equal(camera.headingConfidence, 'low');
+    assert.match(camera.locationNote, /Approximate/);
+    assert.match(camera.license, /No open reuse license verified/);
+    assert.ok(camera.lat > 56.9 && camera.lat < 57.1);
+    assert.ok(camera.lon > 23.9 && camera.lon < 24.2);
+  }
+  const hamburg = HARBOR_CAMERAS.filter((c) => c.city === 'Hamburg');
+  assert.equal(hamburg.length, 1);
+  assert.equal(hamburg[0].url, 'https://cdn.blkknt.net/blankenese.jpg');
+  assert.equal(hamburg[0].feedType, 'image');
+  assert.equal(hamburg[0].refreshIntervalMs, 15_000);
+  assert.match(hamburg[0].sourcePageUrl, /webcam-teufelsbrueck/);
+  assert.ok(
+    !HARBOR_CAMERAS.some((c) => /neuhof|rostock|helsinki|gdansk/i.test(c.id)),
   );
 });

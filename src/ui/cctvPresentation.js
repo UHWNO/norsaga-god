@@ -189,7 +189,9 @@ export function _renderCctvState(state) {
         updated &&
         activeCamera.snapshotMaxAgeMs &&
         Date.now() - updated > activeCamera.snapshotMaxAgeMs;
-      this._cctvImageTime.textContent = `${activeCamera.name} · Updated still image · ${updated ? `Image updated ${new Date(updated).toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' })} UTC${outdated ? ' · OUTDATED IMAGE' : ''}` : 'Image update time unavailable'}`;
+      this._cctvImageTime.textContent = activeCamera.isVideo
+        ? `${activeCamera.name} · Live video feed`
+        : `${activeCamera.name} · Updated still image · ${updated ? `Image updated ${new Date(updated).toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' })} UTC${outdated ? ' · OUTDATED IMAGE' : ''}` : 'Image update time unavailable'}`;
     } else {
       this._cctvSourceLink.removeAttribute('href');
       this._cctvLocationNote.textContent = '';

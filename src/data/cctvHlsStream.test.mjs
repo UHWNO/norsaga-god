@@ -223,3 +223,41 @@ test('an abandoned consumer expires while a renewed consumer keeps the session',
   assert.equal(entry.controller.signal.aborted, false);
   await manager.shutdown();
 });
+
+test('long live playlists start near the live edge without downloading expired history', async () => {
+  const calls = [];
+  const live =
+    '#EXTM3U\n#EXT-X-MEDIA-SEQUENCE:100\n' +
+    Array.from(
+      { length: 30 },
+      (_, index) => `#EXTINF:12.5,\ncam-${100 + index}.ts\n`,
+    ).join('');
+  const manager = createHlsPuller({
+    limits: { ...HLS_LIMITS, pollMs: 100000 },
+    fetchImpl: async (url) => {
+      calls.push(url);
+      if (url === base) return new Response(live);
+      const sequence = Number(/cam-(\d+)\.ts/.exec(url)?.[1]);
+      if (sequence < 127)
+        return new Response('Expired segment', { status: 404 });
+      return new Response('current video');
+    },
+  });
+  try {
+    const entry = await manager.ensure('riga', base);
+    await entry.polling;
+    assert.equal(await manager.waitReady(entry), true);
+    assert.deepEqual(calls, [
+      base,
+      ...[127, 128, 129].map(
+        (sequence) => `https://camera.example/live/cam-${sequence}.ts`,
+      ),
+    ]);
+    assert.equal(entry.failures, 0);
+    assert.equal(entry.segments.size, 3);
+    assert.ok(manager.stats().bytes <= HLS_LIMITS.sessionBytes);
+    assert.match(await manager.buildPlaylist(entry, 'riga'), /#EXTINF:12.500/);
+  } finally {
+    await manager.shutdown();
+  }
+});

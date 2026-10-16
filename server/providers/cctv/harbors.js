@@ -1,4 +1,4 @@
-/** Operator-published harbor images verified in the existing viewer on 12 October 2026.
+/** Operator-published harbor images and video. Riga and Hamburg checked 16 October 2026.
  * Site anchors are approximate; camera mounts and viewing directions are not surveyed.
  * Stale, unavailable, and player-only candidates are deliberately excluded.
  */
@@ -46,6 +46,51 @@ const hortenPage = 'https://www.hortenhavn.no/vaer-og-vind-webkamera/';
 // Gazetteer site anchors from Kartverket SSR, supplemented by approximate quay locations.
 export const HARBOR_CAMERAS = Object.freeze(
   [
+    make(
+      'hamburg-port-teufelsbrueck',
+      'Hamburg Harbor – Teufelsbrueck / Container Terminals',
+      'Hamburg',
+      'Port of Hamburg Marketing',
+      [53.548, 9.862],
+      'https://cdn.blkknt.net/blankenese.jpg',
+      'https://www.hafen-hamburg.de/en/experience/webcam-teufelsbrueck/',
+      15_000,
+    ),
+    // Approximate named harbor-area anchors, not surveyed camera mounts.
+    // Only the fixed operator-published manifests are registered. The existing
+    // demand-owned HLS relay retains its origin, byte and concurrent-session limits.
+    ...[
+      ['panorama', 'Port Panorama', 1, [57.054, 24.078]],
+      ['krievu-island', 'Krievu Island', 2, [57.016, 24.071]],
+      ['sea-gate', 'Sea Gate', 3, [57.065, 24.031]],
+      ['vts-center', 'Vessel Traffic Service Center', 4, [57.054, 24.078]],
+      ['daugavgriva-lighthouse', 'Daugavgriva Lighthouse', 5, [57.066, 24.025]],
+      [
+        'krievu-fishing-port',
+        'Krievu Island / Fishing Port',
+        6,
+        [57.016, 24.071],
+      ],
+      ['kundzinsala-bay', 'Kundzinsala / Bay View', 7, [57.007, 24.11]],
+      [
+        'kundzinsala-downtown',
+        'Kundzinsala / Downtown View',
+        8,
+        [57.007, 24.11],
+      ],
+    ].map(([id, name, number, point]) => ({
+      ...make(
+        `riga-port-${id}`,
+        `Riga Harbor – ${name}`,
+        'Riga',
+        'Freeport of Riga Authority',
+        point,
+        `https://rop.lv/hls/cam${number}.m3u8`,
+        'https://rop.lv/en/port-webcams',
+      ),
+      feedType: 'hls',
+      snapshotUrl: '',
+    })),
     ...[
       ['cruise-quay', 'Cruise Quay', [63.44297, 10.40498], 'cam157_9_1.jpg'],
       [

@@ -259,6 +259,14 @@ test('public webcam details show source time and approximate location, reject un
   assert.equal(link.href, camera.sourcePageUrl);
   controls._renderCctvState({
     enabled: true,
+    activeCameraId: camera.id,
+    activeCamera: { ...camera, name: 'Riga Harbor', isVideo: true },
+    cameras: [],
+  });
+  assert.equal(time.textContent, 'Riga Harbor · Live video feed');
+  assert.doesNotMatch(time.textContent, /still image|OUTDATED IMAGE/);
+  controls._renderCctvState({
+    enabled: true,
     activeCameraId: 'other',
     activeCamera: { id: 'other', sourcePageUrl: 'javascript:alert(1)' },
     cameras: [],

@@ -185,7 +185,11 @@ export function createHlsPuller({
         text = (await read(entry, base, limits.playlistBytes)).toString('utf8');
       }
       entry.chunklistUrl = base;
-      const segments = parseHlsMedia(text, base, limits.segments);
+      // Providers can advertise a long history after deleting older files
+      // (Riga returns 404 for those segments). Join and poll at the live edge
+      // instead of failing on expired history before reaching playable media.
+      // Retention still uses the existing segment and byte caps below.
+      const segments = parseHlsMedia(text, base, Math.min(limits.segments, 3));
       const newest = segments.at(-1)?.seq ?? -1;
       const restarted =
         newest < entry.upstreamNewest ||
