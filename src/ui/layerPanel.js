@@ -32,12 +32,14 @@ const PANEL_GROUPS = [
   },
   {
     label: 'Cameras',
-    ids: ['cctv', 'recent-imagery'],
+    ids: ['cctv', 'recent-imagery', 'street-level'],
   },
   {
     label: 'Infrastructure',
     ids: [
       'alpr-cameras',
+      'offshore-oil-gas',
+      'offshore-wind',
       'military-installations',
       'local-datacenters',
       'telegeography-submarine-cables',
@@ -59,6 +61,10 @@ const PANEL_GROUPS = [
     ],
   },
   {
+    label: 'Space Weather',
+    ids: ['aurora'],
+  },
+  {
     label: 'Utilities',
     ids: ['directions', 'radio'],
   },
@@ -73,6 +79,7 @@ const PANEL_LABELS = {
   'ais-live-vessels': 'Live Vessels',
   bikeshare: 'Bike Share',
   cctv: 'Cameras',
+  'street-level': 'Street Level',
   'alpr-cameras': 'Mapped ALPR Cameras',
   'local-datacenters': 'Data Centers',
   'local-firms': 'Active Fires',
@@ -587,7 +594,12 @@ export class LayerPanel {
   }
 
   _syncToggleButton(button, layer) {
-    const feedState = layer.enabled ? layerFeedState(layer.stats) : 'off';
+    const unavailable = layer.stats?.sourceUnavailable === true;
+    const feedState = unavailable
+      ? 'unavailable'
+      : layer.enabled
+        ? layerFeedState(layer.stats)
+        : 'off';
     const transitioning =
       layer.lifecycleState === 'enabling' ||
       layer.lifecycleState === 'disabling';
@@ -600,7 +612,7 @@ export class LayerPanel {
     for (const state of Object.keys(FEED_STATE_LABELS)) {
       button.classList.toggle(
         `feed-${state}`,
-        layer.enabled && !uncertain && feedState === state,
+        (layer.enabled || unavailable) && !uncertain && feedState === state,
       );
     }
     button.dataset.feedState = transitioning
@@ -612,16 +624,21 @@ export class LayerPanel {
     // click guard above prevents repeat activation without the focus loss caused
     // by native `disabled`.
     button.disabled = false;
-    button.setAttribute('aria-disabled', String(transitioning));
+    button.setAttribute(
+      'aria-disabled',
+      String(transitioning || (unavailable && !layer.enabled)),
+    );
     button.setAttribute('aria-busy', String(transitioning));
     button.textContent = transitioning
       ? layer.lifecycleState.toUpperCase()
       : uncertain
         ? 'UNCERTAIN'
-        : layer.enabled
+        : layer.enabled || unavailable
           ? FEED_STATE_LABELS[feedState]
           : 'OFF';
-    const keyGuidance = layerKeyRequirementTooltip(layer);
+    const keyGuidance = unavailable
+      ? String(layer.stats.error || 'Data source unavailable')
+      : layerKeyRequirementTooltip(layer);
     // Name the missing key on the control itself: a row reading KEY REQUIRED
     // without saying WHICH key leaves a dead control and no next step. Empty
     // when the layer needs no key, or already has one.

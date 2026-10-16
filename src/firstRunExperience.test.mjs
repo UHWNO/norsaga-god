@@ -656,7 +656,7 @@ test('the DISPLAY rail starts collapsed on a first run, and a stored choice wins
 
 // ── Voice: instruction-only, tool schema unchanged ─────────────────────
 
-test('the voice TOOL SCHEMA matches the pinned release — the mission mapping is instructions only', () => {
+test('the voice TOOL SCHEMA matches the pinned contract — the mission mapping is instructions only', () => {
   // Analyst layers and the separate satellite-pass tool deliberately extend the schema.
   // Canonical serialization pins every tool name, description, property and
   // ordering while allowing source formatting. Derived from the unchanged
@@ -667,12 +667,18 @@ test('the voice TOOL SCHEMA matches the pinned release — the mission mapping i
   // Cyber deliberately adds one layout; first-run missions still change no tools.
   hudLayout.enum = hudLayout.enum.filter((layout) => layout !== 'cyber');
   const block = JSON.stringify(legacyTools);
-  // Re-derived for the additive `local-adsb` set_layer_visibility value and
-  // its common-name mapping; the missions still ride existing tools.
-  assert.equal(block.length, 27432, 'serialized tool schema length drifted');
+  // Re-derived for the voice layer manifest (generated layer enums, alias and
+  // field hints), point-and-ask's pointer/referent arguments and the prompt
+  // consolidation (shorter analyst, annotate_map and ISS wording), plus the
+  // referent-only track_entity alternative (kept out of the model-facing
+  // schema, which may not carry top-level anyOf), and Contacts requested-radius
+  // list descriptions; the missions still ride existing tools.
+  // Street Level, NorSaga Aurora and offshore energy add toggle enums and aliases.
+  // City Map adds a labeled basemap enum and voice guidance.
+  assert.equal(block.length, 30132, 'serialized tool schema length drifted');
   assert.equal(
     crypto.createHash('sha256').update(block).digest('hex'),
-    'a2a4a787f4528f75b01f3f42caec636f29c37452c0d45b11f4f986171d6be57d',
+    '6795b3cf25684d96d0519386821af7c999d7c117f63eae2011af51140d94e832',
     'the first-run missions must ride EXISTING tools: no schema edit, no cache bust',
   );
   const instructions = fs.readFileSync(new URL('../server/providers/openai/instructions.js', import.meta.url), 'utf8');

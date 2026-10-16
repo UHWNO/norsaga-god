@@ -27,3 +27,15 @@ export function createIonImagery(style, accessToken) {
   if (!accessToken) throw new Error('Ion imagery requires an explicit token');
   return Cesium.IonImageryProvider.fromAssetId(style, { accessToken });
 }
+
+/** Street, city and landmark labels baked into one keyless imagery layer. */
+export function createEsriStreetImagery() {
+  return Cesium.ArcGisMapServerImageryProvider.fromUrl(
+    'https://services.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer',
+    {
+      credit:
+        'Powered by Esri — Sources: Esri, HERE, Garmin, USGS, Intermap, INCREMENT P, NRCan, Esri Japan, METI, Esri China (Hong Kong), Esri Korea, Esri (Thailand), NGCC, © OpenStreetMap contributors, and the GIS User Community',
+      enablePickFeatures: false,
+    },
+  );
+}

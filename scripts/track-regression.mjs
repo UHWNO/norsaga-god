@@ -17,9 +17,9 @@
  * `fetch` shim in the page that intercepts the poll endpoints and returns
  * SYNTHETIC aircraft positioned near the camera, in the EXACT upstream payload
  * shapes the layers parse:
- *   - flights  → GET /api/opensky      → { states: [ <state-vector[]> ] }
- *   - military → GET /api/adsblol/mil  → { ac: [ <adsblol-aircraft{}> ] }
- *   - vessels  → GET /api/ais-live     → connected, zero-row snapshot
+ *   - flights  → GET /api/flights      → { states: [ <state-vector[]> ] }
+ *   - military → GET /api/military  → { ac: [ <adsblol-aircraft{}> ] }
+ *   - vessels  → GET /api/vessels     → connected, zero-row snapshot
  * The shim stays installed so the layers' setInterval pollers keep the
  * synthetic planes alive (under MISSING_POLL_LIMIT=3 so they're never pruned).
  *
@@ -92,6 +92,7 @@
  *   --keep-open        Leave the browser open after the run (debugging)
  */
 
+import { unlockNorSaga, redactQaUrl } from './qa-norsaga-access.mjs';
 import fs from 'node:fs';
 import puppeteer from 'puppeteer';
 import { classifyAircraft, CLASS_SCALE_3D, CLASS_MODEL_REAL } from '../src/data/aircraftClass.js';
@@ -298,7 +299,7 @@ async function main() {
     });
 
     page.on('console', (msg) => {
-      const text = msg.text();
+      const text = redactQaUrl(msg.text());
       const type = msg.type();
       if (text.includes('[Detection] Initialized')) sawLog.detection = true;
       if (text.includes('[TrackedReadout] Initialized')) sawLog.readout = true;
@@ -308,16 +309,16 @@ async function main() {
         // environmental noise, not a tracking-invariant regression. Real JS
         // errors (TypeError, unhandled rejection, etc.) are still captured.
         const isBenign404 = /Failed to load resource.*404/i.test(text);
-        const sourceUrl = msg.location()?.url || '';
+        const sourceUrl = redactQaUrl(msg.location()?.url || '');
         if (!isBenign404) consoleErrors.push(sourceUrl ? `${text} [${sourceUrl}]` : text);
       }
       // Surface a trace for debugging, but keep it quiet.
       if (process.env.GEV_TEST_VERBOSE) console.log(`    [page:${type}] ${text}`);
     });
-    page.on('pageerror', (err) => consoleErrors.push(`pageerror: ${err.message}`));
+    page.on('pageerror', (err) => consoleErrors.push(`pageerror: ${redactQaUrl(err.message)}`));
     page.on('response', (response) => {
       if (response.status() >= 500) {
-        failedResponses.push(`HTTP ${response.status()} ${response.url()}`);
+        failedResponses.push(`HTTP ${response.status()} ${redactQaUrl(response.url())}`);
       }
     });
 
@@ -343,7 +344,7 @@ async function main() {
         const url = new URL(requestUrl, window.location.href);
         const isAppRequest = url.origin === appOrigin;
         // OpenSky (commercial flights): { states: [ state-vector[] ] }
-        if (isAppRequest && url.pathname === '/api/opensky') {
+        if (isAppRequest && url.pathname === '/api/flights') {
           window.__SYNTH_HITS.opensky++;
           // A withheld contact models the ordinary case where the recipient's
           // first authoritative refresh does not yet carry the shared aircraft.
@@ -371,11 +372,11 @@ async function main() {
         // Trail backfill (fires on trackById). Stub with valid-but-empty
         // payloads so the deterministic run never 404s against the dev proxy.
         // flights: { path: [ [time, lat, lon, baroAlt, true_track, on_ground] ] }
-        if (isAppRequest && url.pathname === '/api/opensky-track') {
+        if (isAppRequest && url.pathname === '/api/flights/track') {
           return Promise.resolve(jsonResponse({ path: [] }));
         }
         // military: { timestamp: <epochSec>, trace: [ [secAfter, lat, lon, ...] ] }
-        if (isAppRequest && url.pathname === '/api/adsblol/trace') {
+        if (isAppRequest && url.pathname === '/api/military/track') {
           return Promise.resolve(jsonResponse({ timestamp: Math.floor(Date.now() / 1000), trace: [] }));
         }
         // adsbdb enrichment (fires for tracked/model-eligible planes): empty
@@ -388,7 +389,7 @@ async function main() {
         // Contacts enables the optional AIS source alongside aircraft. Keep
         // this tracking harness independent of local AIS credentials while
         // preserving the truthful "awaiting first message" lifecycle.
-        if (isAppRequest && url.pathname === '/api/ais-live') {
+        if (isAppRequest && url.pathname === '/api/vessels') {
           return Promise.resolve(jsonResponse({
             status: 'connected',
             rows: [],
@@ -450,7 +451,7 @@ async function main() {
           return Promise.resolve(jsonResponse({ places: [] }));
         }
         // adsb.lol military: { ac: [ aircraft{} ] }  (must come AFTER /trace check)
-        if (isAppRequest && url.pathname === '/api/adsblol/mil') {
+        if (isAppRequest && url.pathname === '/api/military') {
           window.__SYNTH_HITS.mil++;
           const ac = window.__SYNTH.military.map((m) => ({
             hex: m.hex,
@@ -473,6 +474,7 @@ async function main() {
 
     console.log('Loading app...');
     await page.goto(APP_URL, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await unlockNorSaga(page);
     if (HEADFUL) await page.bringToFront();
 
     // Wait for the app to expose its globals (Cesium viewer + dataManager).
@@ -686,6 +688,7 @@ async function main() {
     );
 
     await page.reload({ waitUntil: 'domcontentloaded', timeout: 60000 });
+    await unlockNorSaga(page);
     await page.waitForFunction(
       () => window.__godsEyeView?.dataManager?.layers?.size >= 12,
       { timeout: 60000, polling: 200 },
@@ -727,6 +730,7 @@ async function main() {
     // preference, then open the captured link as a clean recipient would.
     await evalPage(() => localStorage.removeItem('gev:layer-state:v2'));
     await page.goto(trackedShareUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await unlockNorSaga(page);
     await page.waitForFunction(
       () => window.__godsEyeView?.dataManager?.layers?.size >= 12,
       { timeout: 60000, polling: 200 },
@@ -769,6 +773,7 @@ async function main() {
     // Leave the document first so this is a real cold boot of the shared link.
     await page.goto('about:blank', { waitUntil: 'domcontentloaded', timeout: 30000 });
     await page.goto(trackedShareUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    await unlockNorSaga(page);
     await page.waitForFunction(
       () => window.__godsEyeView?.dataManager?.layers?.size >= 12,
       { timeout: 60000, polling: 200 },

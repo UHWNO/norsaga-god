@@ -19,6 +19,11 @@ export function normalizeVesselObservation(row, reference = null) {
     speedMps: speedKts == null ? null : speedKts * 0.514444,
     courseDeg: finite(row.course),
     headingDeg: finite(row.heading),
+    provider: String(row.provider || ''),
+    stream: String(row.stream || ''),
+    sources: Array.isArray(row.sources)
+      ? row.sources.map((source) => String(source)).filter(Boolean)
+      : [],
     observedAtMs:
       epoch(row.last_position_epoch, 1000) ??
       epoch(Date.parse(row.last_position_UTC)),

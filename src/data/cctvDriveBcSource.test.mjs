@@ -192,6 +192,8 @@ test('CCTV catalog merges DriveBC cameras and CCTV_DRIVEBC_ENABLED=0 skips the r
     CCTV_CALTRANS_DISTRICTS: undefined,
     CCTV_TFL_ENABLED: undefined,
     CCTV_DRIVEBC_ENABLED: undefined,
+    CCTV_OSLOFJORD_ENABLED: '0',
+    CCTV_HARBORS_ENABLED: '0',
     CCTV_DRIVEBC_MAX_SOURCES: undefined,
   });
   const requested = [];

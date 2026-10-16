@@ -70,62 +70,6 @@ export const nightVisionShader = {
       return smoothstep(0.4, 0.45, d);
     }
 
-    // ── 7-segment digit renderer ──────────────────────────
-    float segment(vec2 p, int seg) {
-      float s = 0.0;
-      if (seg == 0) s = step(0.2, p.x) * step(p.x, 0.8) * step(0.85, p.y) * step(p.y, 1.0);
-      if (seg == 1) s = step(0.7, p.x) * step(p.x, 0.9) * step(0.5, p.y) * step(p.y, 0.95);
-      if (seg == 2) s = step(0.7, p.x) * step(p.x, 0.9) * step(0.05, p.y) * step(p.y, 0.5);
-      if (seg == 3) s = step(0.2, p.x) * step(p.x, 0.8) * step(0.0, p.y) * step(p.y, 0.15);
-      if (seg == 4) s = step(0.1, p.x) * step(p.x, 0.3) * step(0.05, p.y) * step(p.y, 0.5);
-      if (seg == 5) s = step(0.1, p.x) * step(p.x, 0.3) * step(0.5, p.y) * step(p.y, 0.95);
-      if (seg == 6) s = step(0.2, p.x) * step(p.x, 0.8) * step(0.42, p.y) * step(p.y, 0.58);
-      return s;
-    }
-
-    float digit(vec2 p, int d) {
-      int masks[10] = int[10](0x7E, 0x30, 0x6D, 0x79, 0x33, 0x5B, 0x5F, 0x70, 0x7F, 0x7B);
-      int m = masks[d];
-      float s = 0.0;
-      for (int i = 0; i < 7; i++) {
-        if ((m >> (6 - i) & 1) == 1) s += segment(p, i);
-      }
-      return clamp(s, 0.0, 1.0);
-    }
-
-    // Render HH:MM:SS timestamp
-    float renderTimestamp(vec2 uv) {
-      vec2 tsOrigin = vec2(0.02, 0.03);
-      vec2 tsSize = vec2(0.22, 0.035);
-      vec2 p = (uv - tsOrigin) / tsSize;
-      if (p.x < 0.0 || p.x > 1.0 || p.y < 0.0 || p.y > 1.0) return 0.0;
-
-      int totalSec = int(mod(time, 86400.0));
-      int hours = totalSec / 3600;
-      int minutes = (totalSec % 3600) / 60;
-      int seconds = totalSec % 60;
-
-      float charWidth = 1.0 / 8.5;
-      int charIdx = int(p.x / charWidth);
-      float localX = mod(p.x, charWidth) / charWidth;
-      vec2 localP = vec2(localX, p.y);
-
-      int dv = -1;
-      if (charIdx == 0) dv = hours / 10;
-      else if (charIdx == 1) dv = hours % 10;
-      else if (charIdx == 2) return (step(0.3, localP.x) * step(localP.x, 0.7)) *
-                                    (step(0.2, localP.y) * step(localP.y, 0.4) + step(0.6, localP.y) * step(localP.y, 0.8));
-      else if (charIdx == 3) dv = minutes / 10;
-      else if (charIdx == 4) dv = minutes % 10;
-      else if (charIdx == 5) return (step(0.3, localP.x) * step(localP.x, 0.7)) *
-                                    (step(0.2, localP.y) * step(localP.y, 0.4) + step(0.6, localP.y) * step(localP.y, 0.8));
-      else if (charIdx == 6) dv = seconds / 10;
-      else if (charIdx == 7) dv = seconds % 10;
-
-      if (dv < 0 || dv > 9) return 0.0;
-      return digit(localP, dv);
-    }
-
     // ── Crosshair (thin, subtle NVG reticle) ──────────────
     float crosshair(vec2 uv) {
       vec2 c = uv - 0.5;
@@ -236,36 +180,9 @@ export const nightVisionShader = {
 
       // ── HUD Overlay ─────────────────────────────────────
 
-      // Top-left: "NVG" / "I²" label marker
-      vec2 labelArea = (uv - vec2(0.03, 0.92)) / vec2(0.06, 0.03);
-      if (labelArea.x >= 0.0 && labelArea.x <= 1.0 && labelArea.y >= 0.0 && labelArea.y <= 1.0) {
-        float lbl = step(0.1, labelArea.x) * step(labelArea.x, 0.9) *
-                    step(0.2, labelArea.y) * step(labelArea.y, 0.8);
-        nvgColor += phosphor * lbl * 0.3 * intensity;
-      }
-
-      // Gain indicator below label: "AUTO" marker
-      vec2 gainArea = (uv - vec2(0.03, 0.88)) / vec2(0.05, 0.025);
-      if (gainArea.x >= 0.0 && gainArea.x <= 1.0 && gainArea.y >= 0.0 && gainArea.y <= 1.0) {
-        float gLbl = step(0.1, gainArea.x) * step(gainArea.x, 0.9) *
-                     step(0.2, gainArea.y) * step(gainArea.y, 0.8);
-        nvgColor += phosphor * gLbl * 0.2 * intensity;
-      }
-
       // Center crosshair (thin, subtle)
       float ch = crosshair(uv);
       nvgColor += phosphor * ch * 0.4 * intensity;
-
-      // Bottom-left: Timestamp (7-segment)
-      float ts = renderTimestamp(uv);
-      nvgColor += phosphor * ts * 0.6 * intensity;
-
-      // REC indicator — top-right (blinking)
-      vec2 recPos = uv - vec2(0.95, 0.94);
-      float recDot = smoothstep(0.008, 0.004, length(recPos));
-      float blink = step(0.5, fract(time * 0.8));
-      // REC dot in slightly warmer green
-      nvgColor += vec3(0.3, 1.0, 0.2) * recDot * blink * intensity;
 
       // ── Final composite ─────────────────────────────────
       nvgColor = clamp(nvgColor, 0.0, 1.0);

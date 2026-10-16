@@ -218,3 +218,52 @@ test('disposing during camera enable prevents the delayed focus and future click
   assert.equal(enables, 1);
   assert.equal(focuses, 0);
 });
+
+test('public webcam details show source time and approximate location, reject unsafe links and clear on camera changes', (t) => {
+  const details = { hidden: true },
+    time = { textContent: '' },
+    location = { textContent: '' };
+  const link = {
+    href: '',
+    removeAttribute() {
+      this.href = '';
+    },
+  };
+  const controls = new CctvControls({
+    elements: {
+      _cctvFeedDetails: details,
+      _cctvImageTime: time,
+      _cctvLocationNote: location,
+      _cctvSourceLink: link,
+    },
+    cctv: {},
+    actions: { isEnabled: () => true, setPanelCollapsed: () => {} },
+  });
+  t.after(() => controls.destroy());
+  const camera = {
+    id: 'harbor',
+    sourcePageUrl: 'https://www.oslohavn.no/no/meny/webkamera/',
+    locationNote: 'Approximate map location.',
+    imageUpdatedAt: Date.now() - 31 * 60_000,
+    snapshotMaxAgeMs: 30 * 60_000,
+  };
+  controls._renderCctvState({
+    enabled: true,
+    activeCameraId: camera.id,
+    activeCamera: camera,
+    cameras: [],
+  });
+  assert.equal(details.hidden, false);
+  assert.match(time.textContent, /UTC.*OUTDATED IMAGE/);
+  assert.equal(location.textContent, camera.locationNote);
+  assert.equal(link.href, camera.sourcePageUrl);
+  controls._renderCctvState({
+    enabled: true,
+    activeCameraId: 'other',
+    activeCamera: { id: 'other', sourcePageUrl: 'javascript:alert(1)' },
+    cameras: [],
+  });
+  assert.equal(details.hidden, true);
+  assert.equal(link.href, '');
+  assert.equal(time.textContent, '');
+});

@@ -1,0 +1,101 @@
+# NorSaga — local and Plesk setup
+
+Runtime: Node.js 26.9.0
+
+## Local production preview
+
+```sh
+export PATH="/Users/uhw/.local/share/node/node-v26.9.0-darwin-arm64/bin:$PATH"
+npm ci
+npm run build
+npm start
+```
+
+The production server listens on `http://127.0.0.1:4174` by default. The Vite
+development server remains available through `npm run dev`.
+
+## Plesk target
+
+- Domain: `godseye.norsaga.com`
+- Node.js: 26.9.0
+- Application mode: production
+- Application root: `/godseye.norsaga.com/app`
+- Document root: `/godseye.norsaga.com/app/web-root` (empty; do not point it at `dist`)
+- Startup file: `app.cjs`
+- Install runtime dependencies: `npm ci --omit=dev`
+
+Deploy an archive containing an `app/` directory with the tracked repository
+files plus the prebuilt `dist/`. Exclude credentials, `.git`, local caches and
+`node_modules`. Preserve the previous application directory as a rollback copy
+until the new `/healthz`, application shell and provider routes are verified.
+
+The production server authenticates requests before serving `dist/` or mounting
+provider routes. Local credential-writing endpoints are deliberately excluded.
+`/healthz` reports minimal readiness without runtime details. Unknown API routes
+return JSON 404 after login. Missing authentication configuration stops startup;
+there is no shared-password fallback. Follow [personal access setup](docs/AUTHENTICATION.md),
+including persistent SQLite storage and ensuring Plesk does not serve protected
+static files directly around Passenger.
+
+After updating the repository, run **NPM Install** in Plesk, then run the
+`auth:setup` package script to generate the persistent signing secret privately
+on the server. Set the correct owner, Mailjet and database variables before
+restarting. Leave `AUTH_LOCAL_DEV` disabled in production. Keep `web-root` empty:
+Node serves `dist` itself after the access middleware, so pointing Plesk at
+`dist` would let Apache/nginx serve protected HTML and PDFs without a session.
+Check the application log if startup still returns HTTP 500; do not publish
+environment values or credentials while troubleshooting.
+
+## Staging access and edge controls
+
+The September 2026 staging setup used HTTP Basic authentication with the realm
+`NorSaga staging`. The staging username is `norsaga`; its generated password is
+stored in the deployer's macOS Keychain under the service
+`godseye.norsaga.com staging access`. Retrieve or rotate it through Keychain
+Access or Plesk rather than copying it into this repository, shell history or a
+deployment archive.
+
+The domain's Plesk **Apache & nginx Settings** add these response controls:
+
+- `X-Content-Type-Options: nosniff`
+- `X-Frame-Options: DENY`
+- `Referrer-Policy: strict-origin-when-cross-origin`
+- `Content-Security-Policy: frame-ancestors 'none'`
+- `Strict-Transport-Security: max-age=31536000`
+
+Plesk's maximum request-body setting is 5 MB, with the same
+`client_max_body_size 5m` limit retained in the domain nginx directives. The
+provider middleware keeps its smaller route-specific body and response caps.
+After changing Plesk configuration, verify an unauthenticated request returns
+401, an authenticated `/healthz` request returns 200, the headers above are
+present, and a body-consuming API route refuses oversized input.
+
+Configure server credentials through Plesk environment variables. Browser map
+credentials (`GOOGLE_MAPS_API_KEY`, `CESIUM_ION_TOKEN`) are compiled into the
+browser bundle and must be domain-restricted. A successful build does not
+complete the access-control, data-license or operational gates documented in
+`docs/NORSAGA_PRODUCTION_CHECKLIST.md`.
+
+## Public Oslofjord harbor webcams
+
+The normal CCTV catalog now includes 14 public snapshot views: three from
+[Port of Oslo](https://www.oslohavn.no/no/meny/webkamera/), eight from
+[Port of Drammen](https://drammenhavn.no/en/web-camera/), and three from
+[Oscarsborg Guest Harbor](https://oscarsborggjestehavn.no/?page_id=12).
+`CCTV_OSLOFJORD_ENABLED=0` disables this pack. Existing file/environment-only
+catalog overrides retain their existing behavior; the new pack follows the
+same default-catalog loading gate as other packs.
+
+Harbor frame requests are shared and paced on the server: at most once per
+minute for Oslo/Drammen and once per ten minutes for Oscarsborg. Failed refreshes
+retain the last available snapshot with degraded status and its original image
+update time. A 16 MiB cache budget bounds retained buffers. The timestamp comes
+from the provider's Last-Modified header, not the time NorSaga fetched the image.
+Sources more than 30 minutes old are marked outdated. Existing provider polling,
+video support and authentication guards are retained.
+
+Map anchors are approximate site locations. Mount heights, viewing directions,
+field of view and projected coverage are display priors, marked low confidence;
+no surveyed camera pose is claimed. The panel links to each operator's webcam
+page and credits that operator. No open reuse license or operator permission is
+claimed by this integration.

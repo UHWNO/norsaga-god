@@ -84,42 +84,6 @@ export const thermalShader = {
       return v;
     }
 
-    // ── 7-segment digit renderer ──────────────────────────
-    float segment(vec2 p, int seg) {
-      float s = 0.0;
-      if (seg == 0) s = step(0.2, p.x) * step(p.x, 0.8) * step(0.85, p.y) * step(p.y, 1.0);
-      if (seg == 1) s = step(0.7, p.x) * step(p.x, 0.9) * step(0.5, p.y) * step(p.y, 0.95);
-      if (seg == 2) s = step(0.7, p.x) * step(p.x, 0.9) * step(0.05, p.y) * step(p.y, 0.5);
-      if (seg == 3) s = step(0.2, p.x) * step(p.x, 0.8) * step(0.0, p.y) * step(p.y, 0.15);
-      if (seg == 4) s = step(0.1, p.x) * step(p.x, 0.3) * step(0.05, p.y) * step(p.y, 0.5);
-      if (seg == 5) s = step(0.1, p.x) * step(p.x, 0.3) * step(0.5, p.y) * step(p.y, 0.95);
-      if (seg == 6) s = step(0.2, p.x) * step(p.x, 0.8) * step(0.42, p.y) * step(p.y, 0.58);
-      return s;
-    }
-
-    float digit(vec2 p, int d) {
-      int masks[10] = int[10](0x7E, 0x30, 0x6D, 0x79, 0x33, 0x5B, 0x5F, 0x70, 0x7F, 0x7B);
-      int m = masks[d];
-      float s = 0.0;
-      for (int i = 0; i < 7; i++) {
-        if ((m >> (6 - i) & 1) == 1) s += segment(p, i);
-      }
-      return clamp(s, 0.0, 1.0);
-    }
-
-    // Render a character (digit, '.', or '°') at position
-    float renderChar(vec2 p, int ch) {
-      if (ch == 10) { // '.' decimal point
-        return smoothstep(0.15, 0.0, length(p - vec2(0.5, 0.08)));
-      }
-      if (ch == 11) { // '°' degree symbol
-        float ring = abs(length(p - vec2(0.5, 0.82)) - 0.08);
-        return smoothstep(0.04, 0.02, ring);
-      }
-      if (ch >= 0 && ch <= 9) return digit(p, ch);
-      return 0.0;
-    }
-
     // ── Crosshair ─────────────────────────────────────────
     float crosshair(vec2 uv) {
       vec2 c = uv - 0.5;
@@ -199,7 +163,7 @@ export const thermalShader = {
       float thermal = mix(temp, 1.0 - temp, isBlackHot);
 
       // Monochrome FLIR (white/black-hot) vs Ironbow "Predator" color ramp.
-      // Ironbow maps TRUE temperature (cold->dark, hot->white) so the colors
+      // Ironbow maps simulated image intensity (cold->dark, hot->white) so the colors
       // read correctly regardless of the WHOT/BHOT toggle.
       vec3 mono = vec3(thermal);
       vec3 iron = ironbow(temp);
@@ -238,77 +202,8 @@ export const thermalShader = {
       // ── HUD Overlay ─────────────────────────────────────
       float hud = 0.0;
 
-      // Top-left: "FLIR" label + mode indicator
-      // Rendered as simple box presence markers (not full text rendering)
-      // We'll use a simplified approach: render mode text near top-left
-      vec2 labelArea = (hudUV - vec2(0.02, 0.92)) / vec2(0.08, 0.04);
-      if (labelArea.x >= 0.0 && labelArea.x <= 1.0 && labelArea.y >= 0.0 && labelArea.y <= 1.0) {
-        // Simple horizontal bar as "FLIR" label marker
-        hud += step(0.1, labelArea.x) * step(labelArea.x, 0.9) *
-               step(0.3, labelArea.y) * step(labelArea.y, 0.7) * 0.6;
-      }
-
-      // Mode indicator below label
-      vec2 modeArea = (hudUV - vec2(0.02, 0.88)) / vec2(0.06, 0.03);
-      if (modeArea.x >= 0.0 && modeArea.x <= 1.0 && modeArea.y >= 0.0 && modeArea.y <= 1.0) {
-        hud += step(0.1, modeArea.x) * step(modeArea.x, 0.9) *
-               step(0.2, modeArea.y) * step(modeArea.y, 0.8) * 0.4;
-      }
-
       // Center crosshair
       hud += crosshair(hudUV) * 0.7;
-
-      // Top-right: simulated temperature readout (derived from center luminance)
-      float centerLuma = dot(texture(colorTexture, vec2(0.5)).rgb, vec3(0.299, 0.587, 0.114));
-      float tempC = 20.0 + centerLuma * 30.0; // 20°C to 50°C range
-      int tempInt = int(tempC);
-      int tempDec = int(fract(tempC) * 10.0);
-
-      // Temperature digits at top-right
-      float tempHud = 0.0;
-      vec2 tempOrigin = vec2(0.88, 0.92);
-      vec2 charSize = vec2(0.018, 0.035);
-      float spacing = 0.02;
-
-      // Tens digit
-      vec2 d1p = (hudUV - tempOrigin) / charSize;
-      if (d1p.x >= 0.0 && d1p.x <= 1.0 && d1p.y >= 0.0 && d1p.y <= 1.0) {
-        tempHud += renderChar(d1p, tempInt / 10);
-      }
-      // Ones digit
-      vec2 d2p = (hudUV - (tempOrigin + vec2(spacing, 0.0))) / charSize;
-      if (d2p.x >= 0.0 && d2p.x <= 1.0 && d2p.y >= 0.0 && d2p.y <= 1.0) {
-        tempHud += renderChar(d2p, tempInt % 10);
-      }
-      // Decimal point
-      vec2 dpp = (hudUV - (tempOrigin + vec2(spacing * 2.0, 0.0))) / charSize;
-      if (dpp.x >= 0.0 && dpp.x <= 1.0 && dpp.y >= 0.0 && dpp.y <= 1.0) {
-        tempHud += renderChar(dpp, 10); // '.'
-      }
-      // Decimal digit
-      vec2 d3p = (hudUV - (tempOrigin + vec2(spacing * 2.6, 0.0))) / charSize;
-      if (d3p.x >= 0.0 && d3p.x <= 1.0 && d3p.y >= 0.0 && d3p.y <= 1.0) {
-        tempHud += renderChar(d3p, tempDec);
-      }
-      // Degree symbol
-      vec2 dgp = (hudUV - (tempOrigin + vec2(spacing * 3.5, 0.0))) / charSize;
-      if (dgp.x >= 0.0 && dgp.x <= 1.0 && dgp.y >= 0.0 && dgp.y <= 1.0) {
-        tempHud += renderChar(dgp, 11); // '°'
-      }
-      hud += tempHud * 0.8;
-
-      // Bottom-right: frame counter
-      int frame = int(mod(time * 30.0, 10000.0));
-      float framHud = 0.0;
-      vec2 fOrigin = vec2(0.88, 0.04);
-      for (int i = 0; i < 4; i++) {
-        int dv = (frame / int(pow(10.0, float(3 - i)))) % 10;
-        vec2 fp = (hudUV - (fOrigin + vec2(float(i) * spacing, 0.0))) / charSize;
-        if (fp.x >= 0.0 && fp.x <= 1.0 && fp.y >= 0.0 && fp.y <= 1.0) {
-          framHud += renderChar(fp, dv);
-        }
-      }
-      hud += framHud * 0.5;
 
       // Scale bar (right edge gradient)
       float bar = scaleBar(hudUV);
@@ -319,7 +214,6 @@ export const thermalShader = {
       }
 
       // Composite HUD (rendered in white, slightly transparent)
-      float hudBright = mix(1.0, 0.0, isBlackHot); // HUD is white in WHOT, dark in BHOT inverted
       // Actually, HUD should always be visible — use contrast
       thermalColor += hud * 0.6 * intensity;
 

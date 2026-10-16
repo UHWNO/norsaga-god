@@ -1,8 +1,12 @@
 import { fileURLToPath } from 'node:url';
 import { defineConfig, loadEnv } from 'vite';
+import { resolveAllowedHosts } from '../../build/allowedHosts.js';
 import { createBrowserViteConfig } from '../../build/vite.js';
 import { localProviderPlugins } from '../providers/local.js';
+import { localMcpPlugin } from '../mcp/plugin.js';
 import { apiNotFoundPlugin } from './api-not-found.js';
+import { standaloneVoiceTools } from './voiceTools.js';
+import { accessPlugin } from '../auth/plugin.js';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 
@@ -12,12 +16,27 @@ export default defineConfig(({ command, mode }) => {
   for (const [key, value] of Object.entries(loaded)) {
     if (process.env[key] === undefined) process.env[key] = value;
   }
-  return createBrowserViteConfig({
-    plugins: [...localProviderPlugins(), apiNotFoundPlugin()],
+  const config = createBrowserViteConfig({
+    plugins: [
+      accessPlugin(),
+      ...localProviderPlugins({ realtime: { tools: standaloneVoiceTools() } }),
+      localMcpPlugin(),
+      apiNotFoundPlugin(),
+    ],
     googleApiKey: process.env.GOOGLE_MAPS_API_KEY,
     cesiumToken: process.env.CESIUM_ION_TOKEN,
+    mapillaryToken: process.env.MAPILLARY_CLIENT_TOKEN,
     host: process.env.HOST,
     port: process.env.PORT,
+    allowedHosts: resolveAllowedHosts(process.env.GEV_ALLOWED_HOSTS),
     command,
   });
+  config.build.rollupOptions = {
+    input: {
+      app: fileURLToPath(new URL('../../index.html', import.meta.url)),
+      login: fileURLToPath(new URL('../../login.html', import.meta.url)),
+      account: fileURLToPath(new URL('../../account.html', import.meta.url)),
+    },
+  };
+  return config;
 });

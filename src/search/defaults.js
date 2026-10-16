@@ -6,9 +6,11 @@ import { createGoogleGeocoder } from './google.js';
 import { createPhotonGeocoder } from '../keylessGeocoder.js';
 import { createCoordinateGeocoder } from './coordinateGeocoder.js';
 import { createPresetGeocoder } from './presetGeocoder.js';
+import { createMaritimeGeocoder } from './maritimeGeocoder.js';
+import { createAlpsGeocoder } from './alpsGeocoder.js';
 
 /**
- * Coordinates and bundled names first — both answer offline and with no key —
+ * Coordinates, maritime destinations, bundled names and the unqualified Alps first — all offline —
  * then Google when configured, then keyless Photon, then the local Nominatim
  * route as a last resort. Transport stays local to setup.
  *
@@ -36,7 +38,9 @@ export function createDefaultPlaceSearch({
     signal,
     providers: providers.geocode || [
       createCoordinateGeocoder(),
+      createMaritimeGeocoder(),
       ...(presets ? [createPresetGeocoder({ presets })] : []),
+      createAlpsGeocoder(),
       ...(selected
         ? [selected]
         : [

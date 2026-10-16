@@ -12,6 +12,8 @@ export function createApplicationControls({
   catalog,
   placeSearch,
   defer,
+  startCamera = flyToAustin,
+  initialCameraLabel = 'Flying to Austin, TX...',
 }) {
   // Initialize the style manager (post-processing, HUD, locations, share links)
   const styleManager = new Controls(viewer, {
@@ -39,10 +41,10 @@ export function createApplicationControls({
   });
   defer(() => cockpitCloudEffects?.destroy());
 
-  // If no share link state, do default fly-to Austin
+  // Hosts choose an initial view, but shared camera state always takes priority.
   if (!styleManager.hasShareState) {
-    loaderStatus.textContent = 'Flying to Austin, TX...';
-    defer(flyToAustin(viewer));
+    loaderStatus.textContent = initialCameraLabel;
+    defer(startCamera(viewer));
   } else {
     loaderStatus.textContent = 'Restoring shared view...';
   }

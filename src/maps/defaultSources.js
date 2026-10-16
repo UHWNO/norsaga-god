@@ -4,6 +4,7 @@ import { keySetupRequirement } from '../keySetupCore.mjs';
 import {
   createOsmImagery,
   createEsriImagery,
+  createEsriStreetImagery,
   createIonImagery,
   ESRI_ATTRIBUTION_HTML,
 } from './imagery.js';
@@ -47,13 +48,29 @@ export function createDefaultMapSources({
       const imagery =
         descriptor.kind === 'ion'
           ? () => createIonImagery(descriptor.style, ionToken)
-          : descriptor.id === 'osm'
-            ? createOsmImagery
-            : createEsriImagery;
+          : descriptor.id === 'esri-streets'
+            ? createEsriStreetImagery
+            : descriptor.id === 'osm'
+              ? createOsmImagery
+              : createEsriImagery;
       return {
         ...common,
         imagery,
         terrain,
+        ...(descriptor.id === 'esri-streets'
+          ? {
+              credit: ESRI_ATTRIBUTION_HTML,
+              constructionFallback: {
+                id: 'esri-imagery',
+                message: 'City Map is unavailable; using Esri Satellite',
+              },
+              tileFailureFallback: {
+                id: 'esri-imagery',
+                threshold: 2,
+                message: 'City Map tile requests failed; using Esri Satellite',
+              },
+            }
+          : {}),
         ...(descriptor.id === 'esri-imagery'
           ? {
               credit: ESRI_ATTRIBUTION_HTML,

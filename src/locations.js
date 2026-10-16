@@ -1,3 +1,4 @@
+import { isUnavailableCapability } from './sources/capability.js';
 import { createOverpassFeatureSource } from './sources/overpassFeatures.js';
 import { applicationServices } from './services/application.js';
 import * as Cesium from 'cesium';
@@ -6,6 +7,11 @@ import {
   placesNearViewRecovery,
 } from './annotations/annotationResolver.js';
 import { unavailablePlaceSearch } from './search/placeSearch.js';
+import { cancelCameraArrival } from './data/cameraArrival.js';
+import { guardCameraAboveGround } from './cameraGroundGuard.js';
+
+/** Newest landmark arrival; an older post-arrival ground guard yields to it. */
+let arrivalGeneration = 0;
 
 /**
  * Points of Interest per city.
@@ -514,6 +520,101 @@ export const CITY_POIS = {
       },
     ],
   },
+  skagen: {
+    name: 'SKAGEN, DK',
+    groundElevation: 3,
+    viewBounds: {
+      southwest: { lat: 57.65, lng: 10.42 },
+      northeast: { lat: 57.78, lng: 10.7 },
+    },
+    pois: [
+      {
+        name: 'Skagen',
+        lat: 57.7209,
+        lon: 10.5839,
+        alt: 50000,
+        pitch: -65,
+        heading: 0,
+        buildingHeight: 0,
+      },
+    ],
+  },
+  gotland: {
+    name: 'GOTLAND, SE',
+    groundElevation: 30,
+    viewBounds: {
+      southwest: { lat: 56.9, lng: 17.9 },
+      northeast: { lat: 58.0, lng: 19.4 },
+    },
+    pois: [
+      {
+        name: 'Gotland',
+        lat: 57.4684,
+        lon: 18.4867,
+        alt: 250000,
+        pitch: -75,
+        heading: 0,
+        buildingHeight: 0,
+      },
+    ],
+  },
+  tromso: {
+    name: 'TROMSØ, NO',
+    groundElevation: 10,
+    viewBounds: {
+      southwest: { lat: 69.5, lng: 18.5 },
+      northeast: { lat: 69.8, lng: 19.4 },
+    },
+    pois: [
+      {
+        name: 'Tromsø',
+        lat: 69.6492,
+        lon: 18.9553,
+        alt: 60000,
+        pitch: -60,
+        heading: 0,
+        buildingHeight: 0,
+      },
+    ],
+  },
+  'jan-mayen': {
+    name: 'JAN MAYEN, NO',
+    groundElevation: 0,
+    viewBounds: {
+      southwest: { lat: 70.75, lng: -9.2 },
+      northeast: { lat: 71.2, lng: -7.8 },
+    },
+    pois: [
+      {
+        name: 'Jan Mayen',
+        lat: 70.98,
+        lon: -8.52,
+        alt: 220000,
+        pitch: -70,
+        heading: 0,
+        buildingHeight: 0,
+      },
+    ],
+  },
+  iceland: {
+    name: 'ICELAND',
+    groundElevation: 500,
+    viewBounds: {
+      southwest: { lat: 63.2, lng: -25.0 },
+      northeast: { lat: 66.7, lng: -13.0 },
+    },
+    pois: [
+      {
+        name: 'Iceland',
+        lat: 64.9631,
+        lon: -19.0208,
+        alt: 800000,
+        pitch: -80,
+        heading: 0,
+        buildingHeight: 0,
+      },
+    ],
+  },
 };
 
 /**
@@ -587,9 +688,12 @@ export const LOCATIONS = Object.entries(CITY_POIS).map(([id, city]) => ({
  * @param {number} options.buildingHeight - Estimated landmark center height above ground (default 30)
  * @param {number} options.groundElevation - Fallback ground elevation when terrain isn't loaded (default 0)
  * @param {number} options.duration - Flight duration in seconds (default 3.0)
+ * @param {{cachedGroundFloor?: Function, warmGroundFloor?: Function}} [options.ground] -
+ *   Optional ground-floor service; its cached elevation outranks `groundElevation`
  * @returns {{ targetPosition: Cesium.Cartesian3 }} The computed target for orbit use
  */
 export function flyToLandmark(viewer, lat, lon, options = {}) {
+  cancelCameraArrival(viewer);
   const {
     range = 500,
     pitch = -30,
@@ -601,18 +705,32 @@ export function flyToLandmark(viewer, lat, lon, options = {}) {
     onComplete = null,
     onCancel = null,
     buildingBounds = null,
+    ground = null,
   } = options;
 
   // Sample terrain height (sync — uses loaded tiles; 0 if globe/terrain not ready)
   const targetCartographic = Cesium.Cartographic.fromDegrees(lon, lat);
   const sampledHeight = viewer.scene.globe?.getHeight(targetCartographic);
 
-  // Use sampled height if available, otherwise fall back to pre-baked city ground elevation.
-  // Google 3D Tiles don't populate globe terrain, so first fly-to always gets the fallback.
+  // Use sampled height if available, otherwise the cached ground-floor
+  // elevation (same ellipsoidal datum), then the pre-baked city elevation.
+  // Google 3D Tiles don't populate globe terrain, and the preset defaults to sea
+  // level, so without the ground-floor read an uncurated destination was framed
+  // as if it stood on the ocean and the eye landed underground.
+  const realGround = ground?.cachedGroundFloor?.(lat, lon);
   const terrainHeight =
     sampledHeight != null && sampledHeight > 0
       ? sampledHeight
-      : groundElevation;
+      : Number.isFinite(realGround)
+        ? realGround
+        : groundElevation;
+  // Warm the cell so the next nearby arrival is already correct.
+  try {
+    ground?.warmGroundFloor?.([{ lat, lon }]);
+  } catch {
+    /* best-effort prefetch */
+  }
+  const generation = ++arrivalGeneration;
 
   const bounds = normalizeBuildingBounds(buildingBounds);
   const targetHeight = bounds
@@ -650,6 +768,18 @@ export function flyToLandmark(viewer, lat, lon, options = {}) {
       complete: () => {
         viewer.camera.lookAt(targetPosition, hpr);
         viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
+        // Framing used a predicted ground height. Once tiles stream in, measure
+        // the rendered surface and lift the eye if it is buried or pressed
+        // against it; a newer arrival or a manual gesture ends the check.
+        try {
+          guardCameraAboveGround(
+            viewer,
+            { lat, lon },
+            { isStale: () => generation !== arrivalGeneration },
+          );
+        } catch {
+          /* best-effort */
+        }
         if (typeof onComplete === 'function') {
           try {
             onComplete();
@@ -806,6 +936,7 @@ export async function searchAndFlyTo(viewer, query, options = {}) {
         query,
         result && !outcome.fallbackUsed ? { lat, lon: lng } : null,
         signal,
+        placeSearch,
       );
   signal?.throwIfAborted();
   if (recovered) {
@@ -842,6 +973,7 @@ export async function searchAndFlyTo(viewer, query, options = {}) {
         pitch: swath.pitchDeg,
         heading: swath.headingDeg,
         buildingHeight: 0,
+        ground: options.ground || null,
         duration,
         onStart: options.onStart,
         onComplete: options.onComplete,
@@ -906,23 +1038,35 @@ export async function searchAndFlyTo(viewer, query, options = {}) {
       )
     : null;
   const range = requestedRange || defaultRangeForNavigationMode(navigationMode);
+  // Resolve the real ground height before framing, for the same reason as the
+  // coordinate branch: with no detailed outline, a searched place on elevated
+  // ground would otherwise be framed against sea level. Resolved before the
+  // mayFly() gate so a cancellation still wins the race.
+  const flyLat = buildingBounds?.lat ?? lat;
+  const flyLon = buildingBounds?.lon ?? lng;
+  const ground = options.ground || null;
+  await ground?.resolveGroundFloorCellsBounded?.([
+    { lat: flyLat, lon: flyLon },
+  ]);
+  const searchGroundElevation = ground?.cachedGroundFloor?.(flyLat, flyLon);
   if (!mayFly()) return CANCELLED_SEARCH;
-  const flight = flyToLandmark(
-    viewer,
-    buildingBounds?.lat ?? lat,
-    buildingBounds?.lon ?? lng,
-    {
-      range,
-      pitch: buildingPitch(buildingBounds),
-      heading: 30,
-      buildingHeight: 30,
-      buildingBounds,
-      duration,
-      onStart: options.onStart,
-      onComplete: options.onComplete,
-      onCancel: options.onCancel,
-    },
-  );
+  const flight = flyToLandmark(viewer, flyLat, flyLon, {
+    range,
+    pitch: buildingPitch(buildingBounds),
+    heading: 30,
+    buildingHeight: 30,
+    buildingBounds: isUnavailableCapability(buildingBounds)
+      ? null
+      : buildingBounds,
+    ...(Number.isFinite(searchGroundElevation)
+      ? { groundElevation: searchGroundElevation }
+      : {}),
+    ground,
+    duration,
+    onStart: options.onStart,
+    onComplete: options.onComplete,
+    onCancel: options.onCancel,
+  });
   return {
     label,
     navigationMode: requestedRange
@@ -931,6 +1075,9 @@ export async function searchAndFlyTo(viewer, query, options = {}) {
         ? navigationMode.replace('-overview', '-close')
         : navigationMode,
     rangeM: Math.round(flight.range),
+    ...(isUnavailableCapability(buildingBounds)
+      ? { outlineUnavailable: true, message: 'Detailed outline unavailable' }
+      : {}),
   };
 }
 
@@ -985,6 +1132,7 @@ export function geocodeNavigationMode(types) {
     values.has('campus') ||
     values.has('university') ||
     values.has('airport') ||
+    values.has('harbor') ||
     values.has('stadium') ||
     values.has('amusement_park') ||
     values.has('zoo') ||
@@ -1360,6 +1508,7 @@ async function resolveBuildingBounds(
       { lat, lon },
       { signal },
     );
+    if (isUnavailableCapability(candidates)) return candidates;
     return selectBuildingBounds(
       Array.isArray(candidates) ? candidates : [],
       lat,

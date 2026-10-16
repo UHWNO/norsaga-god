@@ -1,0 +1,3214 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#07111f" />
+    <link rel="icon" href="/norsaga/favicon.svg" type="image/svg+xml" />
+    <title>NorSaga God's Eye — User Guide</title>
+    <style>
+      :root {
+        --bg: #07111f;
+        --bg-2: #0b1728;
+        --panel: #101d31;
+        --panel-2: #14243b;
+        --line: rgba(255, 255, 255, 0.09);
+        --text: #f4f7fb;
+        --muted: #9fb0c5;
+        --soft: #c9d4e2;
+        --accent: #3cb9e6;
+        --accent-2: #528ec2;
+        --blue: #1f2f6e;
+        --nav-w: 290px;
+        --radius: 18px;
+        --shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--text);
+        background:
+          radial-gradient(
+            circle at 80% -10%,
+            rgba(60, 185, 230, 0.15),
+            transparent 34%
+          ),
+          linear-gradient(180deg, #07111f 0%, #091523 100%);
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          sans-serif;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+      .top-actions a {
+        text-decoration: none;
+        font-size: 14px;
+      }
+      @media (max-width: 560px) {
+        .top-actions {
+          gap: 5px;
+        }
+        .top-actions .top-button {
+          padding: 8px;
+          font-size: 12px;
+        }
+        .mobile-title {
+          display: none !important;
+        }
+        .topbar {
+          gap: 8px;
+        }
+      }
+      a {
+        color: inherit;
+      }
+
+      .app {
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: var(--nav-w) minmax(0, 1fr);
+      }
+
+      .sidebar {
+        position: fixed;
+        inset: 0 auto 0 0;
+        width: var(--nav-w);
+        padding: 26px 18px 22px;
+        background: rgba(7, 17, 31, 0.93);
+        border-right: 1px solid var(--line);
+        backdrop-filter: blur(18px);
+        display: flex;
+        flex-direction: column;
+        z-index: 30;
+      }
+
+      .brand {
+        padding: 8px 10px 22px;
+        border-bottom: 1px solid var(--line);
+        margin-bottom: 18px;
+      }
+
+      .brand h1 {
+        margin: 0;
+        color: #f4f7fb;
+        font-size: 19px;
+        font-weight: 650;
+        letter-spacing: -0.015em;
+        line-height: 1.3;
+      }
+
+      .nav-label {
+        padding: 5px 12px 9px;
+        font-size: 10px;
+        letter-spacing: 0.15em;
+        color: #6f839b;
+        text-transform: uppercase;
+        font-weight: 700;
+      }
+
+      .nav {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        overflow: auto;
+        padding-right: 2px;
+      }
+
+      .nav button {
+        appearance: none;
+        border: 1px solid transparent;
+        width: 100%;
+        text-align: left;
+        color: #b9c8d8;
+        background: transparent;
+        border-radius: 12px;
+        padding: 11px 12px;
+        cursor: pointer;
+        transition: 0.18s ease;
+        display: flex;
+        align-items: center;
+        gap: 11px;
+      }
+
+      .nav button:hover {
+        background: rgba(255, 255, 255, 0.045);
+        color: #fff;
+      }
+
+      .nav button.active {
+        background: linear-gradient(
+          90deg,
+          rgba(60, 185, 230, 0.15),
+          rgba(82, 142, 194, 0.06)
+        );
+        color: #fff;
+        border-color: rgba(60, 185, 230, 0.22);
+      }
+
+      .nav-num {
+        width: 24px;
+        height: 24px;
+        flex: 0 0 24px;
+        border-radius: 8px;
+        display: grid;
+        place-items: center;
+        font-size: 11px;
+        color: #7e94ab;
+        background: rgba(255, 255, 255, 0.04);
+      }
+
+      .nav button.active .nav-num {
+        color: #dff7ff;
+        background: rgba(60, 185, 230, 0.15);
+      }
+
+      .sidebar-foot {
+        margin-top: auto;
+        padding: 18px 10px 4px;
+        color: #75899f;
+        font-size: 11px;
+        line-height: 1.5;
+        border-top: 1px solid var(--line);
+      }
+
+      .main {
+        grid-column: 2;
+        min-width: 0;
+        padding: 0 34px 60px;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        height: 72px;
+        padding-right: 58px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        background: linear-gradient(
+          180deg,
+          rgba(7, 17, 31, 0.98),
+          rgba(7, 17, 31, 0.84),
+          transparent
+        );
+        backdrop-filter: blur(12px);
+      }
+
+      .crumb {
+        color: #7f93aa;
+        font-size: 12px;
+      }
+
+      .crumb strong {
+        color: #d5e1ed;
+        font-weight: 600;
+      }
+
+      .top-actions {
+        display: flex;
+        gap: 8px;
+      }
+
+      .top-button {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.035);
+        color: #c9d5e2;
+        border-radius: 11px;
+        padding: 9px 12px;
+        cursor: pointer;
+      }
+
+      .close-guide {
+        position: fixed;
+        top: 16px;
+        right: 18px;
+        z-index: 100;
+        display: grid;
+        place-items: center;
+        width: 44px;
+        height: 44px;
+        padding: 0;
+        color: #1a1202;
+        background: linear-gradient(135deg, #ffe064 0%, #f3a712 100%);
+        border: 1px solid rgba(255, 226, 107, 0.92);
+        border-radius: 13px;
+        box-shadow:
+          0 10px 30px rgba(0, 0, 0, 0.32),
+          0 0 20px rgba(255, 185, 35, 0.2);
+        font-size: 29px;
+        font-weight: 500;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .close-guide:hover,
+      .close-guide:focus-visible {
+        background: linear-gradient(135deg, #fff09a 0%, #ffc332 100%);
+        outline: 2px solid #fff6c7;
+        outline-offset: 3px;
+      }
+
+      .menu-toggle {
+        display: none;
+      }
+
+      .content {
+        width: min(1100px, 100%);
+        margin: 0 auto;
+        padding-top: 20px;
+      }
+
+      .page {
+        display: none;
+        animation: fade 0.2s ease;
+      }
+
+      .page.active {
+        display: block;
+      }
+
+      @keyframes fade {
+        from {
+          opacity: 0.35;
+          transform: translateY(5px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 14px;
+        color: #83dffb;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      .eyebrow:before {
+        content: '';
+        width: 24px;
+        height: 1px;
+        background: #3cb9e6;
+      }
+
+      .hero {
+        padding: 34px 0 10px;
+      }
+
+      .hero h2 {
+        font-size: clamp(38px, 5vw, 70px);
+        line-height: 0.98;
+        letter-spacing: -0.055em;
+        margin: 0;
+        max-width: 860px;
+      }
+
+      .hero h2 span {
+        color: #94dff5;
+      }
+
+      .lead {
+        margin: 24px 0 0;
+        max-width: 790px;
+        color: #b4c3d3;
+        font-size: 18px;
+        line-height: 1.68;
+      }
+
+      .principle {
+        margin: 30px 0 0;
+        padding: 18px 20px;
+        border: 1px solid rgba(60, 185, 230, 0.22);
+        border-radius: 15px;
+        background: linear-gradient(
+          90deg,
+          rgba(60, 185, 230, 0.09),
+          rgba(31, 47, 110, 0.06)
+        );
+        color: #dceaf5;
+        font-size: 15px;
+      }
+
+      .principle strong {
+        color: #fff;
+      }
+
+      .grid {
+        display: grid;
+        gap: 16px;
+      }
+
+      .grid.two {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .grid.three {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .card {
+        padding: 22px;
+        border: 1px solid var(--line);
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.045),
+          rgba(255, 255, 255, 0.025)
+        );
+        border-radius: var(--radius);
+        box-shadow: 0 8px 26px rgba(0, 0, 0, 0.08);
+      }
+
+      .card h3,
+      .card h4 {
+        margin-top: 0;
+      }
+      .card p:last-child {
+        margin-bottom: 0;
+      }
+
+      .step {
+        position: relative;
+        overflow: hidden;
+      }
+
+      .step-num {
+        color: rgba(148, 223, 245, 0.28);
+        font-size: 58px;
+        line-height: 1;
+        font-weight: 800;
+        letter-spacing: -0.06em;
+        position: absolute;
+        right: 18px;
+        top: 14px;
+      }
+
+      .step h3 {
+        margin: 0 0 10px;
+        font-size: 18px;
+      }
+
+      p,
+      li {
+        color: #aebed0;
+        line-height: 1.68;
+      }
+      h2.section-title {
+        margin: 0 0 12px;
+        font-size: 38px;
+        letter-spacing: -0.04em;
+      }
+
+      .section-intro {
+        margin: 0 0 28px;
+        color: #aebed0;
+        font-size: 16px;
+        max-width: 760px;
+      }
+
+      figure {
+        margin: 24px 0;
+        break-inside: avoid;
+      }
+      figure a {
+        display: block;
+        border: 1px solid #49617d;
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      figure img {
+        display: block;
+        width: 100%;
+        height: auto;
+        background: #07111f;
+      }
+      figcaption {
+        color: #b6c8da;
+        font-size: 13px;
+        line-height: 1.6;
+        margin-top: 10px;
+      }
+      figcaption span {
+        display: block;
+        color: #83dffb;
+      }
+      .steps {
+        padding-left: 26px;
+        max-width: 850px;
+      }
+      .steps li {
+        padding: 7px 0 7px 5px;
+      }
+      strong,
+      b {
+        color: #edf6ff;
+      }
+      .result {
+        border: 1px solid rgba(60, 185, 230, 0.3);
+        background: rgba(60, 185, 230, 0.07);
+        padding: 14px 18px;
+        border-radius: 12px;
+        margin: 20px 0;
+        color: #d6eaf5;
+      }
+      .table-wrap {
+        overflow-x: auto;
+      }
+      .reference {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        font-size: 14px;
+      }
+      .reference th,
+      .reference td {
+        text-align: left;
+        padding: 12px;
+        border: 1px solid #2c425b;
+        vertical-align: top;
+        line-height: 1.65;
+        color: #c3d2e1;
+      }
+      .reference th {
+        color: #fff;
+        background: #14243b;
+      }
+      .reference td:first-child {
+        width: 25%;
+        color: #edf6ff;
+      }
+      .reference tr {
+        break-inside: avoid;
+      }
+      .chapter-link {
+        color: #94dff5;
+        text-underline-offset: 3px;
+      }
+      button:focus-visible,
+      a:focus-visible {
+        outline: 3px solid #ffd65a;
+        outline-offset: 4px;
+      }
+      .skip-link {
+        position: fixed;
+        left: 20px;
+        top: -100px;
+        background: #fff;
+        color: #07111f;
+        padding: 12px;
+        z-index: 200;
+      }
+      .skip-link:focus {
+        top: 12px;
+      }
+      details.help {
+        border: 1px solid var(--line);
+        padding: 16px;
+        border-radius: 12px;
+        margin: 12px 0;
+      }
+      details.help summary {
+        cursor: pointer;
+        font-weight: 600;
+        color: #edf6ff;
+      }
+      .chapter-meta {
+        color: #9fb0c5;
+        font-size: 13px;
+        margin-bottom: 26px;
+      }
+
+      .flow {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin: 24px 0;
+      }
+
+      .flow span {
+        padding: 10px 13px;
+        border: 1px solid var(--line);
+        border-radius: 11px;
+        background: rgba(255, 255, 255, 0.035);
+        color: #d5e1ec;
+        font-size: 13px;
+      }
+
+      .flow i {
+        font-style: normal;
+        color: #4b657f;
+      }
+
+      .callout {
+        margin: 22px 0;
+        border-left: 3px solid #3cb9e6;
+        padding: 14px 18px;
+        background: rgba(60, 185, 230, 0.055);
+        border-radius: 0 12px 12px 0;
+        color: #c7d6e4;
+      }
+
+      .feature-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        list-style: none;
+        padding: 0;
+        margin: 20px 0 0;
+      }
+
+      .feature-list li {
+        border: 1px solid var(--line);
+        border-radius: 13px;
+        padding: 14px 16px;
+        background: rgba(255, 255, 255, 0.025);
+      }
+
+      .feature-list b {
+        color: #ecf4fa;
+      }
+
+      .scene-card h3 {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 4px 8px;
+        border-radius: 99px;
+        background: rgba(60, 185, 230, 0.09);
+        border: 1px solid rgba(60, 185, 230, 0.14);
+        color: #91ddf4;
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.09em;
+      }
+
+      .status-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 8px;
+      }
+
+      .status-table td {
+        padding: 15px;
+        background: rgba(255, 255, 255, 0.028);
+        border-top: 1px solid var(--line);
+        border-bottom: 1px solid var(--line);
+      }
+
+      .status-table td:first-child {
+        width: 170px;
+        border-left: 1px solid var(--line);
+        border-radius: 12px 0 0 12px;
+        color: #ecf4fa;
+        font-weight: 650;
+      }
+
+      .status-table td:last-child {
+        border-right: 1px solid var(--line);
+        border-radius: 0 12px 12px 0;
+        color: #a9b9ca;
+      }
+
+      .next {
+        margin-top: 34px;
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding-top: 22px;
+        border-top: 1px solid var(--line);
+      }
+
+      .next button {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 11px 14px;
+        color: #d6e3ed;
+        background: rgba(255, 255, 255, 0.035);
+        cursor: pointer;
+      }
+
+      .next button.primary {
+        border-color: rgba(60, 185, 230, 0.22);
+        background: rgba(60, 185, 230, 0.09);
+        color: #e7f9ff;
+      }
+
+      .mobile-title {
+        display: none;
+      }
+
+      @media (max-width: 900px) {
+        :root {
+          --nav-w: 275px;
+        }
+        .app {
+          display: block;
+        }
+        .sidebar {
+          transform: translateX(-102%);
+          transition: transform 0.22s ease;
+          box-shadow: var(--shadow);
+        }
+        body.nav-open .sidebar {
+          transform: translateX(0);
+        }
+        .main {
+          padding: 0 20px 50px;
+        }
+        .topbar {
+          height: 64px;
+        }
+        .menu-toggle {
+          display: inline-flex;
+        }
+        .mobile-title {
+          display: block;
+          font-size: 13px;
+          color: #dce6ef;
+        }
+        .crumb {
+          display: none;
+        }
+        .grid.two,
+        .grid.three,
+        .feature-list {
+          grid-template-columns: 1fr;
+        }
+        .hero h2 {
+          font-size: 46px;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .main {
+          padding: 0 15px 44px;
+        }
+        .content {
+          padding-top: 8px;
+        }
+        .hero {
+          padding-top: 24px;
+        }
+        .hero h2 {
+          font-size: 38px;
+        }
+        .lead {
+          font-size: 16px;
+        }
+        h2.section-title {
+          font-size: 31px;
+        }
+        .shot {
+          min-height: 240px;
+        }
+        .status-table td:first-child {
+          width: 110px;
+        }
+      }
+
+      .guide-cover {
+        padding: 40px 0 28px;
+      }
+      .guide-cover h2 {
+        margin: 12px 0 16px;
+        font-size: clamp(36px, 5vw, 64px);
+        line-height: 1.12;
+      }
+      .guide-cover .cover-subtitle {
+        font-size: 22px;
+        color: #91ddf4;
+      }
+      .guide-cover figure {
+        margin: 30px 0;
+      }
+      .guide-cover .cover-date {
+        margin-top: 30px;
+        font-size: 13px;
+      }
+      @page {
+        size: A4 portrait;
+        margin: 14mm;
+      }
+      @media print {
+        p,
+        li {
+          line-height: 1.5;
+        }
+        p {
+          margin-top: 9px;
+          margin-bottom: 9px;
+        }
+        .reference td {
+          line-height: 1.5;
+        }
+        .sidebar,
+        .topbar,
+        .next,
+        .close-guide,
+        .skip-link,
+        .screen-only {
+          display: none !important;
+        }
+        .app {
+          display: block;
+          min-height: 0;
+        }
+        .main {
+          display: block;
+          padding: 0;
+        }
+        .content {
+          width: 100%;
+          padding: 0;
+        }
+        .page {
+          display: block !important;
+          animation: none;
+          break-before: page;
+        }
+        .guide-cover {
+          padding-top: 14mm;
+          break-after: page;
+        }
+        .guide-cover h2 {
+          font-size: 34pt;
+        }
+        .guide-cover .cover-subtitle {
+          font-size: 17pt;
+          color: #176b89;
+        }
+        .guide-cover figure {
+          margin: 16mm 0 10mm;
+        }
+        .guide-cover figure img {
+          width: 100%;
+          max-height: none;
+        }
+        .page:first-child {
+          break-before: auto;
+        }
+        body {
+          background: white;
+          color: #172536;
+          font-size: 11pt;
+        }
+        h1,
+        h2,
+        h3,
+        h4,
+        strong,
+        b,
+        .eyebrow,
+        .reference th,
+        .reference td:first-child {
+          color: #172536;
+        }
+        .hero {
+          padding: 0;
+        }
+        .hero h2 {
+          font-size: 32pt;
+          line-height: 1.1;
+        }
+        .hero h2 span {
+          color: #176b89;
+        }
+        h2.section-title {
+          font-size: 25pt;
+        }
+        p,
+        li,
+        .lead,
+        .section-intro,
+        .chapter-meta,
+        .reference td,
+        figcaption {
+          color: #24384c;
+        }
+        .card,
+        .principle,
+        .callout,
+        .result,
+        .reference th,
+        .reference td {
+          background: white;
+          color: #24384c;
+          border-color: #9eafbe;
+          box-shadow: none;
+        }
+        .reference {
+          font-size: 10pt;
+        }
+        .reference thead {
+          display: table-header-group;
+        }
+        .grid {
+          gap: 12px;
+        }
+        .grid.three {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .card {
+          padding: 14px;
+          break-inside: avoid;
+        }
+        figure {
+          margin: 15px 0;
+          break-inside: avoid;
+        }
+        figure img {
+          width: auto;
+          max-width: 100%;
+          max-height: 160mm;
+          margin: 0 auto;
+        }
+        figure a {
+          background: #07111f;
+        }
+        figcaption {
+          font-size: 9pt;
+        }
+        figcaption span {
+          display: none;
+        }
+        .chapter-link {
+          color: #176b89;
+        }
+        .steps li {
+          padding-top: 4px;
+          padding-bottom: 4px;
+        }
+        h3 {
+          break-after: avoid;
+        }
+        details.help {
+          break-inside: avoid;
+        }
+      }
+      .email-address {
+        white-space: nowrap;
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#guideContent">Skip to chapter</a>
+    <button
+      class="close-guide"
+      id="closeGuide"
+      type="button"
+      aria-label="Close user guide"
+      title="Close user guide"
+    >
+      &times;
+    </button>
+    <div class="app">
+      <aside class="sidebar" id="guideSidebar" aria-label="Guide navigation">
+        <div class="brand"><h1>Introduction &amp; User Guide</h1></div>
+        <div class="nav-label">For first-time users</div>
+        <nav class="nav" id="guideNav">
+          <button type="button" data-page="cover" class="active" aria-current="page">
+            <span class="nav-num">●</span>Cover
+          </button>
+          <button type="button" data-page="overview">
+            <span class="nav-num">01</span>Start Here</button
+          ><button type="button" data-page="quickstart">
+            <span class="nav-num">02</span>First 10 Minutes</button
+          ><button type="button" data-page="interface">
+            <span class="nav-num">03</span>Navigation & Search</button
+          ><button type="button" data-page="layers">
+            <span class="nav-num">04</span>Data Layers</button
+          ><button type="button" data-page="aurora">
+            <span class="nav-num">05</span>Aurora Forecast</button
+          ><button type="button" data-page="imagery">
+            <span class="nav-num">06</span>Recent Imagery</button
+          ><button type="button" data-page="cameras">
+            <span class="nav-num">07</span>CCTV & Street Level</button
+          ><button type="button" data-page="scenes">
+            <span class="nav-num">08</span>Scenes & Sharing</button
+          ><button type="button" data-page="display">
+            <span class="nav-num">09</span>Map, Display & Drawing</button
+          ><button type="button" data-page="context">
+            <span class="nav-num">10</span>Context & Tools</button
+          ><button type="button" data-page="ai">
+            <span class="nav-num">11</span>AI Voice Control</button
+          ><button type="button" data-page="data">
+            <span class="nav-num">12</span>Sources & Glossary</button
+          ><button type="button" data-page="practice">
+            <span class="nav-num">13</span>Help & Practice
+          </button>
+        </nav>
+        <div class="sidebar-foot">
+          NorSaga Maritime Intelligence<br />Updated 12 October 2026
+        </div>
+      </aside>
+      <main class="main" id="guideContent" tabindex="-1">
+        <header class="topbar">
+          <button
+            type="button"
+            class="top-button menu-toggle"
+            id="menuToggle"
+            aria-label="Open guide menu"
+            aria-controls="guideSidebar"
+            aria-expanded="false"
+          >
+            ☰
+          </button>
+          <div class="mobile-title">User Guide</div>
+          <div class="crumb">
+            User Guide / <strong id="crumbCurrent">Cover</strong>
+          </div>
+          <div class="top-actions">
+            <a class="top-button" href="godseye-user-guide.pdf" download
+              >Download PDF</a
+            ><button type="button" class="top-button" id="printGuide">
+              Print / PDF
+            </button>
+          </div>
+        </header>
+        <div class="content">
+          <section class="page guide-cover active" id="page-cover" aria-labelledby="heading-cover">
+            <div class="eyebrow">NorSaga Maritime Intelligence</div>
+            <h2 id="heading-cover">God’s Eye</h2>
+            <p class="cover-subtitle">Beginner User Guide</p>
+            <figure>
+              <a href="screenshots/00-ais-weather-cover.webp" target="_blank" rel="noopener" aria-label="Open full-size AIS and weather workspace screenshot">
+                <img src="screenshots/00-ais-weather-cover.webp" alt="NorSaga God’s Eye workspace over the North Sea with AIS vessels, wind forecasts and satellite weather imagery enabled" width="1920" height="1200" />
+              </a>
+              <figcaption>The app with <strong>Vessels / AIS</strong>, <strong>Wind forecast</strong> and <strong>Weather imagery</strong> enabled. AIS shows reported vessel positions; weather layers provide environmental context.<span>Click the screenshot to open it at full size.</span></figcaption>
+            </figure>
+            <p>New to God’s Eye? Start with <strong>Start Here</strong>, then follow <strong>First 10 Minutes</strong> for a guided practice session.</p>
+            <p class="cover-date">Updated October 12, 2026 · US English</p>
+            <div class="next"><button type="button" class="primary" data-next="overview">Start Here →</button></div>
+          </section>
+          <section
+            class="page"
+            id="page-overview"
+            aria-labelledby="heading-overview"
+          >
+            <div class="eyebrow">Chapter 01 / Start Here</div>
+            <h2 class="section-title" id="heading-overview">
+              Your first look at God’s Eye
+            </h2>
+            <p class="section-intro">
+              This guide assumes you have never used the app. Start with the
+              short practice exercise in chapter 2. Then open the chapter for
+              the function you need.
+            </p>
+            <div class="card">
+              <h3>Before you open the app</h3>
+              <p>
+                Use a <strong>desktop or laptop</strong> with a mouse or
+                trackpad and a browser window of at least
+                <strong>1280 × 720 pixels</strong>. A larger window makes the
+                controls easier to read. Phones and tablets are not suitable for
+                this workspace. Keep an internet connection available for maps
+                and data feeds.
+              </p>
+              <p>
+                Open the app address supplied by your administrator. Your exact
+                email address must be approved first. Enter it on the login page
+                and click <strong>Send Login Link</strong>. Open the email from
+                <strong class="email-address">no-reply@norsaga.com</strong>
+                (sender name: <strong>NorSaga God´s Eye Access</strong>) within
+                ten minutes. Click the link, then
+                <strong>Confirm Sign-In</strong>. On <strong>My Access</strong>,
+                choose <strong>Open God’s Eye</strong>. Wait for the globe and
+                <strong>MARITIME WORKSPACE</strong> to appear.
+              </p>
+            </div>
+            <p>
+              God’s Eye puts a map, moving objects and information from
+              different sources in one place. You choose an area, turn on the
+              information you want, and click an object to inspect it. A
+              <strong>layer</strong> is one category of information, such as
+              vessels or wind.
+            </p>
+            <div class="callout">
+              This is the NorSaga MDA Research Platform for research, training
+              and technology evaluation. Use it to explore and learn. It is not
+              a navigation system or a source for safety-critical decisions.
+            </div>
+
+            <h3>Your personal login</h3>
+            <p>
+              There is no shared password. The email link is personal, works
+              once and expires after ten minutes. Do not forward it. The page
+              always says a link will be sent if the address is approved; this
+              does not mean an unregistered address has access. If no email
+              arrives, check your spam folder and ask the administrator to check
+              your address.
+            </p>
+            <figure>
+              <a
+                href="screenshots/22-personal-login.webp"
+                target="_blank"
+                rel="noopener"
+                ><img
+                  src="screenshots/22-personal-login.webp"
+                  alt="Personal login page with an email field and a passkey login button"
+                  width="520"
+                  height="791"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                Enter your approved address and choose
+                <strong>Send Login Link</strong>. If you have already set up a
+                passkey, choose <strong>Sign In with a Passkey</strong>.
+              </figcaption>
+            </figure>
+            <figure>
+              <a
+                href="screenshots/23-confirm-login.webp"
+                target="_blank"
+                rel="noopener"
+                ><img
+                  src="screenshots/23-confirm-login.webp"
+                  alt="Email link confirmation page with the Confirm login button"
+                  width="520"
+                  height="740"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                Choose <strong>Confirm Sign-In</strong> to use the email link.
+                Opening an email preview does not sign you in.
+              </figcaption>
+            </figure>
+            <h3>Passkeys and My Access</h3>
+            <p>
+              A <strong>passkey</strong> is a login key protected by your
+              device, usually using Touch ID, Windows Hello or a security key.
+              Ordinary users may keep using email links or choose
+              <strong>Create Passkey</strong> for quicker login. Follow your
+              browser’s instructions. A reserve passkey should be on a second
+              device or security key.
+            </p>
+            <figure>
+              <a
+                href="screenshots/24-passkey-setup.webp"
+                target="_blank"
+                rel="noopener"
+                ><img
+                  src="screenshots/24-passkey-setup.webp"
+                  alt="My access page showing the Create passkey and Verify with passkey controls"
+                  width="1000"
+                  height="513"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                <strong>Open God’s Eye</strong> opens the workspace.
+                <strong>Create Passkey</strong> sets up a key. Administrators
+                must then choose <strong>Verify with Passkey</strong> before
+                managing users.
+              </figcaption>
+            </figure>
+            <h3>For the administrator</h3>
+            <p>
+              After confirming with a passkey, enter each person’s name and
+              exact email under <strong>Approved Users</strong>. Choose
+              <strong>Approve User</strong>. They can now request their own
+              login email; an invitation is not sent automatically.
+              <strong>Block Access</strong> ends their active access too.
+              Confirm with a passkey again when administration expires after
+              fifteen minutes. Email alone cannot reset an existing
+              administrator passkey; contact the server operator if all keys are
+              lost.
+            </p>
+            <p>
+              To check usage, scroll to <strong>User Access Log</strong>. It shows
+              each successful sign-in, the user’s email, whether they used an
+              email link or passkey, their last activity and session status.
+              Choose <strong>Refresh Log</strong> to see the latest records.
+              The table shows up to 100 sign-ins from the past 90 days; times
+              use the time zone displayed above it. <strong>Active session</strong>
+              means access is still valid, not that the person is currently
+              looking at the app. Background feed updates do not count as activity.
+            </p>
+            <figure>
+              <a
+                href="screenshots/25-user-administration.webp"
+                target="_blank"
+                rel="noopener"
+                ><img
+                  src="screenshots/25-user-administration.webp"
+                  alt="Administrator user list, approval form and user access log showing sign-in methods and session status"
+                  width="1000"
+                  height="942"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                The simple user list opens after passkey verification. The
+                addresses shown here are examples from an isolated test
+                installation, not approved production users.
+              </figcaption>
+            </figure>
+            <p>
+              Use <strong>MY ACCESS</strong> at the top of the workspace to
+              return to your account. <strong>LOG OUT</strong> ends your server
+              session. You must sign in again after thirty minutes without
+              activity, or after eight hours even if you have been working.
+            </p>
+            <h3>How to use this manual</h3>
+            <p>
+              Choose a chapter from the menu on the left, or use the Next button
+              at the bottom. Click any screenshot to enlarge it.
+              <strong>Download PDF</strong> saves the complete manual for
+              offline reading. <strong>Print / PDF</strong> prints all chapters,
+              including chapters you have not opened. On a narrow guide window,
+              use the menu button at the top left.
+            </p>
+            <p>
+              A <strong>bold label</strong> such as
+              <strong>CAPTURE SHOT</strong> is the exact control to look for in
+              the app. Yellow numbers in screenshots match the explanation below
+              each picture.
+            </p>
+            <figure>
+              <a
+                href="screenshots/01-workspace.webp"
+                target="_blank"
+                rel="noopener"
+                aria-label="Open larger screenshot: The complete workspace with six numbered control areas"
+                ><img
+                  src="screenshots/01-workspace.webp"
+                  alt="The complete workspace with six numbered control areas"
+                  width="1600"
+                  height="1000"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                <strong>1</strong> Choose a maritime area.
+                <strong>2</strong> Turn data layers on or off.
+                <strong>3</strong> Save and replay Scenes.
+                <strong>4</strong> Open Display, CCTV, Street Level and Context.
+                <strong>5</strong> Open this guide, Location, AI Agent and
+                Visual Presets. <strong>6</strong> Clear layers, share or reset
+                the camera.<span
+                  >Click the screenshot to open it at full size.</span
+                >
+              </figcaption>
+            </figure>
+            <p class="chapter-meta">
+              Updated 12 October 2026. Screenshots show this version of the app
+              with real source responses. Login and administration screenshots
+              use an isolated test installation and example accounts. Map
+              appearance, available objects and source status can differ on your
+              computer. The examples use the Esri map; a configured installation
+              may use Google 3D.
+            </p>
+            <div class="next">
+              <span></span
+              ><button type="button" class="primary" data-next="quickstart">
+                Next: First 10 Minutes →
+              </button>
+            </div>
+          </section>
+          <section
+            class="page"
+            id="page-quickstart"
+            aria-labelledby="heading-quickstart"
+          >
+            <div class="eyebrow">Chapter 02 / First 10 Minutes</div>
+            <h2 class="section-title" id="heading-quickstart">
+              Make your first useful view
+            </h2>
+            <p class="section-intro">
+              Try this exercise once. You will learn where the controls are and
+              save a view you can reopen.
+            </p>
+            <ol class="steps">
+              <li>
+                In <strong>MARITIME WORKSPACE</strong>, open the
+                <strong>Fly to region</strong> list and choose
+                <strong>Norwegian Sea</strong>. Wait for the camera to finish
+                moving.
+              </li>
+              <li>
+                Open <strong>Maritime layers</strong> below the region list.
+                Tick <strong>Vessels / AIS</strong>. AIS is the system used to
+                report ship identities and positions.
+              </li>
+              <li>
+                Click the <strong>+</strong> beside
+                <strong>DATA LAYERS</strong>. Find
+                <strong>Live Vessels</strong> and read the small source/status
+                line. Wait for loading to finish. If it reports a missing source
+                or an error, you can still practise navigation and saving a
+                view.
+              </li>
+              <li>
+                Close the large layer panel using its collapse button. Use the
+                mouse wheel to zoom in a little. If vessel symbols are
+                available, click one and read its name, position time and
+                available details.
+              </li>
+              <li>
+                Open <strong>Maritime layers</strong> again and tick
+                <strong>Wind forecast</strong> if you want weather context. Read
+                its source status. Wind is forecast information.
+              </li>
+              <li>
+                Open <strong>SCENES</strong>. Click <strong>NEW</strong>, type
+                <strong>My Norwegian Sea view</strong> in the name prompt and
+                confirm. Then click <strong>CAPTURE SHOT</strong>.
+              </li>
+              <li>
+                Check that <strong>Shot 1</strong> appears. Move the camera
+                somewhere else, then click <strong>LOAD</strong> beside Shot 1.
+                The saved camera and configuration return.
+              </li>
+            </ol>
+            <figure>
+              <a
+                href="screenshots/03-maritime.webp"
+                target="_blank"
+                rel="noopener"
+                aria-label="Open larger screenshot: Maritime region list, maritime layers and independent Aurora checkbox"
+                ><img
+                  src="screenshots/03-maritime.webp"
+                  alt="Maritime region list, maritime layers and independent Aurora checkbox"
+                  width="500"
+                  height="520"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                <strong>1</strong> Choose the operating area.
+                <strong>2</strong> Tick Vessels / AIS, Wind forecast or Weather
+                imagery. <strong>3</strong> Aurora has its own checkbox above
+                Maritime layers.<span
+                  >Click the screenshot to open it at full size.</span
+                >
+              </figcaption>
+            </figure>
+            <div class="result">
+              <strong>You have finished when:</strong> your Scene contains Shot
+              1 and LOAD returns to your saved view. A Scene stores the setup;
+              live objects can change each time you reopen it.
+            </div>
+            <a class="chapter-link" href="#scenes"
+              >See the complete Scene instructions</a
+            >
+            <h3>The starting view chooser</h3>
+            <p>
+              Click <strong>Views</strong> in Maritime Workspace to open
+              <strong>Choose your maritime view</strong>.
+              <strong>Global maritime</strong>, <strong>Baltic Sea</strong> and
+              <strong>Arctic</strong> move the camera and request vessels, wind
+              and weather imagery. <strong>Global overview</strong> moves to the
+              globe overview and keeps your current layer selection. Aurora is
+              enabled separately.
+            </p>
+            <figure>
+              <a
+                href="screenshots/02-starting-views.webp"
+                target="_blank"
+                rel="noopener"
+                aria-label="Open larger screenshot: The four maritime starting views and startup preference"
+                ><img
+                  src="screenshots/02-starting-views.webp"
+                  alt="The four maritime starting views and startup preference"
+                  width="730"
+                  height="714"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                <strong>1</strong> Choose one of the four views, or click Close
+                to keep exploring. <strong>2</strong> Do not show this at
+                startup changes whether this chooser appears; Views lets you
+                reopen it.<span
+                  >Click the screenshot to open it at full size.</span
+                >
+              </figcaption>
+            </figure>
+            <p>
+              If a layer is already selected, choosing a starting view can leave
+              it selected. Use the top
+              <strong>Clear selected data layers</strong> button when you want
+              to begin with an empty map.
+            </p>
+            <div class="next">
+              <button type="button" data-next="overview">← Start Here</button
+              ><button type="button" class="primary" data-next="interface">
+                Next: Navigation & Search →
+              </button>
+            </div>
+          </section>
+          <section
+            class="page"
+            id="page-interface"
+            aria-labelledby="heading-interface"
+          >
+            <div class="eyebrow">Chapter 03 / Navigation & Search</div>
+            <h2 class="section-title" id="heading-interface">
+              Move around without getting lost
+            </h2>
+            <p class="section-intro">
+              The globe is your main workspace. Start with region presets, then
+              practise small camera movements.
+            </p>
+            <div class="table-wrap">
+              <table class="reference">
+                <thead>
+                  <tr>
+                    <th scope="col">To do this</th>
+                    <th scope="col">Use this control</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Move around the globe</td>
+                    <td>Hold the left mouse button on the map and drag.</td>
+                  </tr>
+                  <tr>
+                    <td>Zoom in or out</td>
+                    <td>
+                      Scroll the mouse wheel or use your trackpad scroll
+                      gesture. Make small movements.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Change the angle</td>
+                    <td>
+                      Hold the right mouse button and drag, or use the top
+                      <strong>Tilt map to oblique view</strong> button.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Put north at the top</td>
+                    <td>
+                      Click the <strong>N</strong> button at the top: Reset map
+                      to north up.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Recover the whole Earth</td>
+                    <td>
+                      Click the globe icon at the top:
+                      <strong>Reset to full globe view</strong>. Your layer
+                      selection is managed separately.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Jump to a maritime area</td>
+                    <td>Choose an area in <strong>Fly to region</strong>.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <h3>Find a place by name or coordinates</h3>
+            <ol class="steps">
+              <li>
+                Click <strong>LOCATION</strong> along the bottom to open its
+                tray.
+              </li>
+              <li>
+                Click the magnifying glass, then click the
+                <strong>Search any location…</strong> field.
+              </li>
+              <li>
+                Type a specific place, such as <strong>Oslo, Norway</strong>,
+                and press <strong>Enter</strong>. You can also enter latitude,
+                longitude: <strong>59.9139, 10.7522</strong>. Latitude comes
+                first.
+              </li>
+              <li>
+                Wait for the camera to move. If the place is not found, add a
+                country name or use coordinates. A region preset is another way
+                to navigate.
+              </li>
+              <li>
+                Click LOCATION again to close the tray. The pin button keeps the
+                tray open when you need it.
+              </li>
+            </ol>
+            <figure>
+              <a
+                href="screenshots/04-location.webp"
+                target="_blank"
+                rel="noopener"
+                aria-label="Open larger screenshot: Location search field, preset city buttons and camera reset buttons"
+                ><img
+                  src="screenshots/04-location.webp"
+                  alt="Location search field, preset city buttons and camera reset buttons"
+                  width="1600"
+                  height="1000"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                <strong>1</strong> Type a place or coordinates and press Enter.
+                <strong>2</strong> City buttons give quick shortcuts.
+                <strong>3</strong> N restores north at the top.
+                <strong>4</strong> The globe button restores a full globe
+                view.<span>Click the screenshot to open it at full size.</span>
+              </figcaption>
+            </figure>
+            <p>
+              LOCATION is for places and coordinates. To find a moving object,
+              enable its layer and select its map symbol or use the available
+              Contacts controls. A vessel name is not a reliable place-search
+              query.
+            </p>
+            <h3>Open, move and close panels</h3>
+            <p>
+              Click the <strong>+</strong> or arrow on a panel header to expand
+              it. Click its collapse button to close it. Open only the panel you
+              are using so the map stays visible.
+            </p>
+            <p>
+              <strong>CCTV</strong> and <strong>STREET LEVEL</strong> can be
+              pulled out of their side rail: drag the header onto the map.
+              Resize a floating panel by dragging its edge or corner.
+              Double-click its header to snap it back to the rail.
+            </p>
+            <div class="result">
+              <strong>If you lose your position:</strong> stop dragging, click
+              the globe icon, then choose your region again. You do not need to
+              reload the app.
+            </div>
+            <div class="next">
+              <button type="button" data-next="quickstart">
+                ← First 10 Minutes</button
+              ><button type="button" class="primary" data-next="layers">
+                Next: Data Layers →
+              </button>
+            </div>
+          </section>
+          <section
+            class="page"
+            id="page-layers"
+            aria-labelledby="heading-layers"
+          >
+            <div class="eyebrow">Chapter 04 / Data Layers</div>
+            <h2 class="section-title" id="heading-layers">
+              Choose what appears on the map
+            </h2>
+            <p class="section-intro">
+              A layer adds a category of information. Turning a layer on
+              requests its data; the source line tells you whether usable
+              information has arrived.
+            </p>
+            <ol class="steps">
+              <li>
+                Click <strong>+</strong> beside <strong>DATA LAYERS</strong>.
+                The list is grouped by Movement, Cameras, Infrastructure,
+                Events, Weather, Space Weather and Utilities.
+              </li>
+              <li>
+                Find the layer you want, then click its
+                <strong>OFF</strong> button. The selection changes and the app
+                begins loading it.
+              </li>
+              <li>
+                Read the source/status line below its name. Check whether it is
+                loading, available, stale or unavailable. A selected button
+                alone does not prove the feed is working.
+              </li>
+              <li>
+                Collapse the panel and inspect the map. Click a visible symbol
+                to see available details. Open the panel again and click the
+                same toggle to turn that layer off.
+              </li>
+            </ol>
+            <figure>
+              <a
+                href="screenshots/05-data-layers.webp"
+                target="_blank"
+                rel="noopener"
+                aria-label="Open larger screenshot: The complete grouped layer list and clear-all-layers control"
+                ><img
+                  src="screenshots/05-data-layers.webp"
+                  alt="The complete grouped layer list and clear-all-layers control"
+                  width="1156"
+                  height="753"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                <strong>1</strong> Each row has its own toggle and source line.
+                <strong>2</strong> Clear selected data layers turns all selected
+                layers off; it does not delete your saved Scenes.<span
+                  >Click the screenshot to open it at full size.</span
+                >
+              </figcaption>
+            </figure>
+            <div class="callout">
+              <strong>Start with one layer.</strong> Add another only when it
+              helps. If the map is crowded, zoom in, disable unused layers or
+              lower the label density in DISPLAY.
+            </div>
+            <div class="table-wrap">
+              <table class="reference">
+                <thead>
+                  <tr>
+                    <th scope="col">Layer / function</th>
+                    <th scope="col">What to look for</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Live Vessels</strong></td>
+                    <td>
+                      AIS ship positions and details. Check the reported time,
+                      identity and source. Coverage can be incomplete or empty.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Live Flights / Military Flights</strong></td>
+                    <td>
+                      Observed aircraft positions and available flight details.
+                      Military Flights is a separate selection. Select an
+                      aircraft to inspect it.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Satellites</strong></td>
+                    <td>
+                      Objects positioned using an orbital model. These are
+                      predicted positions, not a camera image from space.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <strong>Street Traffic / Transit / Bike Share</strong>
+                    </td>
+                    <td>
+                      Road activity, available transit services and bike-share
+                      information. Availability depends on the location and
+                      configured source. Some traffic is visualised rather than
+                      observed vehicle by vehicle.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <strong>Cameras / Street Level / Recent Imagery</strong>
+                    </td>
+                    <td>
+                      Public camera images, recorded street photographs and
+                      satellite-image dates. They have different time meanings;
+                      see their chapters.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <strong
+                        >Mapped Installations / Mapped ALPR Cameras</strong
+                      >
+                    </td>
+                    <td>
+                      Mapped site or roadside-camera locations. ALPR means
+                      automatic licence-plate recognition. Mapped locations do
+                      not provide plate reads or prove a device is operating.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <strong>Data Centers / Dams / Submarine Cables</strong>
+                    </td>
+                    <td>
+                      Reference locations and infrastructure. These are
+                      background datasets, not live operational status.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Space Missions (30d)</strong></td>
+                    <td>
+                      Mission and launch information; open Context → SPACE
+                      MISSIONS to inspect available missions.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <strong
+                        >Earthquakes (24h) / Active Fires / Fire
+                        Perimeters</strong
+                      >
+                    </td>
+                    <td>
+                      Recent earthquake reports, detected heat/fire points and
+                      mapped fire areas. A detection and a confirmed boundary
+                      are different types of information.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <strong
+                        >Wind / Rain radar / Satellite clouds / Lightning
+                        density / Cyclone advisories</strong
+                      >
+                    </td>
+                    <td>
+                      Environmental context. Wind is a forecast; the other
+                      products carry their own observation or advisory times and
+                      coverage.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Aurora Forecast</strong></td>
+                    <td>
+                      NOAA space-weather forecast. Use the separate Aurora
+                      walkthrough.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Directions / Radio / Local ADS-B</strong></td>
+                    <td>
+                      Route tools, internet radio and an optional physical
+                      aircraft receiver. These are optional functions; see
+                      Context &amp; Tools.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="next">
+              <button type="button" data-next="interface">
+                ← Navigation & Search</button
+              ><button type="button" class="primary" data-next="aurora">
+                Next: Aurora Forecast →
+              </button>
+            </div>
+          </section>
+          <section
+            class="page"
+            id="page-aurora"
+            aria-labelledby="heading-aurora"
+          >
+            <div class="eyebrow">Chapter 05 / Aurora Forecast</div>
+            <h2 class="section-title" id="heading-aurora">
+              Explore the aurora forecast
+            </h2>
+            <p class="section-intro">
+              Aurora is available on its own. You do not need to enable vessels,
+              wind or weather imagery first.
+            </p>
+            <ol class="steps">
+              <li>
+                In Maritime Workspace, choose
+                <strong>Arctic overview</strong> or
+                <strong>Svalbard</strong> from Fly to region.
+              </li>
+              <li>
+                Tick <strong>Aurora Forecast</strong> directly below the region
+                list. Alternatively, enable Aurora Forecast in DATA LAYERS. Wait
+                for the NOAA source status.
+              </li>
+              <li>
+                Read <strong>Forecast</strong> and the source time. The forecast
+                time describes the future model estimate; the source time
+                describes the input observation.
+              </li>
+              <li>
+                Move the map so the place you want to inspect is in the centre.
+                Click <strong>Read map center</strong> to read the nearest NOAA
+                grid value.
+              </li>
+              <li>
+                Use <strong>Subtle</strong>, <strong>Clear</strong> or
+                <strong>Strong</strong> to change the overlay contrast. This
+                changes visibility of the overlay, not the forecast.
+              </li>
+              <li>Untick Aurora Forecast when you have finished.</li>
+            </ol>
+            <figure>
+              <a
+                href="screenshots/06-aurora.webp"
+                target="_blank"
+                rel="noopener"
+                aria-label="Open larger screenshot: Aurora overlay, NOAA source readout, map-centre inspection and history button"
+                ><img
+                  src="screenshots/06-aurora.webp"
+                  alt="Aurora overlay, NOAA source readout, map-centre inspection and history button"
+                  width="500"
+                  height="350"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                <strong>1</strong> Read forecast time, source time, Kp when
+                available and the colour legend. <strong>2</strong> Read map
+                center inspects the nearest model cell. <strong>3</strong> NOAA
+                loop opens the official image history.<span
+                  >Click the screenshot to open it at full size.</span
+                >
+              </figcaption>
+            </figure>
+            <div class="callout">
+              The globe legend is
+              <strong>relative auroral intensity from 0 to 100</strong>. A value
+              of 50 is not a 50% chance of seeing aurora at your location.
+              Clouds, darkness and your surroundings affect visibility. Kp is a
+              geomagnetic-activity index; it can be unavailable while the grid
+              forecast still works.
+            </div>
+            <h3>Play the NOAA image history</h3>
+            <ol class="steps">
+              <li>
+                Click <strong>▶ NOAA loop</strong>. A separate player opens.
+              </li>
+              <li>
+                Choose <strong>Northern hemisphere</strong> or
+                <strong>Southern hemisphere</strong>, then
+                <strong>Latest 30 minutes</strong> or
+                <strong>Latest 24 hours</strong>. Wait for the images to load.
+              </li>
+              <li>
+                Click <strong>Play</strong> to animate, then
+                <strong>Pause</strong> to stop. Use <strong>Previous</strong>,
+                <strong>Next</strong> or the timeline slider to inspect a single
+                frame.
+              </li>
+              <li>
+                Read <strong>Model frame</strong> below the player. Click
+                <strong>Close</strong> to return to the map.
+              </li>
+            </ol>
+            <figure>
+              <a
+                href="screenshots/07-aurora-history.webp"
+                target="_blank"
+                rel="noopener"
+                aria-label="Open larger screenshot: Official NOAA aurora image-history player with timeframe and transport controls"
+                ><img
+                  src="screenshots/07-aurora-history.webp"
+                  alt="Official NOAA aurora image-history player with timeframe and transport controls"
+                  width="950"
+                  height="989"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                <strong>1</strong> Choose the hemisphere.
+                <strong>2</strong> Choose the history duration.
+                <strong>3</strong> Play or pause. <strong>4</strong> Drag the
+                timeline to one frame. <strong>5</strong> Model frame gives the
+                time of the displayed image.<span
+                  >Click the screenshot to open it at full size.</span
+                >
+              </figcaption>
+            </figure>
+            <div class="result">
+              <strong>Keep the two views separate:</strong> the image player
+              shows NOAA image history; the globe continues showing the latest
+              grid forecast. Moving the player timeline does not rewind the
+              globe.
+            </div>
+            <div class="next">
+              <button type="button" data-next="layers">← Data Layers</button
+              ><button type="button" class="primary" data-next="imagery">
+                Next: Recent Imagery →
+              </button>
+            </div>
+          </section>
+          <section
+            class="page"
+            id="page-imagery"
+            aria-labelledby="heading-imagery"
+          >
+            <div class="eyebrow">Chapter 06 / Recent Imagery</div>
+            <h2 class="section-title" id="heading-imagery">
+              Look at satellite images from different dates
+            </h2>
+            <p class="section-intro">
+              Recent Imagery helps you compare imagery of one area. These are
+              acquired satellite images, not a live video feed.
+            </p>
+            <ol class="steps">
+              <li>
+                Zoom to the area you want to inspect. Use a local or regional
+                view rather than the whole Earth.
+              </li>
+              <li>
+                Open DATA LAYERS and enable <strong>Recent Imagery</strong>.
+                Open its <strong>RECENT IMAGERY</strong> panel if it is
+                collapsed.
+              </li>
+              <li>
+                Click <strong>SELECT BOX</strong>, then drag a box around the
+                area on the map. Or click <strong>USE VIEW</strong> to use the
+                current view. Press <strong>Esc</strong> to cancel an unfinished
+                box.
+              </li>
+              <li>
+                Wait for dated image cards to appear. Read the date, sensor and
+                cloud/coverage information. Choose a usable date to preview or
+                pin using the shown controls.
+              </li>
+              <li>
+                Choose a comparison mode: the image alone, against the basemap,
+                or <strong>A/B</strong> for two image dates. For A/B, select the
+                dates for both slots.
+              </li>
+              <li>
+                When the divider is available, drag it to compare the sides.
+                <strong>SWAP</strong> trades the sides. Use opacity to adjust
+                the image strength.
+              </li>
+              <li>
+                Open <strong>Details</strong> for acquisition times, source and
+                coverage. Use <strong>EXPORT</strong> (or EXPORT A / EXPORT B)
+                to download the displayed source image.
+              </li>
+              <li>
+                Click <strong>CLEAR</strong> to remove the box and its images.
+              </li>
+            </ol>
+            <figure>
+              <a
+                href="screenshots/18-recent-imagery.webp"
+                target="_blank"
+                rel="noopener"
+                aria-label="Open larger screenshot: Recent Imagery controls before an area has been selected"
+                ><img
+                  src="screenshots/18-recent-imagery.webp"
+                  alt="Recent Imagery controls before an area has been selected"
+                  width="500"
+                  height="529"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                The panel starts with area-selection controls. Select a box or
+                use the current view before expecting image dates. Empty or
+                cloudy dates are normal.<span
+                  >Click the screenshot to open it at full size.</span
+                >
+              </figcaption>
+            </figure>
+            <p>
+              If you are using Google 3D, showing imagery can switch the map to
+              <strong>Esri</strong> so the comparison divider works. CLEAR or
+              disabling the layer releases that comparison. If the comparison
+              map fails, read the notice: imagery may display without a swipe
+              divider.
+            </p>
+            <div class="result">
+              <strong>Check before comparing:</strong> date, cloud, coverage and
+              resolution. A blank patch can mean no usable image, and a visible
+              difference can be caused by clouds or a different sensor.
+            </div>
+            <div class="next">
+              <button type="button" data-next="aurora">← Aurora Forecast</button
+              ><button type="button" class="primary" data-next="cameras">
+                Next: CCTV & Street Level →
+              </button>
+            </div>
+          </section>
+          <section
+            class="page"
+            id="page-cameras"
+            aria-labelledby="heading-cameras"
+          >
+            <div class="eyebrow">Chapter 07 / CCTV & Street Level</div>
+            <h2 class="section-title" id="heading-cameras">
+              Open a camera image or a street photograph
+            </h2>
+            <p class="section-intro">
+              CCTV can show a public camera still or video. Street Level shows
+              recorded photographs. Check which product you are looking at.
+            </p>
+            <h3>CCTV: public camera images</h3>
+            <ol class="steps">
+              <li>
+                Navigate to your area, then open the <strong>CCTV</strong> panel
+                on the right.
+              </li>
+              <li>
+                Click <strong>CCTV OFF</strong> to enable Cameras. You can also
+                enable <strong>Cameras</strong> in DATA LAYERS.
+              </li>
+              <li>
+                Click <strong>NEAREST</strong>, choose a camera from the list,
+                use <strong>PREV / NEXT</strong>, or select a camera marker on
+                the map.
+              </li>
+              <li>
+                Read the source badge and camera information. A still image
+                refreshes according to its source; a video is available only
+                when that camera provides it.
+              </li>
+              <li>
+                Click <strong>FOCUS</strong> to move the map to the camera.
+                <strong>COVERAGE</strong> displays its mapped viewing area;
+                <strong>AUTO HOP</strong> cycles cameras. Turn auto-hop off to
+                keep one camera selected.
+              </li>
+              <li>
+                Use the enable button again to turn Cameras off when finished.
+              </li>
+            </ol>
+            <h3>Oslofjord harbor cameras</h3>
+            <p>
+              The camera list includes <strong>Oslo Harbor</strong> (City Hall
+              Quay, Kavringen and Vippetangen), <strong>Drammen Harbor</strong>
+              (eight quay views), and <strong>Oscarsborg Marina</strong> (three
+              views). Enable CCTV, then choose a view from the camera selector.
+              The map moves to its approximate location.
+            </p>
+            <p>
+              These are updated still images. Read <strong>Image updated</strong>
+              below the preview to see the provider’s image-update time in UTC.
+              <strong>OUTDATED IMAGE</strong> means the image is more than
+              thirty minutes old. If the time is unavailable, the app says so.
+              A failed source refresh may leave the last available image visible
+              with a degraded status. <strong>Open Camera Website</strong> opens
+              the operator’s original webcam page.
+            </p>
+            <p>
+              The map locations are approximate. Directions and projected
+              coverage are estimates until calibrated; use the webcam image
+              for visual context rather than treating the drawn coverage as a
+              surveyed camera footprint. Oscarsborg publishes new images about
+              every ten minutes; refreshing the app does not create a newer image.
+            </p>
+            <figure>
+              <a href="screenshots/26-oslofjord-cctv.webp" target="_blank" rel="noopener" aria-label="Open larger screenshot: Oslo harbor webcam with image time and source website">
+                <img src="screenshots/26-oslofjord-cctv.webp" alt="Kavringen public webcam selected in the CCTV panel, showing a real harbor image, update time, approximate location note and operator website link" width="330" height="523" loading="lazy" />
+              </a>
+              <figcaption>An Oslo harbor view in the CCTV panel. Read the image-update time and the source badge before interpreting what you see.<span>Click the screenshot to open it at full size.</span></figcaption>
+            </figure>
+            <figure>
+              <a
+                href="screenshots/12-cctv.webp"
+                target="_blank"
+                rel="noopener"
+                aria-label="Open larger screenshot: CCTV panel with its enable, nearest, camera selector and focus buttons"
+                ><img
+                  src="screenshots/12-cctv.webp"
+                  alt="CCTV panel with its enable, nearest, camera selector and focus buttons"
+                  width="500"
+                  height="350"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                <strong>1</strong> Enable Cameras. <strong>2</strong> Find the
+                nearest camera. <strong>3</strong> Choose a camera.
+                <strong>4</strong> FOCUS moves the map to it.<span
+                  >Click the screenshot to open it at full size.</span
+                >
+              </figcaption>
+            </figure>
+            <figure>
+              <a
+                href="screenshots/16-cctv-enabled.webp"
+                target="_blank"
+                rel="noopener"
+                aria-label="Open larger screenshot: CCTV panel with an available public camera image, source badge and camera selection controls"
+                ><img
+                  src="screenshots/16-cctv-enabled.webp"
+                  alt="CCTV panel with an available public camera image, source badge and camera selection controls"
+                  width="500"
+                  height="427"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                <strong>1</strong> View the camera image.
+                <strong>2</strong> Check the source badge.
+                <strong>3</strong> Read the selected camera.
+                <strong>4</strong> Use FOCUS to move the map to it. The selected
+                camera and the map location can differ.<span
+                  >Click the screenshot to open it at full size.</span
+                >
+              </figcaption>
+            </figure>
+            <p>
+              Norwegian road cameras from <strong>Statens vegvesen</strong> are
+              also included when their source is available. Choose the camera by
+              its label and check its source; the nearest available result may
+              be far from your map centre.
+            </p>
+            <p>
+              <strong>PROJECTION</strong> places the camera image into the 3D
+              view. Its alignment is an estimate. Leave <strong>ADJUST</strong>,
+              <strong>SAVE CAL</strong> and <strong>RESET CAL</strong> for
+              advanced calibration work; these controls change alignment, not
+              the camera’s original image.
+            </p>
+            <h3>Street Level: recorded photographs</h3>
+            <ol class="steps">
+              <li>
+                Open <strong>STREET LEVEL</strong> on the right and click
+                <strong>OFF</strong>, or enable <strong>Street Level</strong> in
+                DATA LAYERS.
+              </li>
+              <li>
+                Check the provider chips. Choose an available provider such as
+                <strong>Mapillary</strong>. If a required token is missing, ask
+                the administrator to configure it.
+              </li>
+              <li>
+                Use <strong>ALL</strong>, <strong>360°</strong> or
+                <strong>FLAT</strong> to choose the photo type. Use
+                <strong>SINCE</strong> to filter by date.
+              </li>
+              <li>
+                Zoom into an area with mapped coverage and select an image
+                marker. Read the capture date and photographer/source
+                attribution.
+              </li>
+              <li>
+                Use the image viewer’s sequence navigation to step through
+                photos. <strong>EXPAND</strong> makes the image larger;
+                <strong>FIT</strong> shows the whole image;
+                <strong>FILL</strong> crops it to the frame.
+              </li>
+              <li>
+                Turn <strong>FOLLOW</strong> on if you want the globe camera to
+                align with the image view. Use × to close the selected image.
+                Esc shrinks an expanded viewer.
+              </li>
+            </ol>
+            <figure>
+              <a
+                href="screenshots/17-street-level-enabled.webp"
+                target="_blank"
+                rel="noopener"
+                aria-label="Open larger screenshot: Street Level provider selection, photo filters and date controls"
+                ><img
+                  src="screenshots/17-street-level-enabled.webp"
+                  alt="Street Level provider selection, photo filters and date controls"
+                  width="500"
+                  height="350"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                <strong>1</strong> Provider chips show availability.
+                <strong>2</strong> Choose the photo type and date filter. A
+                missing-token message means imagery is not configured on this
+                installation.<span
+                  >Click the screenshot to open it at full size.</span
+                >
+              </figcaption>
+            </figure>
+            <h3>Move or resize the image viewer</h3>
+            <p>
+              Drag the CCTV or Street Level header onto the map to create a
+              floating panel. Drag an edge or corner to resize it. Double-click
+              the header to return it to its side rail. This helps when
+              inspecting an image and the map together.
+            </p>
+            <div class="next">
+              <button type="button" data-next="imagery">← Recent Imagery</button
+              ><button type="button" class="primary" data-next="scenes">
+                Next: Scenes & Sharing →
+              </button>
+            </div>
+          </section>
+          <section
+            class="page"
+            id="page-scenes"
+            aria-labelledby="heading-scenes"
+          >
+            <div class="eyebrow">Chapter 08 / Scenes & Sharing</div>
+            <h2 class="section-title" id="heading-scenes">
+              Save a view you can reopen
+            </h2>
+            <p class="section-intro">
+              A Scene is a named collection of saved views. Each saved view is
+              called a shot. A shot stores camera, visual and layer settings; it
+              does not take a screenshot or freeze a live feed.
+            </p>
+            <h3>Create your first Scene</h3>
+            <ol class="steps">
+              <li>
+                Choose your location, zoom, viewing angle and layers first.
+              </li>
+              <li>
+                Open <strong>SCENES</strong> on the left. Click
+                <strong>NEW</strong>, enter a clear name and confirm. NEW
+                creates the collection; it has not captured the map yet.
+              </li>
+              <li>
+                Click <strong>CAPTURE SHOT</strong>. Check that
+                <strong>Shot 1</strong> appears in the list and the status
+                reports it was captured.
+              </li>
+              <li>
+                Double-click the shot name to rename it, for example
+                <strong>Norwegian Sea overview</strong>, and press Enter.
+              </li>
+              <li>
+                Move to another useful view and click CAPTURE SHOT again to add
+                Shot 2.
+              </li>
+            </ol>
+            <figure>
+              <a
+                href="screenshots/08-scenes.webp"
+                target="_blank"
+                rel="noopener"
+                aria-label="Open larger screenshot: A real new Scene with a captured Shot 1 and its load and export controls"
+                ><img
+                  src="screenshots/08-scenes.webp"
+                  alt="A real new Scene with a captured Shot 1 and its load and export controls"
+                  width="1153"
+                  height="350"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                <strong>1</strong> NEW creates a named Scene.
+                <strong>2</strong> CAPTURE SHOT saves the current setup.
+                <strong>3</strong> LOAD restores a shot; click its name to
+                select it. <strong>4</strong> EXPORT PRESETS makes a
+                backup.<span
+                  >Click the screenshot to open it at full size.</span
+                >
+              </figcaption>
+            </figure>
+            <div class="table-wrap">
+              <table class="reference">
+                <thead>
+                  <tr>
+                    <th scope="col">Control</th>
+                    <th scope="col">When to use it</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>Scene list</strong></td>
+                    <td>Choose the named Scene you want to work on.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>LOAD</strong></td>
+                    <td>Restore a saved shot’s camera and configuration.</td>
+                  </tr>
+                  <tr>
+                    <td><strong>UPDATE SHOT</strong></td>
+                    <td>
+                      Select a shot by clicking its name, adjust the live view,
+                      then replace that shot’s saved setup. Use CAPTURE SHOT to
+                      add a new one instead.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>START / STOP / NEXT</strong></td>
+                    <td>
+                      Play the Scene as a sequence, stop it, or advance to the
+                      next shot. Esc stops Scene playback. START plays views; it
+                      does not create a video file.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>EXPORT PRESETS / IMPORT</strong></td>
+                    <td>
+                      Download a JSON file containing Scene presets, or choose a
+                      saved preset file to import. Keep an export before
+                      importing or making major changes.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>DEL</strong></td>
+                    <td>
+                      Remove the selected Scene, or the individual shot beside
+                      that DEL button. Read the confirmation carefully.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>RUN LOG</strong></td>
+                    <td>
+                      Download playback diagnostics after a run. This is a log,
+                      not the preset backup.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="callout">
+              <strong>Keep a backup.</strong> Scenes are stored in this
+              browser’s local storage, rather than an account shared across
+              computers. Export presets before clearing browser data or moving
+              to another computer. A shot stores its configured view, not a
+              historical copy of every live object or every separate tool’s
+              content.
+            </div>
+            <h3>Share a saved Scene as a file</h3>
+            <ol class="steps">
+              <li>
+                Choose your Scene in the SCENES list, then click
+                <strong>SHARE SCENE</strong>.
+              </li>
+              <li>
+                Read the <strong>Share selected scene</strong> window. It lists
+                the shots, data packs and any unavailable layers or
+                external-content notices.
+              </li>
+              <li>
+                For an ordinary saved Scene, click
+                <strong>Download scene JSON</strong>. This downloads the
+                selected Scene’s authored settings and attribution.
+              </li>
+              <li>
+                If a supplied Scene uses extra data-pack files, choose the files
+                or folder requested, then use
+                <strong>Download asset bundle</strong>. Only the included pack
+                files travel with that bundle; external linked media is not
+                automatically included.
+              </li>
+              <li>
+                Close with <strong>Cancel</strong> or Esc. Give the downloaded
+                file to the recipient; they use IMPORT to review it in their
+                app.
+              </li>
+            </ol>
+            <figure>
+              <a
+                href="screenshots/20-share-scene.webp"
+                target="_blank"
+                rel="noopener"
+                aria-label="Open larger screenshot: Share selected scene window with download and optional asset-file controls"
+                ><img
+                  src="screenshots/20-share-scene.webp"
+                  alt="Share selected scene window with download and optional asset-file controls"
+                  width="790"
+                  height="472"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                <strong>1</strong> Review the selected Scene, then choose
+                Download scene JSON. The file controls and Download asset bundle
+                are for Scenes that need additional data-pack files.<span
+                  >Click the screenshot to open it at full size.</span
+                >
+              </figcaption>
+            </figure>
+            <h3>Import a Scene file without losing your work</h3>
+            <ol class="steps">
+              <li>
+                Click <strong>EXPORT PRESETS</strong> first and keep that
+                backup.
+                <strong
+                  >Applying an import replaces the current Scene
+                  project.</strong
+                >
+              </li>
+              <li>
+                Click <strong>IMPORT</strong> and choose the supplied JSON or
+                bundle JSON file.
+              </li>
+              <li>
+                Read <strong>Review scene import</strong>. Check the Scene/shot
+                counts, missing-layer notices and any file or media
+                requirements. Selecting the file only stages it for review.
+              </li>
+              <li>
+                Click <strong>Apply import</strong> only when you want to
+                replace your current project. Click Cancel or press Esc to keep
+                the current project unchanged.
+              </li>
+              <li>
+                After applying, choose a Scene, LOAD a shot and check its source
+                status. Bundled files are held for this browser session;
+                reimport the bundle after reloading if those files are needed
+                again.
+              </li>
+            </ol>
+            <figure>
+              <a
+                href="screenshots/21-import-review.webp"
+                target="_blank"
+                rel="noopener"
+                aria-label="Open larger screenshot: Scene import review window before Apply import replaces the current project"
+                ><img
+                  src="screenshots/21-import-review.webp"
+                  alt="Scene import review window before Apply import replaces the current project"
+                  width="790"
+                  height="393"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                <strong>1</strong> Read the preview and replacement notice
+                before clicking Apply import. Cancel leaves your current Scenes
+                in place.<span
+                  >Click the screenshot to open it at full size.</span
+                >
+              </figcaption>
+            </figure>
+            <h3>Advanced: EDIT DETAILS and interactive Scenes</h3>
+            <p>
+              <strong>EDIT DETAILS</strong> opens a draft editor for the
+              selected shot’s camera, timing, anchors, data packs and actions.
+              It contains JSON fields and is intended for advanced Scene
+              authors. Beginners can use CAPTURE SHOT and UPDATE SHOT instead.
+              Opening the editor does not save changes;
+              <strong>Apply details</strong> validates and applies the draft,
+              while Cancel or Esc discards it.
+            </p>
+            <p>
+              A supplied Scene can expose a <strong>Scene actions</strong> panel
+              during playback. Select a feature or choose its named action using
+              Tab and Enter. An action can reveal a source card or move to
+              another part of the Scene. Follow its text and read any
+              unavailable/cancelled message.
+            </p>
+            <figure>
+              <a
+                href="screenshots/22-scene-details.webp"
+                target="_blank"
+                rel="noopener"
+                aria-label="Open larger screenshot: Advanced scene details draft editor with camera timing and anchor fields"
+                ><img
+                  src="screenshots/22-scene-details.webp"
+                  alt="Advanced scene details draft editor with camera timing and anchor fields"
+                  width="790"
+                  height="778"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                <strong>1</strong> The draft is separate from the saved Scene.
+                Use Cancel to leave it. Apply details is the explicit save
+                action after validation.<span
+                  >Click the screenshot to open it at full size.</span
+                >
+              </figcaption>
+            </figure>
+            <h3>Share the current map view</h3>
+            <ol class="steps">
+              <li>
+                Set up the location, camera, layers and style you want the
+                recipient to open.
+              </li>
+              <li>
+                Click the <strong>chain-link icon</strong> at the top, labelled
+                <strong>Copy share link</strong>. Check for the copy
+                confirmation.
+              </li>
+              <li>
+                Paste the copied link into your chosen message or document. The
+                recipient opens it and uses their normal app access.
+              </li>
+              <li>
+                A shared view restores supported view settings; objects and
+                source availability can differ when it is opened. Use EXPORT
+                PRESETS to transfer a whole Scene collection.
+              </li>
+            </ol>
+            <figure>
+              <a
+                href="screenshots/09-sharing.webp"
+                target="_blank"
+                rel="noopener"
+                aria-label="Open larger screenshot: Copy share link and camera orientation controls at the top of the workspace"
+                ><img
+                  src="screenshots/09-sharing.webp"
+                  alt="Copy share link and camera orientation controls at the top of the workspace"
+                  width="500"
+                  height="350"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                <strong>1</strong> Copy share link copies the configured view.
+                <strong>2</strong> N resets bearing. <strong>3</strong> Tilt
+                switches between straight-down and angled views.<span
+                  >Click the screenshot to open it at full size.</span
+                >
+              </figcaption>
+            </figure>
+            <p>
+              If the notice says <strong>Copy failed</strong>, wait a moment
+              after adjusting the view, then copy the full app address from your
+              browser’s address bar, including the part after
+              <strong>#</strong>. A shared view link does not sign you in or
+              grant access to a missing data provider.
+            </p>
+            <div class="next">
+              <button type="button" data-next="cameras">
+                ← CCTV & Street Level</button
+              ><button type="button" class="primary" data-next="display">
+                Next: Map, Display & Drawing →
+              </button>
+            </div>
+          </section>
+          <section
+            class="page"
+            id="page-display"
+            aria-labelledby="heading-display"
+          >
+            <div class="eyebrow">Chapter 09 / Map, Display & Drawing</div>
+            <h2 class="section-title" id="heading-display">
+              Make the map easier to read
+            </h2>
+            <p class="section-intro">
+              Start with Normal and a simple display. Change one option at a
+              time so you can see what it does.
+            </p>
+            <h3>Choose a map and a visual style</h3>
+            <ol class="steps">
+              <li>Click <strong>VISUAL PRESETS</strong> at the bottom.</li>
+              <li>
+                Under <strong>MAP SOURCE</strong>, choose an available map. Some
+                maps need administrator configuration. A disabled option or
+                fallback notice explains why it is unavailable.
+              </li>
+              <li>
+                Select <strong>Normal</strong> for the standard appearance. CRT,
+                NVG, FLIR, Anime, Noir and Snow apply visual effects. Click
+                Normal to remove those effects.
+              </li>
+              <li>
+                Click the pin if you want to keep this tray open; click it again
+                to unpin.
+              </li>
+            </ol>
+            <figure>
+              <a
+                href="screenshots/10-map-and-style.webp"
+                target="_blank"
+                rel="noopener"
+                aria-label="Open larger screenshot: Visual style buttons, map source selection and pin control"
+                ><img
+                  src="screenshots/10-map-and-style.webp"
+                  alt="Visual style buttons, map source selection and pin control"
+                  width="617"
+                  height="350"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                <strong>1</strong> Choose the visual style.
+                <strong>2</strong> Choose the map source. <strong>3</strong> Pin
+                keeps the tray open.<span
+                  >Click the screenshot to open it at full size.</span
+                >
+              </figcaption>
+            </figure>
+            <div class="callout">
+              <strong>NVG and FLIR are visual effects.</strong> They do not turn
+              a map into a night-vision or thermal sensor. Snow styling does not
+              establish observed snow conditions.
+            </div>
+            <h3>Reduce clutter in DISPLAY</h3>
+            <p>
+              Open <strong>DISPLAY</strong> on the right.
+              <strong>HUD</strong> controls the information overlaid on the map;
+              the Layout list offers Tactical, Operator, Minimal and Cyber. The
+              detection button controls object labels and detection-style
+              graphics. Its label shows the current mode:
+              <strong>SPARSE</strong>, <strong>BALANCED</strong> or
+              <strong>DENSE</strong>; <strong>DETECT</strong> is shown when off.
+              Lower Density if too many labels overlap.
+            </p>
+            <p>
+              <strong>3D</strong> enables close-up aircraft models; Proximity
+              limits them to nearby views. <strong>Scope</strong> controls the
+              circular mask around the workspace. <strong>Bloom</strong> changes
+              glow and <strong>Sharpen</strong> changes image sharpness. Cyber’s
+              sonar-like display is an interface effect, not a real sonar
+              measurement.
+            </p>
+            <figure>
+              <a
+                href="screenshots/11-display.webp"
+                target="_blank"
+                rel="noopener"
+                aria-label="Open larger screenshot: Display panel showing HUD, detection, scope and drawing controls"
+                ><img
+                  src="screenshots/11-display.webp"
+                  alt="Display panel showing HUD, detection, scope and drawing controls"
+                  width="500"
+                  height="518"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                <strong>1</strong> HUD changes the map information display.
+                <strong>2</strong> The detection button (DENSE in this example)
+                controls labels. <strong>3</strong> Scope changes the circular
+                mask. <strong>4</strong> Draw opens annotation tools.<span
+                  >Click the screenshot to open it at full size.</span
+                >
+              </figcaption>
+            </figure>
+            <h3>Draw a point, line or area</h3>
+            <ol class="steps">
+              <li>
+                In DISPLAY, click <strong>Draw</strong>. Choose the available
+                shape: Area, Line or Pin.
+              </li>
+              <li>
+                Enter an optional label and choose a colour. Click on the map to
+                place a pin, or click successive points for a line or area.
+              </li>
+              <li>
+                Double-click or press <strong>Enter</strong> to finish a line or
+                area. Press <strong>Esc</strong> to cancel an unfinished shape.
+              </li>
+              <li>
+                Read the resulting label or measurement. These marks are your
+                annotations. <strong>Clear</strong> removes all annotations, so
+                use it only when you want the whole board cleared.
+              </li>
+            </ol>
+            <p>
+              <strong>Clean UI</strong> hides the interface for a clear view.
+              Click <strong>EXIT CLEAN VIEW</strong> to return. Use your normal
+              screenshot or screen-recording tool if you want an image or video
+              file.
+            </p>
+            <div class="next">
+              <button type="button" data-next="scenes">
+                ← Scenes & Sharing</button
+              ><button type="button" class="primary" data-next="context">
+                Next: Context & Tools →
+              </button>
+            </div>
+          </section>
+          <section
+            class="page"
+            id="page-context"
+            aria-labelledby="heading-context"
+          >
+            <div class="eyebrow">Chapter 10 / Context & Tools</div>
+            <h2 class="section-title" id="heading-context">
+              Inspect contacts and explore optional tools
+            </h2>
+            <p class="section-intro">
+              Context collects information about contacts and space missions.
+              Other optional layers provide routes, radio or local receiver
+              input.
+            </p>
+            <figure>
+              <a
+                href="screenshots/14-context.webp"
+                target="_blank"
+                rel="noopener"
+                aria-label="Open larger screenshot: Context panel with contacts, space missions and compact radio buttons"
+                ><img
+                  src="screenshots/14-context.webp"
+                  alt="Context panel with contacts, space missions and compact radio buttons"
+                  width="500"
+                  height="350"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                <strong>1</strong> CONTACTS opens nearby-object context.
+                <strong>2</strong> SPACE MISSIONS opens mission information.
+                <strong>3</strong> The radio icon opens compact radio
+                controls.<span
+                  >Click the screenshot to open it at full size.</span
+                >
+              </figcaption>
+            </figure>
+            <h3>Inspect a vessel or aircraft</h3>
+            <ol class="steps">
+              <li>
+                Enable <strong>Live Vessels</strong> or
+                <strong>Live Flights</strong> in DATA LAYERS and wait for source
+                information.
+              </li>
+              <li>
+                Click a visible object symbol. Read the available card details,
+                including observation time and identity. Missing fields mean the
+                source has not supplied them.
+              </li>
+              <li>
+                Open <strong>CONTEXT</strong> and choose
+                <strong>CONTACTS</strong> for nearby-object context. Use the
+                contact selectors offered there to narrow the type or move
+                between contacts.
+              </li>
+              <li>
+                When a tracked aircraft exposes <strong>COCKPIT</strong>, click
+                it to enter the aircraft view. Click
+                <strong>EXIT COCKPIT</strong> or press Esc to return to the map.
+                This is a visual reconstruction from available data.
+              </li>
+            </ol>
+            <p>
+              Vessel speed can be shown in <strong>knots</strong>. Heading is
+              the direction the vessel points; course is the direction it moves.
+              A short displayed trail covers available received positions and is
+              not guaranteed to be a complete voyage history.
+            </p>
+            <figure>
+              <a
+                href="screenshots/19-vessel-inspection.webp"
+                target="_blank"
+                rel="noopener"
+                aria-label="Open larger screenshot: a selected vessel with its AIS details"
+              >
+                <img
+                  src="screenshots/19-vessel-inspection.webp"
+                  alt="An actual received vessel selected on the map, with its AIS identity, speed, heading and reported time"
+                  width="1600"
+                  height="1000"
+                  loading="lazy"
+                />
+              </a>
+              <figcaption>
+                <strong>1</strong> Read the AIS information for the selected
+                vessel. Compare its identity, reported position time and
+                available details before drawing conclusions.<span
+                  >Click the screenshot to open it at full size.</span
+                >
+              </figcaption>
+            </figure>
+            <h3>Optional Global Fishing Watch information</h3>
+            <p>
+              A selected vessel may show lines beginning <strong>GFW</strong> in
+              its details or AIS readout. These can include identity attributes
+              and counts of modelled activity/events when the provider is
+              configured. <strong>CHECKING IDENTITY + EVENTS</strong> means
+              enrichment is loading; <strong>NO IDENTITY MATCH</strong> means
+              this lookup did not identify a match. Modelled activity is
+              research context, not proof of a vessel’s actions. Missing GFW
+              information does not prevent the AIS view from working.
+            </p>
+            <h3>Space missions</h3>
+            <p>
+              Choose <strong>SPACE MISSIONS</strong> in CONTEXT and select a
+              mission from the available roster. Read the scheduled/status
+              information and use the offered focus controls to inspect its
+              launch site. Times and schedules can change; simulated replays
+              illustrate a sequence rather than confirm an actual launch.
+            </p>
+            <h3>Radio</h3>
+            <ol class="steps">
+              <li>
+                Click the radio icon in the Context header and click
+                <strong>ENABLE</strong>.
+              </li>
+              <li>
+                Choose a station using its map marker or the previous/next
+                controls. The detailed Radio section adds station-tag filters
+                and tuner controls.
+              </li>
+              <li>
+                Click <strong>PLAY</strong>. Adjust Volume. Click Pause or STOP
+                in the applicable control to end playback. Audio starts only
+                when you choose to play it.
+              </li>
+            </ol>
+            <p>
+              Streaming connects to the broadcaster. AI voice and radio can
+              compete for audio; read any takeover confirmation before
+              continuing.
+            </p>
+            <h3>Directions and Local ADS-B</h3>
+            <p>
+              <strong>Directions:</strong> enable it in DATA LAYERS, then use
+              its route controls to set a start and destination and inspect the
+              returned route. Coverage and routing depend on the source. It is a
+              planning illustration.
+            </p>
+            <p>
+              <strong>Local ADS-B:</strong> this requires a compatible physical
+              RTL-SDR USB receiver. The Radio section has CONNECT and FM / ADS-B
+              controls; follow the browser’s device chooser only when the
+              receiver is attached. The same tuner is shared by FM and aircraft
+              reception, so it cannot perform both at once. Beginners can leave
+              Local ADS-B off.
+            </p>
+            <div class="next">
+              <button type="button" data-next="display">
+                ← Map, Display & Drawing</button
+              ><button type="button" class="primary" data-next="ai">
+                Next: AI Voice Control →
+              </button>
+            </div>
+          </section>
+          <section class="page" id="page-ai" aria-labelledby="heading-ai">
+            <div class="eyebrow">Chapter 11 / AI Voice Control</div>
+            <h2 class="section-title" id="heading-ai">
+              Give one spoken instruction at a time
+            </h2>
+            <p class="section-intro">
+              The AI Agent is an optional way to use the same map functions. You
+              can learn and use the app with the ordinary controls first.
+            </p>
+            <ol class="steps">
+              <li>
+                Find <strong>AI AGENT</strong> in the bottom dock.
+                <strong>OFF</strong> means no active voice session.
+              </li>
+              <li>
+                Click the microphone <strong>ON/OFF</strong> button. Allow
+                microphone access if your browser asks. Wait for the agent to
+                become ready.
+              </li>
+              <li>
+                With focus on the map rather than a text field, hold
+                <strong>Space</strong> and say a short instruction, such as
+                <strong>“Go to Oslo, Norway.”</strong> Release Space to send.
+              </li>
+              <li>
+                Wait for the answer and check the resulting map change. Follow
+                with one instruction, such as
+                <strong>“Turn on live vessels”</strong> or
+                <strong>“Reset to globe view.”</strong>
+              </li>
+              <li>
+                Read the response card and any source/error notes. Ask another
+                question only after the current action finishes.
+              </li>
+              <li>Click ON/OFF again to end the session.</li>
+            </ol>
+            <div class="callout">
+              Hold Space to speak when the map has focus. A quick Space press on
+              a focused button activates that button. Click the map before
+              starting a voice command so you do not accidentally trigger a
+              control.
+            </div>
+            <div class="result">
+              <strong>If voice will not connect:</strong> check microphone
+              permission, internet access and the error message. The
+              administrator may need to configure the AI service. Continue using
+              the ordinary controls while it is unavailable.
+            </div>
+            <figure>
+              <a
+                href="screenshots/15-ai-agent.webp"
+                target="_blank"
+                rel="noopener"
+                aria-label="Open larger screenshot: AI Agent microphone, connection status, model tier and estimated cost"
+                ><img
+                  src="screenshots/15-ai-agent.webp"
+                  alt="AI Agent microphone, connection status, model tier and estimated cost"
+                  width="500"
+                  height="350"
+                  loading="lazy"
+              /></a>
+              <figcaption>
+                <strong>1</strong> ON/OFF starts or ends voice.
+                <strong>2</strong> Status tells you whether it is ready.
+                <strong>3</strong> STD selects the model tier for the next
+                session. <strong>4</strong> The amount is an estimated session
+                cost.<span>Click the screenshot to open it at full size.</span>
+              </figcaption>
+            </figure>
+            <p>
+              Good first requests include
+              <strong>“Show the Norwegian Sea,” “Turn off wind,”</strong> and
+              <strong>“How many ships are in view?”</strong> Data questions use
+              loaded records from enabled layers; a count describes the
+              available data, not every object that exists in the real world.
+            </p>
+
+            <div class="next">
+              <button type="button" data-next="context">
+                ← Context & Tools</button
+              ><button type="button" class="primary" data-next="data">
+                Next: Sources & Glossary →
+              </button>
+            </div>
+          </section>
+          <section class="page" id="page-data" aria-labelledby="heading-data">
+            <div class="eyebrow">Chapter 12 / Sources & Glossary</div>
+            <h2 class="section-title" id="heading-data">
+              Know what the numbers mean
+            </h2>
+            <p class="section-intro">
+              Check a source’s time and coverage before interpreting what you
+              see. Different products have different update intervals.
+            </p>
+            <div class="table-wrap">
+              <table class="reference">
+                <thead>
+                  <tr>
+                    <th scope="col">Status or time</th>
+                    <th scope="col">What it means for you</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>OFF / never</strong></td>
+                    <td>
+                      This layer is off or has not loaded in this browser
+                      session. “Never” is not evidence that the source is
+                      broken.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Loading / connecting</strong></td>
+                    <td>
+                      A request or connection is in progress. Wait and read the
+                      status before assuming data has arrived.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Live / observed</strong></td>
+                    <td>
+                      The source reports observations. They can still have
+                      delay; check the position or observation timestamp.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Forecast</strong></td>
+                    <td>
+                      A model estimates conditions or positions at a stated
+                      time. Wind and Aurora are examples.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Stale / cached</strong></td>
+                    <td>
+                      Older data may still be visible. Use its original
+                      timestamp to judge age.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Empty coverage / no results</strong></td>
+                    <td>
+                      A source can answer successfully with no accepted objects
+                      in the covered area. Empty results are different from a
+                      connection error.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Unavailable / missing key / error</strong></td>
+                    <td>
+                      Usable source information could not be obtained. Read the
+                      reason and contact the administrator if configuration is
+                      needed.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>UTC</strong></td>
+                    <td>
+                      A common worldwide time standard. Local time in Norway is
+                      UTC+1 in winter and UTC+2 in summer. The screenshot
+                      timestamps use UTC where labelled.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p>
+              A freshly downloaded image can show an older acquisition date. A
+              recently received position can also have an older observation
+              time. Use the time of the underlying observation, acquisition or
+              forecast, rather than assuming the download time describes the
+              event.
+            </p>
+            <h3>Small glossary</h3>
+            <div class="table-wrap">
+              <table class="reference">
+                <thead>
+                  <tr>
+                    <th scope="col">Word</th>
+                    <th scope="col">Plain meaning</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>MDA</strong></td>
+                    <td>
+                      Maritime Domain Awareness: understanding activity in the
+                      maritime area.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>AIS / MMSI</strong></td>
+                    <td>
+                      AIS carries ship reports. MMSI is a vessel’s maritime
+                      radio identity number; check it when names are similar.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>ADS-B</strong></td>
+                    <td>
+                      Aircraft broadcasts used by receivers and providers to
+                      report aircraft positions.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Layer / basemap</strong></td>
+                    <td>
+                      A layer adds data. The basemap is the background map or 3D
+                      world underneath it.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Scene / shot</strong></td>
+                    <td>
+                      A Scene is a named set of saved views. A shot is one
+                      camera and configuration within it.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>HUD / heading / course</strong></td>
+                    <td>
+                      HUD is information overlaid on the map. Heading is where
+                      an object points; course is where it travels.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Latitude / longitude</strong></td>
+                    <td>
+                      Coordinates: latitude measures north/south; longitude
+                      measures east/west. Search expects latitude first.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Knots / km / m</strong></td>
+                    <td>
+                      Knots measure speed at sea; one knot is 1.852 km/h. km
+                      means kilometres; m means metres.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Coverage / resolution</strong></td>
+                    <td>
+                      Coverage is where data exists. Resolution is the level of
+                      detail it can show.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Provider / token</strong></td>
+                    <td>
+                      A provider supplies data. A token is a service credential
+                      configured by the administrator.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>JSON</strong></td>
+                    <td>
+                      The file format used for exported Scene presets. Keep the
+                      file for IMPORT; you do not need to edit it.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <h3>What is connected and what is not</h3>
+            <p>
+              The Arctic view provides vessels and weather when their sources
+              are available. Its description states that
+              <strong>sea-ice charts are not connected yet</strong>. The
+              presence of a region preset does not imply all possible maritime
+              datasets are available. Follow the actual source status in the
+              app.
+            </p>
+            <div class="next">
+              <button type="button" data-next="ai">← AI Voice Control</button
+              ><button type="button" class="primary" data-next="practice">
+                Next: Help & Practice →
+              </button>
+            </div>
+          </section>
+          <section
+            class="page"
+            id="page-practice"
+            aria-labelledby="heading-practice"
+          >
+            <div class="eyebrow">Chapter 13 / Help & Practice</div>
+            <h2 class="section-title" id="heading-practice">
+              Fix common problems and practise safely
+            </h2>
+            <p class="section-intro">
+              Most beginner problems can be resolved by resetting the camera,
+              checking the source line or reopening a saved shot.
+            </p>
+            <div class="table-wrap">
+              <table class="reference">
+                <thead>
+                  <tr>
+                    <th scope="col">What you see</th>
+                    <th scope="col">What to do next</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>I cannot find the controls</strong></td>
+                    <td>
+                      Make the app window at least 1280 × 720. Exit Clean View
+                      if active. Look for + or arrows on the side-panel headers.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>I am lost on the map</strong></td>
+                    <td>
+                      Click N to restore north, or the globe icon to restore the
+                      whole Earth. Choose Fly to region again.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>No vessels or aircraft appear</strong></td>
+                    <td>
+                      Check that the correct layer is on, read its source
+                      status, wait for loading, and try another scale or area.
+                      Empty coverage is possible.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <strong
+                        >Objects are on screen but the feed says stale</strong
+                      >
+                    </td>
+                    <td>
+                      Treat the displayed positions as older information. Read
+                      their observation time and do not describe them as
+                      current.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Search finds the wrong place</strong></td>
+                    <td>
+                      Add the country or use latitude, longitude. To inspect
+                      moving objects, use their layer and Contacts rather than
+                      the location field.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <strong>My map looks different from the guide</strong>
+                    </td>
+                    <td>
+                      Choose Normal in Visual Presets. Check Map Source. Google
+                      3D may fall back to another map if its source is
+                      unavailable.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>A camera is blank</strong></td>
+                    <td>
+                      Try another camera with PREV / NEXT. Read the source
+                      badge. Some cameras supply stills, some video, and some
+                      are temporarily unavailable.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <strong>Street Level says a token is missing</strong>
+                    </td>
+                    <td>
+                      Ask the administrator to configure Mapillary. Other
+                      functions can still be used.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Aurora is faint or missing</strong></td>
+                    <td>
+                      Check the source status, choose an Arctic region and try
+                      Clear or Strong contrast. Low-intensity model cells can be
+                      transparent.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>No recent image is usable</strong></td>
+                    <td>
+                      Select a smaller area, try another date and inspect
+                      clouds/coverage. Read the comparison-map notice if there
+                      is no divider.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>My Scene has no saved view</strong></td>
+                    <td>
+                      NEW creates a Scene; CAPTURE SHOT saves a view. Look for
+                      Shot 1 before leaving the panel.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>A saved view changes after LOAD</strong></td>
+                    <td>
+                      LOAD restores its setup. Live objects update from current
+                      available sources; it is not an archived snapshot.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Scene controls are disabled</strong></td>
+                    <td>
+                      If playback is running, click STOP or press Esc before
+                      editing.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>My floating panel is in the way</strong></td>
+                    <td>
+                      Double-click the CCTV or Street Level header to dock it
+                      again, or drag and resize it.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>Voice does not work</strong></td>
+                    <td>
+                      Check microphone permission and the connection error. Use
+                      the normal controls and ask the administrator if service
+                      configuration is needed.
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><strong>The app feels slow</strong></td>
+                    <td>
+                      Turn off unused layers, reduce labels and 3D models, close
+                      unused panels and return to Normal. Keep the practice view
+                      simple.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <h3>Three short practice exercises</h3>
+            <div class="grid three">
+              <div class="card">
+                <h3>1. Navigation</h3>
+                <p>
+                  Go to Baltic Sea. Zoom in a little, tilt the view, then
+                  restore north. Return to the globe. You finish when you can
+                  recover your view without reloading.
+                </p>
+              </div>
+              <div class="card">
+                <h3>2. Aurora</h3>
+                <p>
+                  Choose Arctic overview. Enable Aurora, read the map centre,
+                  open NOAA loop and select one frame. Close the player and turn
+                  Aurora off.
+                </p>
+              </div>
+              <div class="card">
+                <h3>3. Save and return</h3>
+                <p>
+                  Create a practice Scene, capture one shot, move to another
+                  region and LOAD the shot. Export the presets as a backup.
+                </p>
+              </div>
+            </div>
+            <h3>When you need help</h3>
+            <p>
+              Tell your administrator which function you used, the exact
+              source/error text and what you expected. Include a screenshot if
+              useful. Do not include login links, passkey details or provider
+              credentials.
+            </p>
+            <p>
+              Click <strong>LOG OUT</strong> at the top of the app to return to
+              its personal login screen. Keep a preset export if you plan to
+              clear this browser’s stored data.
+            </p>
+            <div class="next">
+              <button type="button" data-next="data">
+                ← Sources & Glossary</button
+              ><button type="button" class="primary" data-next="overview">
+                Back to Start Here →
+              </button>
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+    <script src="user-guide.js" defer></script>
+  </body>
+</html>

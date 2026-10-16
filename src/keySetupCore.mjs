@@ -1,7 +1,8 @@
 /**
  * Key setup ("POWER UP") — the pure core.
  *
- * One registry, three pure functions, zero dependencies. The dev server's
+ * One registry and pure functions; its only import is the proxy-header check
+ * shared with the other local gates (localRequestGate.mjs). The dev server's
  * /api/setup endpoints (vite.config.js) and the in-app panel (keySetup.js)
  * are both thin shells over this module, so what a key is called, what it
  * unlocks, and how a .env line is written each live in exactly one place.
@@ -11,8 +12,13 @@
  * behavior below unit-testable.
  */
 
+import { hasProxySignals } from './localRequestGate.mjs';
+
 /** Longest accepted key/token value. Real provider keys are all far shorter. */
 export const KEY_SETUP_VALUE_LIMIT = 512;
+
+/** Long bearer tokens remain bounded without weakening ordinary API-key limits. */
+export const KEY_SETUP_LONG_VALUE_LIMIT = 4096;
 
 /** Most env vars accepted in one save. The registry defines ten. */
 export const KEY_SETUP_UPDATE_LIMIT = 16;
@@ -25,7 +31,7 @@ export const KEY_SETUP_APPEND_HEADER =
  * Provider credentials, in display order — most magic per
  * minute first. `tier` mirrors the README's color legend: 'metered' (🔴) is a
  * billing-enabled account, 'free' (🟡) is a register-and-paste key.
- * `clientExposed` marks the two keys that are injected into the browser
+ * `clientExposed` marks the keys that are injected into the browser
  * bundle by design (restrict them at the provider, per SECURITY.md).
  * `hidden` keeps advanced configuration out of the panel and missing-key count.
  */
@@ -52,7 +58,7 @@ export const KEY_SETUP_KEYS = Object.freeze([
   Object.freeze({
     id: 'openai',
     title: 'OPENAI',
-    unlocks: 'Voice control — talk to the planet',
+    unlocks: 'Voice control — API key or ChatGPT OAuth',
     getUrl: 'https://platform.openai.com/api-keys',
     envVars: Object.freeze(['OPENAI_API_KEY']),
     tier: 'metered',
@@ -63,6 +69,26 @@ export const KEY_SETUP_KEYS = Object.freeze([
     unlocks: 'Live ships, worldwide',
     getUrl: 'https://aisstream.io',
     envVars: Object.freeze(['AISSTREAM_API_KEY']),
+    tier: 'free',
+  }),
+  Object.freeze({
+    id: 'barentswatch-ais',
+    title: 'BARENTSWATCH AIS',
+    unlocks: 'Norwegian, Svalbard and Jan Mayen vessel coverage',
+    getUrl: 'https://www.barentswatch.no/minside/devaccess/ais',
+    envVars: Object.freeze([
+      'BARENTSWATCH_AIS_CLIENT_ID',
+      'BARENTSWATCH_AIS_CLIENT_SECRET',
+    ]),
+    tier: 'free',
+  }),
+  Object.freeze({
+    id: 'global-fishing-watch',
+    title: 'GLOBAL FISHING WATCH',
+    unlocks: 'Selected-vessel identity and modelled activity events',
+    getUrl: 'https://globalfishingwatch.org/our-apis/tokens',
+    envVars: Object.freeze(['GFW_API_ACCESS_TOKEN']),
+    maxLength: KEY_SETUP_LONG_VALUE_LIMIT,
     tier: 'free',
   }),
   Object.freeze({
@@ -77,7 +103,7 @@ export const KEY_SETUP_KEYS = Object.freeze([
     id: 'tomtom',
     title: 'TOMTOM',
     unlocks: 'Real live traffic (keyless runs a simulation)',
-    getUrl: 'https://developer.tomtom.com',
+    getUrl: 'https://my.tomtom.com/keys',
     envVars: Object.freeze(['TOMTOM_API_KEY']),
     tier: 'free',
   }),
@@ -97,6 +123,16 @@ export const KEY_SETUP_KEYS = Object.freeze([
     getUrl: 'https://opensky-network.org',
     envVars: Object.freeze(['OPENSKY_CLIENT_ID', 'OPENSKY_CLIENT_SECRET']),
     tier: 'free',
+  }),
+  Object.freeze({
+    id: 'mapillary',
+    title: 'MAPILLARY',
+    unlocks:
+      'Street-level imagery and coverage in the Street Level layer. Free: register an app in the Mapillary developer dashboard and paste its Client Token',
+    getUrl: 'https://www.mapillary.com/dashboard/developers',
+    envVars: Object.freeze(['MAPILLARY_CLIENT_TOKEN']),
+    tier: 'free',
+    clientExposed: true,
   }),
   Object.freeze({
     id: 'launch-library',
@@ -185,6 +221,24 @@ export function parseWindowsUserSid(stdout) {
 }
 
 /**
+ * Whether the launcher has sharing on. Every sharing signal the launcher
+ * recognizes (scripts/pinokio-preflight.mjs) counts, so the two sets cannot
+ * drift apart. One DELIBERATE divergence: preflight is a boot check that
+ * treats an empty PINOKIO_SHARE_VAR as sharing-on (fail closed before Start),
+ * but here an empty/unset value is the NORMAL git-clone and Pinokio state, so
+ * a bare/sentinel value is not sharing; only a real tunnel var is.
+ */
+export function isSharingEnabled(env = {}) {
+  const shareVar = String(env.PINOKIO_SHARE_VAR ?? '').trim();
+  return (
+    ['PINOKIO_SHARE_CLOUDFLARE', 'PINOKIO_SHARE_LOCAL'].some((name) =>
+      /^(1|true)$/i.test(String(env[name] || '').trim()),
+    ) ||
+    (shareVar !== '' && shareVar !== '__gev_sharing_disabled__')
+  );
+}
+
+/**
  * The admission gate for the Provider Settings endpoints — pure, exported so
  * every refusal below is pinned by a unit assertion rather than a review note.
  *
@@ -219,20 +273,7 @@ export function admitKeySetupRequest({
   // on this machine, whatever its socket says. Refuse them outright as defense
   // in depth — the shipped tunnel (Pinokio) is force-closed at boot, so these
   // only appear when someone has deliberately fronted the dev server.
-  const PROXY_SIGNALS = [
-    'forwarded',
-    'via',
-    'x-forwarded-for',
-    'x-forwarded-host',
-    'x-forwarded-port',
-    'x-forwarded-proto',
-    'x-real-ip',
-    'cf-connecting-ip',
-    'cf-ray',
-  ];
-  if (
-    PROXY_SIGNALS.some((name) => String(proxyHeaders[name] || '').trim() !== '')
-  ) {
+  if (hasProxySignals(proxyHeaders)) {
     return {
       ok: false,
       status: 403,
@@ -249,13 +290,7 @@ export function admitKeySetupRequest({
   // tunnel var is. This is defense in depth regardless: the loopback+Host checks
   // below independently refuse LAN/tunnel traffic, and under Pinokio the launcher
   // refuses to boot at all when sharing is genuinely on.
-  const shareVar = String(env.PINOKIO_SHARE_VAR ?? '').trim();
-  const sharingEnabled =
-    ['PINOKIO_SHARE_CLOUDFLARE', 'PINOKIO_SHARE_LOCAL'].some((name) =>
-      /^(1|true)$/i.test(String(env[name] || '').trim()),
-    ) ||
-    (shareVar !== '' && shareVar !== '__gev_sharing_disabled__');
-  if (sharingEnabled) {
+  if (isSharingEnabled(env)) {
     return {
       ok: false,
       status: 403,
@@ -411,6 +446,11 @@ export function validateKeySetupUpdates(body) {
     };
   }
   const known = knownKeySetupEnvVars();
+  const valueLimits = new Map(
+    KEY_SETUP_KEYS.flatMap((key) =>
+      key.envVars.map((name) => [name, key.maxLength || KEY_SETUP_VALUE_LIMIT]),
+    ),
+  );
   const updates = {};
   for (const [name, raw] of entries) {
     if (!known.has(name)) return { ok: false, error: `Unknown key: ${name}` };
@@ -422,10 +462,11 @@ export function validateKeySetupUpdates(body) {
       return { ok: false, error: `${name} must be a string` };
     const value = raw.trim();
     if (!value) return { ok: false, error: `${name} is empty` };
-    if (value.length > KEY_SETUP_VALUE_LIMIT) {
+    const valueLimit = valueLimits.get(name) || KEY_SETUP_VALUE_LIMIT;
+    if (value.length > valueLimit) {
       return {
         ok: false,
-        error: `${name} is longer than any real key (${KEY_SETUP_VALUE_LIMIT} max)`,
+        error: `${name} is longer than the supported credential limit (${valueLimit} max)`,
       };
     }
     if (!/^[\x21-\x7e]+$/.test(value)) {

@@ -6,6 +6,7 @@ import { createStandaloneScene } from './scene.js';
 import { createStandaloneControls } from './controls.js';
 import { createStandaloneData } from './data.js';
 import { createStandaloneTools } from './tools.js';
+import { createGoogleTokenSource } from '../maps/googleTokens.js';
 
 // The existing controls and layer catalog contain page-scoped state.
 let constructed = false;
@@ -16,7 +17,10 @@ export function createStandaloneApplication({
   cesiumToken,
   geospatial = {},
   voice = {},
+  sources = {},
+  streetLevelProviders,
   allowQaRegistration = false,
+  enableLocalKeySetup = true,
 }) {
   if (constructed)
     throw new Error('The standalone application already owns this page');
@@ -39,10 +43,15 @@ export function createStandaloneApplication({
       const scene = await createStandaloneScene({
         ...context,
         googleApiKey,
+        // Without a key, Google 3D can still load with tokens from the
+        // app's server when it offers them.
+        googleTokens: googleApiKey ? null : createGoogleTokenSource(),
         cesiumToken,
         loaderStatus,
       });
       catalog = createStandaloneCatalog({
+        sources,
+        streetLevelProviders,
         nepalBoundaryResolver: (signal) =>
           scene.operations.annotationResolver.resolveRegionRingForQuery(
             'Nepal',
@@ -66,6 +75,12 @@ export function createStandaloneApplication({
     createData: (context) =>
       createStandaloneData({ ...context, allowQaRegistration, catalog }),
     createTools: (context) =>
-      createStandaloneTools({ ...context, loadingScreen, placeSearch, voice }),
+      createStandaloneTools({
+        ...context,
+        loadingScreen,
+        placeSearch,
+        voice,
+        enableLocalKeySetup,
+      }),
   });
 }

@@ -1,3 +1,4 @@
+import { createSnapshotCache } from './cctv/snapshot-cache.js';
 import { createCctvCatalog } from './cctv/catalog.js';
 import {
   normalizeFeedType,
@@ -35,6 +36,7 @@ export { CCTV_FRAME_FETCH_TIMEOUT_MS, fetchCctvImageFromUpstream };
  */
 export function cctvProxy({ sourceRoot = process.cwd() } = {}) {
   const getCctvSources = createCctvCatalog({ sourceRoot });
+  const snapshots = createSnapshotCache(fetchCctvImageFromUpstream);
   /** @type {Map<string,{id:string,status:string,sourceKind:string,label:string,message:string,updatedAt:number}>} */
   const health = new Map();
   /** Cap on health map entries to prevent unbounded growth. Sized to the
@@ -59,6 +61,7 @@ export function cctvProxy({ sourceRoot = process.cwd() } = {}) {
       label: patch.label || prev.label || '',
       message: patch.message || prev.message || '',
       updatedAt: Date.now(),
+      imageUpdatedAt: patch.imageUpdatedAt ?? null,
     });
   };
 
@@ -143,8 +146,10 @@ export function cctvProxy({ sourceRoot = process.cwd() } = {}) {
 
         if (url.pathname === '/sources') {
           const body = {
+            trimmedPacks: getCctvSources.trimmedPacks?.() ?? [],
             sources: sources.map((source) => ({
               id: source.id,
+              pack: source.pack,
               name: source.name,
               city: source.city,
               cityId: source.cityId,
@@ -164,6 +169,10 @@ export function cctvProxy({ sourceRoot = process.cwd() } = {}) {
               poseSource: source.poseSource,
               license: source.license,
               credit: source.credit || '',
+              sourcePageUrl: source.sourcePageUrl,
+              refreshIntervalMs: source.refreshIntervalMs,
+              snapshotMaxAgeMs: source.snapshotMaxAgeMs,
+              locationNote: source.locationNote,
               code: source.code || '',
               groundHeights: source.groundHeights || null,
             })),
@@ -488,18 +497,40 @@ export function cctvProxy({ sourceRoot = process.cwd() } = {}) {
         const upstreamImage =
           source?.sourceKind === 'txdot-its'
             ? await fetchTxdotSnapshot(upstreamCandidate)
-            : await fetchCctvImageFromUpstream(upstreamCandidate);
+            : await snapshots.get(source, upstreamCandidate);
         if (upstreamImage?.ok) {
           setHealth(cameraId, {
-            status: 'ok',
+            status:
+              upstreamImage.refreshFailed ||
+              (source?.snapshotMaxAgeMs &&
+                upstreamImage.imageUpdatedAt &&
+                Date.now() - upstreamImage.imageUpdatedAt >
+                  source.snapshotMaxAgeMs)
+                ? 'degraded'
+                : 'ok',
             sourceKind: 'snapshot',
             label: source?.provider || 'Configured source',
-            message: 'Upstream snapshot active',
+            message: upstreamImage.refreshFailed
+              ? 'Last available snapshot; source refresh failed'
+              : source?.snapshotMaxAgeMs &&
+                  upstreamImage.imageUpdatedAt &&
+                  Date.now() - upstreamImage.imageUpdatedAt >
+                    source.snapshotMaxAgeMs
+                ? 'Source image is outdated'
+                : 'Upstream snapshot active',
+            imageUpdatedAt: upstreamImage.imageUpdatedAt ?? null,
           });
           res.writeHead(200, {
             'Content-Type': upstreamImage.contentType,
             'Cache-Control': 'no-store',
             'X-CCTV-Source': 'upstream-image',
+            ...(upstreamImage.imageUpdatedAt
+              ? {
+                  'X-CCTV-Image-Updated': new Date(
+                    upstreamImage.imageUpdatedAt,
+                  ).toISOString(),
+                }
+              : {}),
           });
           res.end(upstreamImage.body);
           return;

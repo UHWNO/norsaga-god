@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en-US">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Sign In – NorSaga God’s Eye</title>
+    <link rel="icon" href="/norsaga/favicon.png" />
+  </head>
+  <body>
+    <main class="access-card">
+      <div class="brand">
+        <img
+          class="brand-logo"
+          src="/norsaga/access-logo.png"
+          width="1672"
+          height="941"
+          alt="NorSaga Maritime Intelligence"
+        />
+      </div>
+      <h1>Sign In</h1>
+      <p id="login-intro">
+        Enter your approved email address. We’ll send you a personal sign-in
+        link.
+      </p>
+      <form id="login-form">
+        <label for="email">Email Address</label>
+        <input
+          id="email"
+          name="email"
+          type="email"
+          autocomplete="email webauthn"
+          maxlength="254"
+          placeholder="name@example.com"
+          required
+        />
+        <button type="submit">Send Login Link</button>
+      </form>
+      <section id="confirm-section" hidden>
+        <p>
+          Click below to use your link. It works once and expires after ten
+          minutes.
+        </p>
+        <button id="confirm-login" type="button">Confirm Sign-In</button>
+      </section>
+      <div class="divider">or</div>
+      <button id="passkey-login" class="secondary" type="button">
+        Sign In with a Passkey
+      </button>
+      <p class="hint">
+        Already have a passkey? Use Touch ID, Windows Hello, your phone, or a
+        security key.
+      </p>
+      <p id="status" role="status" aria-live="polite"></p>
+      <footer>
+        Your administrator approves access. Use a desktop or laptop with a
+        browser window of at least 1280 × 720 pixels.
+      </footer>
+    </main>
+    <script type="module" src="/src/auth/login.js"></script>
+  </body>
+</html>
